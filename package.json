@@ -1,0 +1,12 @@
+{
+  "name": "customimpulse-theme",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "shots:ref": "node tools/screens.mjs ref",
+    "shots:local": "node tools/screens.mjs local"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.0"
+  }
+}

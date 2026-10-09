@@ -1,0 +1,11 @@
+reference
+node_modules
+tools
+screens-local
+.git
+.gitignore
+.distignore
+CLAUDE.md
+package.json
+package-lock.json
+.DS_Store
