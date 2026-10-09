@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# WP-CLI against the Local site "resellstreet" using Local's PHP + MySQL socket.
+LOCAL="$HOME/Library/Application Support/Local"
+PHP="$LOCAL/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php"
+SOCK="$LOCAL/run/j8LM0BmET/mysql/mysqld.sock"
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec "$PHP" -d memory_limit=512M -d "mysqli.default_socket=$SOCK" -d "pdo_mysql.default_socket=$SOCK" \
+  "$DIR/bin/wp-cli.phar" --path="$DIR/../../../.." "$@"

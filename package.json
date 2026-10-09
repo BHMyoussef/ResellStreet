@@ -4,7 +4,10 @@
   "type": "module",
   "scripts": {
     "shots:ref": "node tools/screens.mjs ref",
-    "shots:local": "node tools/screens.mjs local"
+    "shots:local": "node tools/screens.mjs local",
+    "measure": "node tools/measure.mjs",
+    "check": "node tools/behavior.mjs",
+    "seed": "tools/seed.sh"
   },
   "devDependencies": {
     "playwright": "^1.64.0"

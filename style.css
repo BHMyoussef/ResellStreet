@@ -1,0 +1,16 @@
+/*
+Theme Name: CustomImpulse
+Theme URI: https://novarende.com/
+Description: Custom classic WooCommerce theme for a UK shoe & apparel store. Standalone, no page builder.
+Author: usefBhm
+Version: 0.1.0
+Requires at least: 6.4
+Tested up to: 6.8
+Requires PHP: 8.0
+License: GPL-2.0-or-later
+Text Domain: customimpulse
+WC requires at least: 8.0
+WC tested up to: 10.2
+*/
+
+/* Styles live in assets/css (tokens.css first). This file is only the theme header. */

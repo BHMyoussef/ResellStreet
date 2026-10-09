@@ -16,8 +16,33 @@ Local site: http://resellstreet.local
   (WooCommerce core may still load jQuery on its own pages. Our code must not depend on it.)
 - Fonts: same as the Shopify store when it is a Google Font, otherwise the closest Google equivalent.
   Always self-hosted as woff2 in `/assets/fonts`, never loaded from Google's CDN.
-  - Headings: Tenor Sans 400 (same font as Shopify)
-  - Body: Jost (Google stand-in for Monotype "Twentieth Century", a Futura-style geometric sans)
+  - Headings: Tenor Sans 400 (same as live store)
+  - Body: Outfit 300, bold 600 (same as live store; one variable woff2 file covers 300–600).
+    NOTE: the export's settings_data.json says "Twentieth Century", but the live theme renders Outfit.
+    The live store wins: match what customers see.
+- When the export and the live site disagree, measure the live site (computed styles via Playwright) and follow it.
+
+## Content & editability
+- No hardcoded store content in templates. Editable via the Customizer (`inc/customizer.php`, defaults in
+  `ci_defaults()`): announcement messages, hero slides (image/heading/text/buttons), collection tiles,
+  image-with-text block, footer contact info, newsletter text, payment icons, copyright.
+- Navigation via WP Menus (`primary`, `footer`). Real store content is seeded into the DB with
+  `tools/seed.sh` (WP-CLI), never written into theme files.
+- `tools/wp` = WP-CLI wrapper for the Local site (uses Local's PHP and MySQL socket).
+
+## Commerce rules
+- AJAX cart uses the WooCommerce Store API with its nonce (`Nonce` header, refreshed from responses).
+  After every successful add/update, also trigger jQuery `added_to_cart` / `updated_cart_totals` on
+  `document.body` *if jQuery is present*, so Meta Pixel plugins (PixelYourSite, Facebook for WooCommerce) still fire.
+- Cart and Checkout pages use the classic shortcodes (`[woocommerce_cart]`, `[woocommerce_checkout]`), not blocks.
+- Variation buttons: sold-out options crossed out and disabled; must work in AJAX variation mode
+  (> 30 variations, `woocommerce_ajax_variation_threshold`). The native `<select>` stays in the DOM (visually hidden)
+  for plugin compatibility. Buttons drive the select and fire `change`.
+- Product page: sticky Add to Cart bar on mobile. Hook slots: `ci_product_after_title` (Judge.me stars)
+  and `ci_product_after_add_to_cart` (trust badges, static theme component).
+- Size guide: theme modal, content set per product category (term meta).
+- Search is enabled (header icon + overlay + product search results).
+- Shopify apps: reviews = Judge.me slot only; trust badges = static theme component; no "Get £5" widget.
 
 ## Performance (paid Meta traffic, mostly mobile)
 - Keep CSS small. One critical global stylesheet plus per-template CSS enqueued conditionally.

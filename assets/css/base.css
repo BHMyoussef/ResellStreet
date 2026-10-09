@@ -1,0 +1,234 @@
+/* Fonts (self-hosted, latin subset) */
+@font-face {
+  font-family: "Outfit";
+  src: url("../fonts/outfit-latin-var.woff2") format("woff2");
+  font-weight: 300 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Tenor Sans";
+  src: url("../fonts/tenor-sans-400-latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html.has-drawer { overflow: hidden; }
+body, h1, h2, h3, h4, h5, h6, p, ul, ol, figure, blockquote, dl, dd { margin: 0; }
+ul[class], ol[class] { padding: 0; list-style: none; }
+img, svg, video, picture { display: block; max-width: 100%; }
+img { height: auto; }
+button, input, select, textarea { font: inherit; letter-spacing: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+[hidden] { display: none !important; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: var(--fw-body);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  letter-spacing: var(--ls-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+b, strong { font-weight: var(--fw-bold); }
+
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Typography */
+h1, h2, h3, .h1, .h2, .h3 {
+  font-family: var(--font-heading);
+  font-weight: var(--fw-heading);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--ls-heading);
+  text-transform: uppercase;
+  margin-bottom: 15px;
+}
+h1, .h1 { font-size: var(--fs-h1); }
+h2, .h2 { font-size: var(--fs-h2); }
+h3, .h3 { font-size: var(--fs-h3); }
+h4, h5, h6, .label {
+  font-family: var(--font-body);
+  font-weight: var(--fw-body);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-wider);
+  text-transform: uppercase;
+  line-height: var(--lh-base);
+}
+
+.rte p, .rte ul, .rte ol { margin-bottom: 15px; }
+.rte a { text-decoration: underline; text-underline-offset: 2px; }
+.rte > :last-child { margin-bottom: 0; }
+
+/* Layout */
+.page-width {
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+.page-width--narrow { max-width: 1000px; }
+.site-main { display: block; min-height: 50vh; }
+.site-main:focus { outline: 0; }
+.section { margin-block: var(--section-space); }
+.section-header { text-align: center; margin-bottom: 30px; }
+
+/* Utilities */
+.text-center { text-align: center; }
+.u-mt-30 { margin-top: 30px; }
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link:not(:focus) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.skip-link:focus { position: fixed; top: 10px; left: 10px; z-index: 1000; padding: 10px 15px; background: var(--color-bg); }
+
+.icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--icon-weight);
+  stroke-linejoin: miter;
+  flex-shrink: 0;
+}
+.icon--fill { fill: currentColor; stroke: none; }
+
+/* Buttons: "angled" style. The ::before paints a skewed parallelogram behind the label */
+.btn,
+.button,
+button.button,
+input[type="submit"].button {
+  --btn-bg: var(--color-button);
+  --btn-fg: var(--color-button-text);
+  --btn-border: var(--color-button);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-inline: 6px;
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  border: 0;
+  background: none;
+  color: var(--btn-fg);
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-button);
+  line-height: 1.42;
+  letter-spacing: var(--ls-wider);
+  text-transform: uppercase;
+  text-align: center;
+  white-space: normal;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn::before,
+.button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  transform: skewX(var(--btn-skew));
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.btn:hover::before,
+.button:hover::before { --btn-bg: var(--color-button-hover); }
+.btn--secondary {
+  --btn-bg: transparent;
+  --btn-fg: var(--color-text);
+  --btn-border: var(--color-text);
+}
+.btn--secondary:hover::before { --btn-bg: var(--color-text); }
+.btn--secondary:hover { color: var(--color-bg); }
+.btn--full { display: flex; width: calc(100% - 12px); }
+.btn[disabled], .btn.is-disabled, .button.disabled, .button:disabled { cursor: default; opacity: 0.5; }
+.btn.is-loading { color: transparent; }
+.btn.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 18px; height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 2px solid var(--btn-fg);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ci-spin 0.7s linear infinite;
+}
+@keyframes ci-spin { to { transform: rotate(360deg); } }
+
+.text-link { text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; padding: 0; }
+
+/* Forms */
+input[type="text"], input[type="email"], input[type="search"], input[type="tel"], input[type="url"],
+input[type="password"], input[type="number"], select, textarea {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  font-size: max(16px, var(--fs-small)); /* 16px min stops iOS zoom on focus */
+  font-weight: 400;
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 1px solid var(--color-text); outline-offset: 0; border-color: var(--color-text); }
+label { display: inline-block; margin-bottom: 6px; }
+
+/* Drawers: native <dialog>, slides in from the right */
+.drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(var(--drawer-width), calc(100% - 40px));
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-drawer);
+  color: var(--color-drawer-text);
+  transform: translateX(100%);
+  transition: transform var(--dur-drawer) var(--ease-drawer);
+  overscroll-behavior: contain;
+}
+.drawer.is-open { transform: none; }
+.drawer::backdrop {
+  background: var(--color-overlay);
+  opacity: 0;
+  transition: opacity var(--dur-drawer) ease;
+}
+.drawer.is-open::backdrop { opacity: var(--overlay-opacity); }
+.drawer__inner { display: flex; flex-direction: column; height: 100%; overflow-y: auto; }
+.drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 70px;
+  padding-inline: 20px 0;
+}
+.drawer__title { margin: 0; }
+.drawer__close {
+  display: inline-flex;
+  margin-left: auto;
+  padding: 9px 20px;
+  border: 0;
+  background: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer, .drawer::backdrop { transition: none; }
+}

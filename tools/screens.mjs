@@ -13,6 +13,8 @@ const TARGETS = {
   ref: {
     out: 'reference/screens',
     base: 'https://novarende.com',
+    // Impulse's parallax backgrounds don't paint in stitched fullPage mode: grow the viewport instead.
+    growViewport: true,
     pages: {
       home: '/',
       collection: '/collections/chaussures',
@@ -94,15 +96,13 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
   const page = await context.newPage();
   const shot = async (name, fullPage) => {
     const file = path.join(outDir, `${name}-${viewport.width}.png`);
-    if (fullPage) {
-      // Parallax/fixed backgrounds don't paint in Playwright's stitched fullPage mode,
-      // so grow the viewport to the document height and take a plain screenshot.
+    if (fullPage && T.growViewport) {
       const height = await page.evaluate(() => document.documentElement.scrollHeight);
       await page.setViewportSize({ width: viewport.width, height });
       await page.waitForTimeout(1200);
     }
-    await page.screenshot({ path: file, animations: 'disabled' });
-    if (fullPage) await page.setViewportSize(viewport);
+    await page.screenshot({ path: file, animations: 'disabled', fullPage: fullPage && !T.growViewport });
+    if (fullPage && T.growViewport) await page.setViewportSize(viewport);
     console.log('✓', path.relative(ROOT, file));
   };
   const want = (n) => !only || only.includes(n);

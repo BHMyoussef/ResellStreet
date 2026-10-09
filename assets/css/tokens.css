@@ -1,0 +1,112 @@
+/*
+ * Design tokens: the only place raw colors, fonts and sizes live.
+ * Source: reference config/settings_data.json, cross-checked with computed styles on novarende.com.
+ * Mobile values first; desktop overrides at 769px (same breakpoint as the reference).
+ */
+:root {
+  /* Colors */
+  --color-bg: #ffffff;
+  --color-text: #000000;
+  --color-price: #000000;
+  --color-savings: #c20000;
+  --color-border: #e8e8e1;
+  --color-button: #000000;
+  --color-button-text: #ffffff;
+  --color-button-hover: #2b2b2b;
+  --color-sale-tag: #000000;
+  --color-sale-tag-text: #ffffff;
+  --color-cart-dot: #ff4f33;
+  --color-small-image-bg: #ffffff;
+  --color-large-image-bg: #000000;
+  --color-header: #ffffff;
+  --color-header-text: #000000;
+  --color-announcement: #000000;
+  --color-announcement-text: #ffffff;
+  --color-footer: #ffffff;
+  --color-footer-text: #000000;
+  --color-drawer: #ffffff;
+  --color-drawer-text: #000000;
+  --color-drawer-border: #e8e8e1;
+  --color-drawer-button: #000000;
+  --color-drawer-button-text: #ffffff;
+  --color-overlay: #e6e6e6;
+  --overlay-opacity: 0.6;
+  --color-image-overlay: #697565;
+  --color-grid-tint: #697565;
+  --grid-tint-opacity: 0.1;
+  --color-section-alt: #f9f9f9;
+  --color-focus: #000000;
+
+  /* Fonts */
+  --font-heading: "Tenor Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Outfit", "Helvetica Neue", Arial, sans-serif;
+  --fw-heading: 400;
+  --fw-body: 300;
+  --fw-bold: 600;
+
+  /* Type scale (base 18px, header base 36px) */
+  --fs-base: 16.56px;          /* 18 × 0.92 */
+  --lh-base: 1.4;
+  --ls-base: 0.025em;
+  --fs-small: 15.3px;          /* 18 × 0.85: footer, secondary text */
+  --fs-xsmall: 12.6px;         /* 18 × 0.7: copyright, fine print */
+  --fs-h1: 30.6px;             /* 36 × 0.85 */
+  --fs-h2: 26.28px;            /* 36 × 0.73 */
+  --fs-h3: 22.32px;            /* 36 × 0.62 */
+  --lh-heading: 1;
+  --ls-heading: 0;
+  --fs-label: 13.25px;         /* uppercase spaced labels (footer titles) */
+  --fs-nav: 16px;
+  --fs-drawer-nav: 18.2px;
+  --fs-announcement: 12.15px;
+  --fs-button: 13px;
+  --fs-collection-title: 16px;
+  --ls-wide: 0.2em;            /* nav, announcement */
+  --ls-wider: 0.3em;           /* buttons, labels */
+
+  /* Layout */
+  --page-width: 1500px;
+  --page-gutter: 17px;
+  --section-space: 40px;
+  --grid-gap: 10px;
+
+  /* Header */
+  --header-pad-y: 7px;
+  --logo-w-mobile: 110px;      /* both overridden inline from the Customizer */
+  --logo-w-desktop: 150px;
+  --footer-logo-h: 40px;
+  --icon-size: 30px;
+  --icon-weight: 2px;          /* stroke in a 64-unit viewBox */
+
+  /* Buttons (angled = skewed parallelogram) */
+  --btn-pad-y: 9px;
+  --btn-pad-x: 17px;
+  --btn-skew: -12deg;
+
+  /* Drawers */
+  --drawer-width: 350px;
+  --ease-drawer: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --dur-drawer: 0.45s;
+
+  --radius: 0;
+}
+
+@media (min-width: 769px) {
+  :root {
+    --fs-base: 18px;
+    --fs-h1: 36px;
+    --fs-h2: 30.6px;
+    --fs-h3: 23.4px;
+    --fs-label: 14.4px;
+    --fs-announcement: 13.77px;
+    --fs-button: 14px;
+    --fs-collection-title: 20px;
+    --page-gutter: 40px;
+    --section-space: 60px;
+    --grid-gap: 20px;
+    --header-pad-y: 20px;
+    --icon-size: 28px;
+    --btn-pad-y: 11px;
+    --btn-pad-x: 20px;
+  }
+}
