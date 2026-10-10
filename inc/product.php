@@ -582,7 +582,7 @@ add_action(
 			return;
 		}
 		$product = wc_get_product( get_queried_object_id() );
-		if ( ! $product || ! $product->is_purchasable() || $product->is_type( array( 'external', 'grouped' ) ) ) {
+		if ( ! $product || ! $product->is_purchasable() || ! $product->is_in_stock() || $product->is_type( array( 'external', 'grouped' ) ) ) {
 			return;
 		}
 		get_template_part( 'template-parts/product/sticky-atc', null, array( 'product' => $product ) );
