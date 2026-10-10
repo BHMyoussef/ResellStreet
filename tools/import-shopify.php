@@ -1,25 +1,30 @@
 <?php
 /**
- * Import products from a Shopify product CSV export as WooCommerce products (variable when they have options).
+ * Import products from a Shopify product CSV export into WooCommerce.
  *
- *   tools/wp eval-file tools/import-shopify.php [handle ...]
- *   npm run import:products -- [handle ...]
+ *   tools/wp eval-file tools/import-shopify.php                 # first 5 products of the CSV
+ *   tools/wp eval-file tools/import-shopify.php handle-a handle-b
+ *   CI_LIMIT=0 tools/wp eval-file tools/import-shopify.php      # whole CSV
+ *   CI_DRY_RUN=1 tools/wp eval-file tools/import-shopify.php    # print what would happen, write nothing
+ *   (npm run import:products -- [handle ...] works too)
  *
- * Without handles, the 5 default products below are imported.
- * Env: CI_SHOPIFY_CSV (default reference/products_export_1.csv), CI_SHOPIFY_STORE (default https://novarende.com,
- *      empty to skip the live label lookup).
+ * Env: CI_SHOPIFY_CSV (default reference/products_export_1.csv), CI_LIMIT (default 5, 0 = all), CI_DRY_RUN (1 = no writes).
  *
- * Mapping
- * - Title, Body (HTML) → name, description (wp_kses_post). Status active + Published → publish, else draft.
- * - Product Category "Apparel & Accessories > Shoes > Sneakers" → product_cat Shoes › Sneakers (top level + leaf).
- * - Tags → product_tag. SEO Title/Description → meta _shopify_seo_title / _shopify_seo_description.
- * - Options → global attributes (pa_*), each variant row → variation. Price → sale price, Compare At → regular price.
- *   SKU (if unique), weight (Variant Grams → store weight unit), Variant Image → variation image.
- *   The CSV has no stock quantities: variants are imported "in stock".
- * - Images: downloaded once (meta _shopify_image_src), Image Alt Text kept, first = featured, rest = gallery.
- * - Option values linked to Shopify category metafields are exported as metaobject handles ("39", "7-5", "beige-1").
- *   Labels come from the live store's /products/<handle>.js (same variant order as the CSV), else a cleanup rule.
- * - Idempotent: products are matched by meta _shopify_handle and their variations rebuilt.
+ * Kept simple on purpose:
+ * - Only the plain CSV columns are read. Metafield columns and "Option Linked To" are ignored. Collections/categories
+ *   are not imported (assign them in WooCommerce afterwards).
+ * - Two global attributes for the whole store: any option containing "color/colour" → Color, "size" → Size.
+ * - Values are normalized: "7-5" → 7.5, s/xl/xxl → S/XL/2XL, slug-like colours ("grey-dark", "beige-1") → "Grey Dark",
+ *   "Beige". Names differing only by case reuse the same term.
+ * - Only the variations that are needed: combinations that become duplicates after normalizing are created once;
+ *   an option with a single value for the whole product is a plain attribute (not a variation); a product with no
+ *   real choice left is a simple product.
+ * - Sizes that look like EU sizes (≥ 30) mixed with UK/US sizes (Shopify metafield handles such as "39", "40") are kept
+ *   as-is and listed in a warning so they can be fixed by hand.
+ * - Price → sale price, Compare At → regular price. SKU when unique, weight from grams. The CSV has no stock
+ *   quantities: everything is imported "in stock".
+ * - Images in Shopify's order (alt text kept), first = featured, Variant Image → variation image. Downloaded once.
+ * - Re-running updates products in place (matched by meta _shopify_handle; variations rebuilt).
  *
  * @package CustomImpulse
  */
@@ -30,42 +35,31 @@ require_once ABSPATH . 'wp-admin/includes/media.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/image.php';
 
-$ci_default_handles = array(
-	'mens-casual-leather-sneakers-1',            // Flaireve – Men's Casual Leather Sneakers (live reference product)
-	'retro-style-low-top-sneakers-orange-white', // size only
-	'calzado-deportivo-transpirable',            // SpringFlow: Color + Size, unlinked options
-	'men-s-ribbed-knit-zip-up-sweater',          // Color + Size, 42 variations (AJAX mode)
-	'pretoconto',                                // Varsity Bomber Jacket: Color + Size
-);
-
 $ci_csv   = getenv( 'CI_SHOPIFY_CSV' ) ? getenv( 'CI_SHOPIFY_CSV' ) : get_theme_file_path( 'reference/products_export_1.csv' );
-$ci_store = false === getenv( 'CI_SHOPIFY_STORE' ) ? 'https://novarende.com' : rtrim( (string) getenv( 'CI_SHOPIFY_STORE' ), '/' );
-$ci_wants = ! empty( $args ) ? array_values( $args ) : $ci_default_handles; // phpcs:ignore WordPress.WP.GlobalVariablesOverride
+$ci_limit = false === getenv( 'CI_LIMIT' ) ? 5 : (int) getenv( 'CI_LIMIT' );
+$ci_dry   = (bool) getenv( 'CI_DRY_RUN' );
 
 if ( ! file_exists( $ci_csv ) ) {
 	WP_CLI::error( "CSV not found: {$ci_csv}" );
 }
 
 /* ---------------------------------------------------------------------------
- * CSV
+ * Reading + normalizing
  * ------------------------------------------------------------------------ */
 
 /**
- * Rows grouped by handle (only the requested handles).
+ * All CSV rows grouped by handle, in file order.
  *
  * @return array<string,array<int,array<string,string>>>
  */
-function ci_shopify_rows( $csv, array $handles ) {
-	$fh     = fopen( $csv, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-	$header = fgetcsv( $fh );
+function ci_shopify_read_csv( $csv ) {
+	$fh        = fopen( $csv, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+	$header    = fgetcsv( $fh );
 	$header[0] = preg_replace( '/^\xEF\xBB\xBF/', '', $header[0] ); // BOM
-	$out    = array();
+	$out       = array();
 	while ( ( $row = fgetcsv( $fh ) ) !== false ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition
-		if ( count( $row ) !== count( $header ) ) {
-			continue;
-		}
-		$row = array_combine( $header, $row );
-		if ( in_array( $row['Handle'], $handles, true ) ) {
+		if ( count( $row ) === count( $header ) ) {
+			$row                     = array_combine( $header, $row );
 			$out[ $row['Handle'] ][] = $row;
 		}
 	}
@@ -73,72 +67,141 @@ function ci_shopify_rows( $csv, array $handles ) {
 	return $out;
 }
 
-/* ---------------------------------------------------------------------------
- * Option labels
- * ------------------------------------------------------------------------ */
+/**
+ * Store-wide attribute for a Shopify option name: "Color", "Size", or the option name itself.
+ */
+function ci_shopify_attribute_name( $option_name ) {
+	if ( preg_match( '/colou?r/i', $option_name ) ) {
+		return 'Color';
+	}
+	if ( preg_match( '/size/i', $option_name ) ) {
+		return 'Size';
+	}
+	return ucfirst( strtolower( trim( $option_name ) ) );
+}
 
 /**
- * Handle → label per option index, from the live store's product JSON (same variant order as the CSV).
- *
- * @return array<int,array<string,string>>|null Null when unavailable or inconsistent.
+ * Normalized option value.
  */
-function ci_shopify_live_labels( $store, $handle, array $variants, $option_count ) {
-	if ( ! $store ) {
-		return null;
+function ci_shopify_normalize_value( $attribute, $value ) {
+	$v = preg_replace( '/\s+/', ' ', trim( $value ) );
+	if ( '' === $v ) {
+		return '';
 	}
-	$res = wp_remote_get( $store . '/products/' . rawurlencode( $handle ) . '.js', array( 'timeout' => 20 ) );
-	if ( is_wp_error( $res ) || 200 !== wp_remote_retrieve_response_code( $res ) ) {
-		return null;
+	if ( 'Size' === $attribute ) {
+		if ( preg_match( '/^(\d+)-5$/', $v, $m ) ) {
+			return $m[1] . '.5'; // "7-5" → "7.5"
+		}
+		$letters = array( 'XXS' => 'XXS', 'XS' => 'XS', 'S' => 'S', 'M' => 'M', 'L' => 'L', 'XL' => 'XL', 'XXL' => '2XL', 'XXXL' => '3XL', '2XL' => '2XL', '3XL' => '3XL', '4XL' => '4XL', '5XL' => '5XL' );
+		$upper   = strtoupper( $v );
+		return $letters[ $upper ] ?? $v;
 	}
-	$json = json_decode( wp_remote_retrieve_body( $res ), true );
-	if ( empty( $json['variants'] ) || count( $json['variants'] ) !== count( $variants ) ) {
-		return null;
+	// Slug-like values ("grey-dark", "beige-1", "black") come from Shopify handles: make them readable.
+	if ( preg_match( '/^[a-z0-9]+(-[a-z0-9]+)*$/', $v ) ) {
+		$v = preg_replace( '/-\d+$/', '', $v );
+		return ucwords( str_replace( '-', ' ', $v ) );
 	}
-	$map = array();
-	foreach ( $variants as $k => $row ) {
-		for ( $i = 1; $i <= $option_count; $i++ ) {
-			$raw   = $row[ "Option{$i} Value" ];
-			$label = (string) ( $json['variants'][ $k ][ "option{$i}" ] ?? '' );
-			if ( isset( $map[ $i ][ $raw ] ) && $map[ $i ][ $raw ] !== $label ) {
-				return null; // Order mismatch: don't guess.
-			}
-			$map[ $i ][ $raw ] = $label;
+	return $v;
+}
+
+/**
+ * Sort rank for a new Size/Color term (sizes sort naturally: 4 < 4.5 < 5 …, S < M < L < XL < 2XL).
+ */
+function ci_shopify_term_rank( $label, $fallback ) {
+	if ( is_numeric( $label ) ) {
+		return (int) round( (float) $label * 10 );
+	}
+	$letters = array( 'XXS' => 1, 'XS' => 2, 'S' => 3, 'M' => 4, 'L' => 5, 'XL' => 6, '2XL' => 7, '3XL' => 8, '4XL' => 9, '5XL' => 10 );
+	return $letters[ strtoupper( $label ) ] ?? 1000 + $fallback;
+}
+
+/**
+ * Normalized plan for one product: options, variants (deduplicated), warnings. No database access.
+ *
+ * @param array<int,array<string,string>> $rows CSV rows of the product.
+ */
+function ci_shopify_plan( array $rows ) {
+	$main     = $rows[0];
+	$variants = array_values( array_filter( $rows, fn( $r ) => '' !== $r['Variant Price'] ) );
+	$warnings = array();
+
+	// Options → store attributes (two Shopify options mapping to the same attribute keep the first one).
+	$options = array(); // attribute => CSV option index
+	for ( $i = 1; $i <= 3; $i++ ) {
+		$name = trim( $main[ "Option{$i} Name" ] );
+		if ( '' === $name || 'Title' === $name ) {
+			continue; // "Title / Default Title" = no options
+		}
+		$attribute = ci_shopify_attribute_name( $name );
+		if ( isset( $options[ $attribute ] ) ) {
+			$warnings[] = "options \"{$name}\" and another one both map to {$attribute}; only the first is used";
+			continue;
+		}
+		$options[ $attribute ] = $i;
+	}
+
+	// Variants with normalized values; duplicates after normalizing are dropped.
+	$clean = array();
+	$seen  = array();
+	foreach ( $variants as $r ) {
+		$values = array();
+		foreach ( $options as $attribute => $i ) {
+			$values[ $attribute ] = ci_shopify_normalize_value( $attribute, $r[ "Option{$i} Value" ] );
+		}
+		$key = strtolower( implode( '|', $values ) );
+		if ( isset( $seen[ $key ] ) ) {
+			$warnings[] = 'duplicate variant after normalizing skipped: ' . implode( ' / ', $values );
+			continue;
+		}
+		$seen[ $key ] = true;
+		$clean[]      = array(
+			'row'    => $r,
+			'values' => $values,
+		);
+	}
+
+	// Values per attribute (variant order); single-value options are not a real choice.
+	$values_by_attribute = array();
+	foreach ( $options as $attribute => $i ) {
+		$values_by_attribute[ $attribute ] = array_values( array_unique( array_map( fn( $v ) => $v['values'][ $attribute ], $clean ) ) );
+		$values_by_attribute[ $attribute ] = array_values( array_filter( $values_by_attribute[ $attribute ], 'strlen' ) );
+	}
+	$variation_attributes = array_keys( array_filter( $values_by_attribute, fn( $vals ) => count( $vals ) > 1 ) );
+
+	// Sizes that look like EU numbers among UK/US numbers (Shopify metafield handles).
+	if ( ! empty( $values_by_attribute['Size'] ) ) {
+		$numbers = array_filter( $values_by_attribute['Size'], 'is_numeric' );
+		$eu      = array_filter( $numbers, fn( $n ) => (float) $n >= 30 );
+		$small   = array_filter( $numbers, fn( $n ) => (float) $n < 20 );
+		if ( $eu && $small ) {
+			$warnings[] = 'size values look mixed (EU-like ' . implode( ', ', $eu ) . ' among ' . implode( ', ', $small ) . '): kept as-is, check them';
 		}
 	}
-	return $map;
-}
 
-/**
- * Readable label for a metaobject-handle-like value ("7-5" → "7.5", "beige-1" → "Beige", "2xl" → "2XL").
- */
-function ci_shopify_pretty_label( $value, $option_name ) {
-	$v = trim( $value );
-	if ( preg_match( '/^(\d+)-5$/', $v, $m ) ) {
-		return $m[1] . '.5';
-	}
-	if ( preg_match( '/^(\d?x{0,3}[sml]|\d?xl|xxs|xs)$/i', $v ) && false !== stripos( $option_name, 'size' ) ) {
-		return strtoupper( $v );
-	}
-	$v = preg_replace( '/-\d+$/', '', $v );
-	return ucwords( str_replace( '-', ' ', $v ) );
+	return array(
+		'main'                 => $main,
+		'variants'             => $clean,
+		'values'               => $values_by_attribute,
+		'variation_attributes' => $variation_attributes,
+		'is_variable'          => count( $variation_attributes ) > 0 && count( $clean ) > 1,
+		'warnings'             => $warnings,
+	);
 }
 
 /* ---------------------------------------------------------------------------
- * Taxonomies
+ * Writing
  * ------------------------------------------------------------------------ */
 
 /**
- * Global attribute taxonomy for an option name (created if missing). Returns the taxonomy name.
+ * Global attribute taxonomy (created if missing): Color → pa_color, Size → pa_size.
  */
-function ci_shopify_attribute( $option_name ) {
-	$label = trim( $option_name );
-	$slug  = wc_sanitize_taxonomy_name( $label );
-	$slug  = substr( $slug, 0, 28 );
-	$tax   = wc_attribute_taxonomy_name( $slug );
+function ci_shopify_attribute_taxonomy( $label ) {
+	$slug = substr( wc_sanitize_taxonomy_name( $label ), 0, 28 );
+	$tax  = wc_attribute_taxonomy_name( $slug );
 	if ( ! wc_attribute_taxonomy_id_by_name( $tax ) ) {
 		$id = wc_create_attribute(
 			array(
-				'name'     => ucfirst( $label ),
+				'name'     => $label,
 				'slug'     => $slug,
 				'type'     => 'select',
 				'order_by' => 'menu_order',
@@ -155,79 +218,21 @@ function ci_shopify_attribute( $option_name ) {
 }
 
 /**
- * Sort rank for a new attribute term (sizes sort naturally: 5 < 5.5 < 6 …, S < M < L < XL < 2XL).
- */
-function ci_shopify_term_rank( $label, $fallback ) {
-	if ( is_numeric( $label ) ) {
-		return (int) round( (float) $label * 10 );
-	}
-	$letters = array( 'XXS' => 1, 'XS' => 2, 'S' => 3, 'M' => 4, 'L' => 5, 'XL' => 6, 'XXL' => 7, '2XL' => 7, 'XXXL' => 8, '3XL' => 8, '4XL' => 9, '5XL' => 10 );
-	$upper   = strtoupper( $label );
-	return isset( $letters[ $upper ] ) ? $letters[ $upper ] : 1000 + $fallback;
-}
-
-/**
- * Term (created if missing) for an attribute label.
+ * Term for a value (case-insensitive match on name, created if missing).
  */
 function ci_shopify_term( $taxonomy, $label, $position ) {
-	$term = get_term_by( 'name', $label, $taxonomy );
-	if ( ! $term ) {
-		$res = wp_insert_term( $label, $taxonomy );
-		if ( is_wp_error( $res ) ) {
-			$existing = $res->get_error_data( 'term_exists' );
-			$term     = $existing ? get_term( $existing, $taxonomy ) : null;
-		} else {
-			$term = get_term( $res['term_id'], $taxonomy );
-			update_term_meta( $term->term_id, 'order', ci_shopify_term_rank( $label, $position ) );
-		}
+	$term = get_term_by( 'name', $label, $taxonomy ); // MySQL collation: case-insensitive
+	if ( $term ) {
+		return $term;
 	}
-	return $term;
+	$res = wp_insert_term( $label, $taxonomy );
+	if ( is_wp_error( $res ) ) {
+		$existing = $res->get_error_data( 'term_exists' );
+		return $existing ? get_term( $existing, $taxonomy ) : null;
+	}
+	update_term_meta( $res['term_id'], 'order', ci_shopify_term_rank( $label, $position ) );
+	return get_term( $res['term_id'], $taxonomy );
 }
-
-/**
- * Product category from the Shopify taxonomy path (top level + leaf), matching existing terms by name.
- */
-function ci_shopify_category( $path, $title, array $option_names ) {
-	$parts = array_values( array_filter( array_map( 'trim', explode( '>', (string) $path ) ) ) );
-	if ( $parts && 'Apparel & Accessories' === $parts[0] ) {
-		array_shift( $parts );
-	}
-	if ( ! $parts || 'Uncategorized' === $parts[0] ) {
-		// Shopify left it uncategorized: shoes are recognisable from their options or title.
-		$is_shoe = preg_match( '/sneaker|trainer|shoe|sandal|slide|boot/i', $title ) || preg_grep( '/shoe/i', $option_names );
-		$parts   = $is_shoe ? array( 'Shoes' ) : array();
-	}
-	if ( ! $parts ) {
-		return array();
-	}
-	$chain  = count( $parts ) > 1 ? array( $parts[0], end( $parts ) ) : array( $parts[0] );
-	$parent = 0;
-	$ids    = array();
-	foreach ( $chain as $name ) {
-		$found = get_terms(
-			array(
-				'taxonomy'   => 'product_cat',
-				'name'       => $name,
-				'parent'     => $parent,
-				'hide_empty' => false,
-				'number'     => 1,
-			)
-		);
-		if ( $found ) {
-			$term_id = $found[0]->term_id;
-		} else {
-			$res     = wp_insert_term( $name, 'product_cat', array( 'parent' => $parent ) );
-			$term_id = is_wp_error( $res ) ? (int) $res->get_error_data( 'term_exists' ) : $res['term_id'];
-		}
-		$ids[]  = $term_id;
-		$parent = $term_id;
-	}
-	return $ids;
-}
-
-/* ---------------------------------------------------------------------------
- * Images
- * ------------------------------------------------------------------------ */
 
 /**
  * Attachment for a Shopify image URL (downloaded once, matched by URL without query string).
@@ -259,36 +264,33 @@ function ci_shopify_image( $url, $alt, $product_id ) {
 	return (int) $id;
 }
 
-/* ---------------------------------------------------------------------------
- * Import
- * ------------------------------------------------------------------------ */
-
-$ci_all = ci_shopify_rows( $ci_csv, $ci_wants );
-
-foreach ( $ci_wants as $handle ) {
-	if ( empty( $ci_all[ $handle ] ) ) {
-		WP_CLI::warning( "{$handle}: not in the CSV, skipped." );
-		continue;
+/**
+ * Prices, SKU, weight and stock for a product or variation.
+ */
+function ci_shopify_apply_variant_data( WC_Product $p, array $r ) {
+	$price   = $r['Variant Price'];
+	$compare = $r['Variant Compare At Price'];
+	if ( '' !== $compare && (float) $compare > (float) $price ) {
+		$p->set_regular_price( $compare );
+		$p->set_sale_price( $price );
+	} else {
+		$p->set_regular_price( $price );
+		$p->set_sale_price( '' );
 	}
-	$rows     = $ci_all[ $handle ];
-	$main     = $rows[0];
-	$variants = array_values( array_filter( $rows, fn( $r ) => '' !== $r['Variant Price'] ) );
-	$names    = array();
-	for ( $i = 1; $i <= 3; $i++ ) {
-		if ( '' !== $main[ "Option{$i} Name" ] && 'Title' !== $main[ "Option{$i} Name" ] ) {
-			$names[ $i ] = $main[ "Option{$i} Name" ];
-		}
+	$sku = trim( $r['Variant SKU'] );
+	if ( '' !== $sku && ! wc_get_product_id_by_sku( $sku ) ) {
+		$p->set_sku( $sku );
 	}
-	$is_variable = $names && count( $variants ) > 1;
+	$grams = (float) $r['Variant Grams'];
+	$p->set_weight( $grams > 0 ? (string) wc_get_weight( $grams, get_option( 'woocommerce_weight_unit', 'kg' ), 'g' ) : '' );
+	$p->set_stock_status( 'instock' ); // the product CSV has no stock quantities
+}
 
-	// Labels: live store lookup, else the cleanup rule.
-	$labels = $names ? ci_shopify_live_labels( $ci_store, $handle, $variants, max( array_keys( $names ) ) ) : array();
-	$source = $labels ? 'live store' : 'cleanup rule';
-	$label  = function ( $i, $raw ) use ( &$labels, $names ) {
-		return ! empty( $labels[ $i ][ $raw ] ) ? $labels[ $i ][ $raw ] : ci_shopify_pretty_label( $raw, $names[ $i ] );
-	};
-
-	// Product (matched by Shopify handle).
+/**
+ * Create or update one product from its plan. Returns the product ID.
+ */
+function ci_shopify_import( $handle, array $plan, array $rows ) {
+	$main     = $plan['main'];
 	$existing = get_posts(
 		array(
 			'post_type'   => 'product',
@@ -299,141 +301,93 @@ foreach ( $ci_wants as $handle ) {
 			'numberposts' => 1,
 		)
 	);
-	$id      = $existing ? (int) $existing[0] : 0;
-	$product = $is_variable ? new WC_Product_Variable( $id ) : new WC_Product_Simple( $id );
-	if ( $id && $product instanceof WC_Product_Variable ) {
-		foreach ( $product->get_children() as $child ) {
-			wp_delete_post( $child, true );
+	$id = $existing ? (int) $existing[0] : 0;
+	if ( $id ) {
+		$old = wc_get_product( $id );
+		if ( $old instanceof WC_Product_Variable ) {
+			foreach ( $old->get_children() as $child ) {
+				wp_delete_post( $child, true );
+			}
 		}
+		// The type may change (e.g. a duplicate-only variant became a simple product).
+		wp_set_object_terms( $id, $plan['is_variable'] ? 'variable' : 'simple', 'product_type' );
 	}
+	$product = $plan['is_variable'] ? new WC_Product_Variable( $id ) : new WC_Product_Simple( $id );
+
 	$published = 'active' === strtolower( $main['Status'] ) && 'true' === strtolower( $main['Published'] );
 	$product->set_name( wp_strip_all_tags( $main['Title'] ) );
 	$product->set_slug( sanitize_title( $handle ) );
 	$product->set_description( wp_kses_post( $main['Body (HTML)'] ) );
 	$product->set_status( $published ? 'publish' : 'draft' );
-	$product->set_category_ids( ci_shopify_category( $main['Product Category'], $main['Title'], $names ) );
-	$product->set_tag_ids(
-		array_filter(
-			array_map(
-				function ( $tag ) {
-					$tag = trim( $tag );
-					if ( '' === $tag ) {
-						return 0;
-					}
-					$term = term_exists( $tag, 'product_tag' );
-					$term = $term ? $term : wp_insert_term( $tag, 'product_tag' );
-					return is_wp_error( $term ) ? 0 : (int) $term['term_id'];
-				},
-				explode( ',', $main['Tags'] )
-			)
-		)
-	);
 	$id = $product->save();
 	update_post_meta( $id, '_shopify_handle', $handle );
-	if ( $main['SEO Title'] ) {
-		update_post_meta( $id, '_shopify_seo_title', sanitize_text_field( $main['SEO Title'] ) );
-	}
-	if ( $main['SEO Description'] ) {
-		update_post_meta( $id, '_shopify_seo_description', sanitize_textarea_field( $main['SEO Description'] ) );
-	}
 
 	// Images in Shopify's order.
-	$image_rows = array_filter( $rows, fn( $r ) => '' !== $r['Image Src'] );
+	$image_rows = array_values( array_filter( $rows, fn( $r ) => '' !== $r['Image Src'] ) );
 	usort( $image_rows, fn( $a, $b ) => (int) $a['Image Position'] <=> (int) $b['Image Position'] );
-	$image_ids = array();
+	$images = array();
 	foreach ( $image_rows as $r ) {
 		$aid = ci_shopify_image( $r['Image Src'], $r['Image Alt Text'], $id );
 		if ( $aid ) {
-			$image_ids[] = $aid;
+			$images[] = $aid;
 		}
 	}
 	$product = wc_get_product( $id );
-	if ( $image_ids ) {
-		$product->set_image_id( $image_ids[0] );
-		$product->set_gallery_image_ids( array_slice( $image_ids, 1 ) );
+	if ( $images ) {
+		$product->set_image_id( $images[0] );
+		$product->set_gallery_image_ids( array_slice( $images, 1 ) );
 	}
 
-	$weight = function ( $grams ) {
-		$grams = (float) $grams;
-		return $grams > 0 ? (string) wc_get_weight( $grams, get_option( 'woocommerce_weight_unit', 'kg' ), 'g' ) : '';
-	};
-	$prices = function ( WC_Product $p, array $r ) {
-		$price   = $r['Variant Price'];
-		$compare = $r['Variant Compare At Price'];
-		if ( '' !== $compare && (float) $compare > (float) $price ) {
-			$p->set_regular_price( $compare );
-			$p->set_sale_price( $price );
-		} else {
-			$p->set_regular_price( $price );
-			$p->set_sale_price( '' );
-		}
-	};
-	$sku = function ( WC_Product $p, $value ) {
-		$value = trim( (string) $value );
-		if ( '' !== $value && ! wc_get_product_id_by_sku( $value ) ) {
-			$p->set_sku( $value );
-		}
-	};
-
-	if ( ! $is_variable ) {
-		$prices( $product, $variants[0] );
-		$sku( $product, $variants[0]['Variant SKU'] );
-		$product->set_weight( $weight( $variants[0]['Variant Grams'] ) );
-		$product->set_stock_status( 'instock' );
-		$product->save();
-		WP_CLI::success( sprintf( '%s (#%d): simple product, %d images', $product->get_name(), $id, count( $image_ids ) ) );
-		continue;
-	}
-
-	// Attributes from the options (labels in variant order).
+	// Attributes: variation attributes for real choices, plain (visible) attributes for single values.
 	$attributes = array();
 	$terms      = array();
 	$position   = 0;
-	foreach ( $names as $i => $name ) {
-		$taxonomy = ci_shopify_attribute( $name );
-		$options  = array();
-		foreach ( $variants as $k => $r ) {
-			$value = $label( $i, $r[ "Option{$i} Value" ] );
-			if ( '' === $value || isset( $terms[ $i ][ $value ] ) ) {
-				continue;
-			}
+	foreach ( $plan['values'] as $label => $values ) {
+		if ( ! $values ) {
+			continue;
+		}
+		$taxonomy = ci_shopify_attribute_taxonomy( $label );
+		$ids      = array();
+		foreach ( $values as $k => $value ) {
 			$term = ci_shopify_term( $taxonomy, $value, $k );
 			if ( $term ) {
-				$terms[ $i ][ $value ] = $term;
-				$options[]             = $term->term_id;
+				$terms[ $label ][ $value ] = $term;
+				$ids[]                     = $term->term_id;
 			}
 		}
 		$attribute = new WC_Product_Attribute();
 		$attribute->set_id( wc_attribute_taxonomy_id_by_name( $taxonomy ) );
 		$attribute->set_name( $taxonomy );
-		$attribute->set_options( $options );
+		$attribute->set_options( $ids );
 		$attribute->set_position( $position++ );
 		$attribute->set_visible( true );
-		$attribute->set_variation( true );
-		$attributes[ $i ] = array( $taxonomy, $attribute );
+		$attribute->set_variation( $plan['is_variable'] && in_array( $label, $plan['variation_attributes'], true ) );
+		$attributes[ $label ] = array( $taxonomy, $attribute );
 	}
 	$product->set_attributes( array_column( $attributes, 1 ) );
+
+	if ( ! $plan['is_variable'] ) {
+		ci_shopify_apply_variant_data( $product, $plan['variants'][0]['row'] );
+		$product->save();
+		return $id;
+	}
 	$product->save();
 
-	// Variations.
-	foreach ( $variants as $k => $r ) {
+	foreach ( $plan['variants'] as $k => $variant ) {
 		$variation = new WC_Product_Variation();
 		$variation->set_parent_id( $id );
 		$atts = array();
-		foreach ( $attributes as $i => list( $taxonomy ) ) {
-			$value = $label( $i, $r[ "Option{$i} Value" ] );
-			if ( isset( $terms[ $i ][ $value ] ) ) {
-				$atts[ $taxonomy ] = $terms[ $i ][ $value ]->slug;
+		foreach ( $plan['variation_attributes'] as $label ) {
+			$value = $variant['values'][ $label ];
+			if ( isset( $terms[ $label ][ $value ] ) ) {
+				$atts[ $attributes[ $label ][0] ] = $terms[ $label ][ $value ]->slug;
 			}
 		}
 		$variation->set_attributes( $atts );
-		$prices( $variation, $r );
-		$sku( $variation, $r['Variant SKU'] );
-		$variation->set_weight( $weight( $r['Variant Grams'] ) );
-		$variation->set_stock_status( 'instock' ); // no quantities in Shopify's product CSV
+		ci_shopify_apply_variant_data( $variation, $variant['row'] );
 		$variation->set_menu_order( $k );
-		if ( '' !== $r['Variant Image'] ) {
-			$aid = ci_shopify_image( $r['Variant Image'], '', $id );
+		if ( '' !== $variant['row']['Variant Image'] ) {
+			$aid = ci_shopify_image( $variant['row']['Variant Image'], '', $id );
 			if ( $aid ) {
 				$variation->set_image_id( $aid );
 			}
@@ -442,11 +396,58 @@ foreach ( $ci_wants as $handle ) {
 	}
 	WC_Product_Variable::sync( $id );
 	wc_delete_product_transients( $id );
+	return $id;
+}
+
+/* ---------------------------------------------------------------------------
+ * Run
+ * ------------------------------------------------------------------------ */
+
+$ci_all     = ci_shopify_read_csv( $ci_csv );
+$ci_handles = ! empty( $args ) ? array_values( $args ) : array_keys( $ci_all ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
+if ( empty( $args ) && $ci_limit > 0 ) {
+	$ci_handles = array_slice( $ci_handles, 0, $ci_limit );
+}
+
+WP_CLI::log( sprintf( '%s %d of %d products from %s', $ci_dry ? 'DRY RUN:' : 'Importing', count( $ci_handles ), count( $ci_all ), basename( $ci_csv ) ) );
+$ci_done = 0;
+foreach ( $ci_handles as $handle ) {
+	if ( empty( $ci_all[ $handle ] ) ) {
+		WP_CLI::warning( "{$handle}: not in the CSV, skipped." );
+		continue;
+	}
+	$plan = ci_shopify_plan( $ci_all[ $handle ] );
+	if ( ! $plan['variants'] ) {
+		WP_CLI::warning( "{$handle}: no variant rows (no price), skipped." );
+		continue;
+	}
 
 	$summary = array();
-	foreach ( $names as $i => $name ) {
-		$summary[] = $name . ': ' . implode( ', ', array_keys( $terms[ $i ] ?? array() ) );
+	foreach ( $plan['values'] as $label => $values ) {
+		$kind      = in_array( $label, $plan['variation_attributes'], true ) && $plan['is_variable'] ? '' : ' (plain attribute)';
+		$summary[] = "{$label}{$kind}: " . implode( ', ', $values );
 	}
-	WP_CLI::success( sprintf( '%s (#%d): %d variations, %d images, labels from %s', wc_get_product( $id )->get_name(), $id, count( $variants ), count( $image_ids ), $source ) );
-	WP_CLI::log( '  ' . implode( ' | ', $summary ) );
+	$line = sprintf(
+		'%s — %s, %d %s, %d images',
+		wp_strip_all_tags( $plan['main']['Title'] ),
+		$plan['is_variable'] ? 'variable' : 'simple',
+		count( $plan['variants'] ),
+		$plan['is_variable'] ? 'variations' : 'variant',
+		count( array_filter( $ci_all[ $handle ], fn( $r ) => '' !== $r['Image Src'] ) )
+	);
+
+	if ( $ci_dry ) {
+		WP_CLI::log( "• {$line}" );
+	} else {
+		$id = ci_shopify_import( $handle, $plan, $ci_all[ $handle ] );
+		WP_CLI::success( "{$line} (#{$id})" );
+	}
+	if ( $summary ) {
+		WP_CLI::log( '    ' . implode( ' | ', $summary ) );
+	}
+	foreach ( $plan['warnings'] as $warning ) {
+		WP_CLI::warning( "  {$handle}: {$warning}" );
+	}
+	++$ci_done;
 }
+WP_CLI::log( sprintf( '%s %d product(s).', $ci_dry ? 'Would import' : 'Imported', $ci_done ) );

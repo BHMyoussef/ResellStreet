@@ -69,12 +69,15 @@ Local site: http://resellstreet.local
   script is loaded on demand when "Write a review" is hovered/opened; a file picked before it's ready is replayed via a
   jQuery ready callback (CusRev binds in one, and jQuery 3 runs those async). CusRev's email review form is a
   standalone page with its own assets (unaffected).
-- Shopify import (`tools/import-shopify.php`, `npm run import:products -- [handle ...]`): CSV = reference/products_export_1.csv.
-  Options linked to Shopify category metafields export metaobject HANDLES ("39", "7-5", "beige-1"), not labels:
-  labels come from the live store's /products/<handle>.js (same variant order as the CSV, verified per product),
-  fallback cleanup rule. Price → sale, Compare At → regular. No stock quantities in Shopify's product CSV → instock.
-  Matched by meta `_shopify_handle` (idempotent), images by `_shopify_image_src`. Description images stay hotlinked
-  to cdn.shopify.com (must be migrated before the Shopify store closes). SEO kept in `_shopify_seo_*` meta.
+- Shopify import (`tools/import-shopify.php`, `npm run import:products -- [handle ...]`; CSV = reference/products_export_1.csv).
+  Kept simple (user rule): plain CSV columns only; metafield columns, "Option Linked To" and collections/categories are
+  NOT imported (categories are assigned by hand). Default = first 5 products (`CI_LIMIT`, 0 = all), `CI_DRY_RUN=1`
+  writes nothing. Two store attributes: Color, Size (any "*size*" option). Values normalized ("7-5" → 7.5, xxl → 2XL,
+  slug colours → words). Duplicate combinations after normalizing are skipped; single-value options become plain
+  attributes; no real choice → simple product. EU-like sizes (38/39/40 = metafield handles, = 5/6/7) mixed with UK/US
+  sizes are kept as-is with a warning. Price → sale, Compare At → regular; no stock quantities → instock.
+  Idempotent via meta `_shopify_handle`; images once via `_shopify_image_src`. Description images stay hotlinked to
+  cdn.shopify.com.
 - Search (`inc/search.php`, `template-parts/header/search.php`, `search.js`): <dialog> over the header row (Impulse
   look), predictive results from REST `ci/v1/search?q=` (≈1 KB: name, link, 150px thumb, `ci_price_html`) instead of
   the Store API (≈13 KB+ with all gallery srcsets). Debounced, aborts stale requests, caches per query, combobox
