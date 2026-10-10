@@ -8,7 +8,8 @@
  *   CI_DRY_RUN=1 tools/wp eval-file tools/import-shopify.php    # print what would happen, write nothing
  *   (npm run import:products -- [handle ...] works too)
  *
- * Env: CI_SHOPIFY_CSV (default reference/products_export_1.csv), CI_LIMIT (default 5, 0 = all), CI_DRY_RUN (1 = no writes).
+ * Env: CI_SHOPIFY_CSV (default reference/products_export_1.csv), CI_LIMIT (default 5, 0 = all), CI_DRY_RUN (1 = no writes),
+ *      CI_IMAGES (default 0: nothing is downloaded from Shopify; 1 = download images during the import).
  *
  * Kept simple on purpose:
  * - Only the plain CSV columns are read. Metafield columns and "Option Linked To" are ignored. Collections/categories
@@ -23,7 +24,9 @@
  *   as-is and listed in a warning so they can be fixed by hand.
  * - Price → sale price, Compare At → regular price. SKU when unique, weight from grams. The CSV has no stock
  *   quantities: everything is imported "in stock".
- * - Images in Shopify's order (alt text kept), first = featured, Variant Image → variation image. Downloaded once.
+ * - Images: by default NOTHING is fetched from Shopify. The image list is stored for a later step:
+ *   product meta `_shopify_images` = [{src, alt}, …] in Shopify's order, variation meta `_shopify_variant_image` = src.
+ *   With CI_IMAGES=1 they are downloaded now instead (first = featured, rest = gallery, Variant Image → variation).
  * - Re-running updates products in place (matched by meta _shopify_handle; variations rebuilt).
  *
  * @package CustomImpulse
@@ -38,6 +41,7 @@ require_once ABSPATH . 'wp-admin/includes/image.php';
 $ci_csv   = getenv( 'CI_SHOPIFY_CSV' ) ? getenv( 'CI_SHOPIFY_CSV' ) : get_theme_file_path( 'reference/products_export_1.csv' );
 $ci_limit = false === getenv( 'CI_LIMIT' ) ? 5 : (int) getenv( 'CI_LIMIT' );
 $ci_dry   = (bool) getenv( 'CI_DRY_RUN' );
+define( 'CI_SHOPIFY_DOWNLOAD_IMAGES', (bool) getenv( 'CI_IMAGES' ) );
 
 if ( ! file_exists( $ci_csv ) ) {
 	WP_CLI::error( "CSV not found: {$ci_csv}" );
@@ -322,14 +326,27 @@ function ci_shopify_import( $handle, array $plan, array $rows ) {
 	$id = $product->save();
 	update_post_meta( $id, '_shopify_handle', $handle );
 
-	// Images in Shopify's order.
+	// Images in Shopify's order: stored for the image step, or downloaded now with CI_IMAGES=1.
 	$image_rows = array_values( array_filter( $rows, fn( $r ) => '' !== $r['Image Src'] ) );
 	usort( $image_rows, fn( $a, $b ) => (int) $a['Image Position'] <=> (int) $b['Image Position'] );
+	update_post_meta(
+		$id,
+		'_shopify_images',
+		array_map(
+			fn( $r ) => array(
+				'src' => $r['Image Src'],
+				'alt' => $r['Image Alt Text'],
+			),
+			$image_rows
+		)
+	);
 	$images = array();
-	foreach ( $image_rows as $r ) {
-		$aid = ci_shopify_image( $r['Image Src'], $r['Image Alt Text'], $id );
-		if ( $aid ) {
-			$images[] = $aid;
+	if ( CI_SHOPIFY_DOWNLOAD_IMAGES ) {
+		foreach ( $image_rows as $r ) {
+			$aid = ci_shopify_image( $r['Image Src'], $r['Image Alt Text'], $id );
+			if ( $aid ) {
+				$images[] = $aid;
+			}
 		}
 	}
 	$product = wc_get_product( $id );
@@ -386,13 +403,17 @@ function ci_shopify_import( $handle, array $plan, array $rows ) {
 		$variation->set_attributes( $atts );
 		ci_shopify_apply_variant_data( $variation, $variant['row'] );
 		$variation->set_menu_order( $k );
-		if ( '' !== $variant['row']['Variant Image'] ) {
-			$aid = ci_shopify_image( $variant['row']['Variant Image'], '', $id );
+		$variant_image = $variant['row']['Variant Image'];
+		if ( '' !== $variant_image && CI_SHOPIFY_DOWNLOAD_IMAGES ) {
+			$aid = ci_shopify_image( $variant_image, '', $id );
 			if ( $aid ) {
 				$variation->set_image_id( $aid );
 			}
 		}
-		$variation->save();
+		$variation_id = $variation->save();
+		if ( '' !== $variant_image ) {
+			update_post_meta( $variation_id, '_shopify_variant_image', $variant_image );
+		}
 	}
 	WC_Product_Variable::sync( $id );
 	wc_delete_product_transients( $id );

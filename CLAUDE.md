@@ -76,8 +76,16 @@ Local site: http://resellstreet.local
   slug colours → words). Duplicate combinations after normalizing are skipped; single-value options become plain
   attributes; no real choice → simple product. EU-like sizes (38/39/40 = metafield handles, = 5/6/7) mixed with UK/US
   sizes are kept as-is with a warning. Price → sale, Compare At → regular; no stock quantities → instock.
-  Idempotent via meta `_shopify_handle`; images once via `_shopify_image_src`. Description images stay hotlinked to
-  cdn.shopify.com.
+  Idempotent via meta `_shopify_handle`; images once via `_shopify_image_src`.
+  Two steps (user rule: the product import loads nothing from Shopify):
+  1. `CI_LIMIT=0 npm run import:products` → products + variations; image list saved as `_shopify_images` (product)
+     and `_shopify_variant_image` (variation). Products show the placeholder until step 2.
+  2. `npm run import:images` (tools/import-shopify-images.php) → media library: featured, gallery, variation images and
+     description <img> rewritten to local copies. Downloads, or `CI_IMAGES_DIR=/folder` to use local files (matched
+     by file name). Resumable (`_shopify_images_done`), `CI_LIMIT` batches, `CI_DRY_RUN=1`.
+- `npm run cleanup:local` (tools/cleanup-local.php): wipes products, test/sample images, orders, test user/coupon,
+  old size attributes, empty sample categories. Back up first (`tools/wp db export file.sql`; the wrapper puts Local's
+  mysqldump on PATH).
 - Search (`inc/search.php`, `template-parts/header/search.php`, `search.js`): <dialog> over the header row (Impulse
   look), predictive results from REST `ci/v1/search?q=` (≈1 KB: name, link, 150px thumb, `ci_price_html`) instead of
   the Store API (≈13 KB+ with all gallery srcsets). Debounced, aborts stale requests, caches per query, combobox
@@ -175,8 +183,11 @@ Local site: http://resellstreet.local
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
 - Seeded pages, menus (Main menu, Footer), Customizer content, logo, catalog 3×7, 4:3 thumbnails,
   homepage content + media, categories Shoes / Sets / Bags (Accessories existed) with thumbnails.
-- Imported from the Shopify CSV (step 9): 5 products (Flaireve casual leather sneakers, Retro-Style Low-Top Orange & White,
-  SpringFlow, Ribbed Knit Zip-Up Sweater, Varsity Bomber Jacket). WooCommerce sample products are still present.
+- Catalogue = full Shopify CSV import (313 products, Color/Size). Sample data, fixtures, test orders/customer/coupon
+  were removed with cleanup:local (2026-10-10). Categories left: Shoes, Accessories (under Clothing), Sets, Bags,
+  Uncategorized; products are not assigned to collections yet (done by hand).
+- The test suites (`npm run check:*`) depend on `npm run fixtures` (test products/reviews/customer); re-running it
+  re-adds those test items to the store.
 - Dev test products from `npm run fixtures` (tools/fixtures.php): "Test Sneaker" (21 variations, inline mode) and
   "Test Sneaker XL" (33 variations, AJAX mode) in category "Shoes" (has a size guide). Delete them after step 9.
   Fixtures also enable Cash on delivery, create coupon TEST10 (10%) and customer `ci-test-customer`
