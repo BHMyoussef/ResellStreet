@@ -100,6 +100,10 @@ function ci_defaults() {
 		'stock_low_threshold'        => 10,
 		'trust_badges_enable'        => true,
 		'trust_badges_title'         => '',
+		// Quick shop + cart drawer.
+		'quick_shop_enable'          => true,
+		'quick_shop_text'            => '',
+		'cart_note_text'             => '',
 	);
 	$point_icons = array( 1 => 'truck', 2 => 'lock', 3 => 'return' );
 	for ( $i = 1; $i <= 3; $i++ ) {
@@ -272,6 +276,15 @@ add_action(
 				),
 			)
 		);
+		$add( 'quick_shop_enable', 'ci_collection', __( 'Quick shop button on product cards (desktop)', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add(
+			'quick_shop_text',
+			'ci_collection',
+			__( 'Quick shop button text', 'customimpulse' ),
+			'text',
+			'sanitize_text_field',
+			array( 'description' => __( 'Leave empty for "Shop Now".', 'customimpulse' ) )
+		);
 		$add( 'banner_enable', 'ci_collection', __( 'Show promo banner', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 		$add( 'banner_heading', 'ci_collection', __( 'Banner heading', 'customimpulse' ) );
 		$add( 'banner_text', 'ci_collection', __( 'Banner text', 'customimpulse' ) );
@@ -353,6 +366,23 @@ add_action(
 			/* translators: %d: tab number */
 			$add( "product_tab_{$i}_content", 'ci_product', sprintf( __( 'Tab %d content (HTML allowed)', 'customimpulse' ), $i ), 'textarea', 'wp_kses_post' );
 		}
+
+		// Cart drawer.
+		$wp_customize->add_section(
+			'ci_cart',
+			array(
+				'title' => __( 'Cart drawer', 'customimpulse' ),
+				'panel' => 'ci_theme',
+			)
+		);
+		$add(
+			'cart_note_text',
+			'ci_cart',
+			__( 'Note under the subtotal', 'customimpulse' ),
+			'text',
+			'sanitize_text_field',
+			array( 'description' => __( 'Leave empty for "Shipping, taxes, and discount codes calculated at checkout."', 'customimpulse' ) )
+		);
 
 		$add(
 			'copyright_text',

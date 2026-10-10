@@ -58,10 +58,12 @@ await p.evaluate(() => window.scrollTo(0, document.querySelector('.single_add_to
 await p.waitForTimeout(500);
 check('sticky bar shows after scrolling past the button', await stickyVisible());
 check('sticky price follows variation', (await p.$eval('[data-sticky-price]', (e) => e.textContent)).includes('45.75'));
-await Promise.all([p.waitForLoadState('networkidle'), p.click('[data-sticky-button]')]);
-await p.waitForTimeout(800);
-const added = await p.evaluate(() => document.body.innerText.includes('has been added to your cart'));
-check('sticky button adds to cart (via main button)', added);
+await p.click('[data-sticky-button]');
+await p.waitForFunction(() => document.querySelector('dialog[data-drawer="cart"]')?.open, null, { timeout: 10000 }).catch(() => {});
+const added = await p.evaluate(() => document.querySelectorAll('dialog[data-drawer="cart"] .cart-item').length > 0);
+check('sticky button adds to cart via the main button (AJAX drawer)', added);
+await p.keyboard.press('Escape');
+await p.waitForTimeout(600);
 check('cart dot visible after add', await p.$eval('[data-cart-dot]', (e) => !e.hidden));
 
 // ---- > 30 variations (AJAX mode) ----
@@ -76,6 +78,12 @@ check('AJAX: Khaki/9.5 resolved by WooCommerce', s.selects.join() === 'khaki,9-5
 check('AJAX: Khaki enables sizes 5/5.5', !s.disabled.includes('5') && !s.disabled.includes('5-5'), s.disabled.join());
 
 check('no console errors', errors.length === 0, errors.join(' | '));
+await p.evaluate(async () => {
+  const api = window.CustomImpulse?.cart?.api;
+  if (!api) return;
+  const c = await api('cart');
+  for (const item of c.items) await api('cart/remove-item', { method: 'POST', body: { key: item.key } });
+});
 console.log(fails ? `\n${fails} check(s) failed` : '\nAll product checks passed');
 await b.close();
 process.exit(fails ? 1 : 0);

@@ -9,7 +9,9 @@
     "check": "node tools/behavior.mjs",
     "seed": "tools/seed.sh",
     "check:product": "node tools/product-check.mjs",
-    "fixtures": "tools/wp eval-file tools/fixtures.php"
+    "fixtures": "tools/wp eval-file tools/fixtures.php",
+    "check:cart": "node tools/cart-check.mjs",
+    "check:all": "node tools/behavior.mjs && node tools/product-check.mjs && node tools/cart-check.mjs"
   },
   "devDependencies": {
     "playwright": "^1.64.0"

@@ -163,8 +163,8 @@ input[type="submit"].button {
 .btn--secondary:hover { color: var(--color-bg); }
 .btn--full { display: flex; width: calc(100% - 12px); }
 .btn[disabled], .btn.is-disabled, .button.disabled, .button:disabled { cursor: default; opacity: 0.5; }
-.btn.is-loading { color: transparent; }
-.btn.is-loading::after {
+.btn.is-loading, .button.is-loading { color: transparent; }
+.btn.is-loading::after, .button.is-loading::after {
   content: "";
   position: absolute;
   inset: 50% auto auto 50%;

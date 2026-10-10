@@ -130,13 +130,23 @@ function ci_variation_map( WC_Product_Variable $product ) {
 			$prices[]  = $price_html;
 			$price_idx = count( $prices ) - 1;
 		}
-		$qty          = $variation->managing_stock() ? (int) $variation->get_stock_quantity() : null;
-		$variations[] = array(
+		$qty   = $variation->managing_stock() ? (int) $variation->get_stock_quantity() : null;
+		$entry = array(
+			'i' => $child_id,
 			'a' => (object) $variation->get_variation_attributes(),
 			's' => (int) ( $variation->is_in_stock() && $variation->is_purchasable() ),
 			'p' => $price_idx,
 			'q' => $qty,
 		);
+		// Own image (used by Quick Shop, where WooCommerce's variation script doesn't run).
+		$image_id = $variation->get_image_id( 'edit' );
+		if ( $image_id && (int) $image_id !== (int) $product->get_image_id() ) {
+			$entry['img'] = array(
+				'src'    => wp_get_attachment_image_url( $image_id, 'woocommerce_single' ),
+				'srcset' => (string) wp_get_attachment_image_srcset( $image_id, 'woocommerce_single' ),
+			);
+		}
+		$variations[] = $entry;
 	}
 
 	$cache[ $id ] = array(

@@ -70,8 +70,8 @@ Local site: http://resellstreet.local
 | 1 | Foundation: tokens, fonts, buttons, announcement bar, sticky header, mobile menu drawer, footer | ✅ done |
 | 2 | Collection page: promo banner, count, grid, product card, pagination | ✅ done |
 | 3 | Product page: gallery, variation buttons (sold-out crossed, AJAX >30 variations, hidden native select), sticky mobile ATC, hook slots `ci_product_after_title` / `ci_product_after_add_to_cart`, trust badges, size guide modal (per category), tabs | ✅ done |
-| 4 | AJAX cart drawer (Store API + nonce, jQuery `added_to_cart`/`updated_cart_totals` for Meta Pixel) + Quick Shop "Shop Now" on cards; dequeue WC jQuery scripts where unused | ⏭ next |
-| 5 | Homepage `front-page.php`: slideshow, collection tiles, testimonials, image-with-text (all Customizer) | ⬜ |
+| 4 | AJAX cart drawer (Store API + nonce, jQuery `added_to_cart`/`updated_cart_totals` for Meta Pixel) + Quick Shop "Shop Now" on cards; dequeue WC jQuery scripts where unused | ✅ done |
+| 5 | Homepage `front-page.php`: slideshow, collection tiles, testimonials, image-with-text (all Customizer) | ⏭ next |
 | 6 | Cart/checkout/account styling; switch Cart & Checkout pages to classic shortcodes | ⬜ |
 | 7 | Search overlay (header icon already links to product search) + results page | ⬜ |
 | 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ⬜ waiting for CSV |
@@ -91,6 +91,18 @@ Local site: http://resellstreet.local
   Mobile "partial" peek = 75%-wide flex-viewport with overflow visible.
 - Modals: `<dialog data-modal="name">` + `[data-modal-open]` (global.js). Size guide = `ci_size_guide` term meta on product_cat.
 - Full-page Playwright captures of the product page on mobile show flexslider/sticky-bar artifacts; trust viewport shots + `npm run check:product`.
+- Cart (`inc/cart.php`, `assets/js/cart.js`): drawer rendered client-side from Store API JSON (cache-safe).
+  `Nonce` header on writes, refreshed from every response; invalid/missing nonce → GET /cart + one retry.
+  Logged-in users also send `X-WP-Nonce`. Writes are queued (one at a time).
+  Add-to-cart forms with unknown fields (plugin add-ons) fall back to a normal POST.
+  After writes: refresh `wc-ajax=get_refreshed_fragments` + jQuery `added_to_cart` / `updated_cart_totals` /
+  `removed_from_cart` / `wc_fragments_refreshed` (only when jQuery exists), plus native `ci:cart:*` events.
+  Clicks during WC's ~300ms "disabled while re-checking" window are held and submitted when it re-enables.
+- Quick Shop: REST `ci/v1/quick-shop/<id>` renders `template-parts/product/quick-shop.php` (forces WC AJAX
+  variation mode to keep payload small); product.css/js are loaded on demand on first use. product.js runs
+  "standalone" (sets variation_id/image itself) when WC's variation script isn't on the page.
+- WC jQuery scripts (woocommerce, add-to-cart, blockUI, js-cookie) are dequeued except on product/cart/checkout/account
+  → home and collection pages ship no jQuery (plugins may still add it).
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
@@ -100,7 +112,7 @@ Local site: http://resellstreet.local
   "Test Sneaker XL" (33 variations, AJAX mode) in category "Shoes" (has a size guide). Delete them after step 9.
 
 ### Resume checklist
-1. `npm run shots:local` / `npm run measure -- <profile>` (global|collection|product) / `npm run check` / `npm run check:product`.
+1. `npm run shots:local` / `npm run measure -- <profile>` (global|collection|product) / `npm run check:all`.
 2. Compare with `reference/screens/*`, then continue with the next ⏭ row above.
 
 ## WooCommerce template overrides

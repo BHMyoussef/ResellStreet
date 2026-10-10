@@ -173,7 +173,8 @@
 
 /* Add to cart */
 /* !important: WooCommerce's variation script sets display:block inline on .quantity */
-.product--no-qty form.cart .quantity { display: none !important; }
+.product--no-qty form.cart .quantity,
+.quick-shop--no-qty form.cart .quantity { display: none !important; }
 form.cart .quantity { margin-bottom: 15px; }
 form.cart .quantity input { width: 80px; text-align: center; }
 .single_add_to_cart_button.button {
@@ -279,6 +280,19 @@ p.stars a:hover ~ a::before, p.stars.selected a.active ~ a::before { content: "â
 body.has-sticky-atc .site-footer { padding-bottom: 110px; }
 @media (prefers-reduced-motion: reduce) { .sticky-atc { transition: none; } }
 
+/* ---------- Quick Shop content (this file is loaded on demand on collection pages) ---------- */
+.quick-shop { display: grid; gap: 25px; }
+.quick-shop__media { display: flex; gap: 15px; align-items: flex-start; }
+.quick-shop__thumbs { display: flex; flex-direction: column; gap: 15px; width: 80px; flex: none; }
+.quick-shop__thumb { display: block; padding: 0; border: 2px solid transparent; background: none; }
+.quick-shop__thumb.is-active { border-color: var(--color-text); }
+.quick-shop__thumb img { width: 76px; height: 76px; object-fit: cover; }
+.quick-shop__main { flex: 1; min-width: 0; }
+.quick-shop__main img { width: 100%; height: auto; }
+.quick-shop .summary { margin-top: 0; }
+.quick-shop__details { margin-top: 20px; text-align: center; }
+.quick-shop .single_variation_wrap { display: block; }
+
 /* ---------- Desktop ---------- */
 @media (min-width: 769px) {
   .single-product div.product {
@@ -325,4 +339,6 @@ body.has-sticky-atc .site-footer { padding-bottom: 110px; }
   .single_add_to_cart_button.button { width: calc(100% - 37px); min-height: 46px; }
   .product-tab__title { padding-block: 15px; }
   .sticky-atc { display: none; }
+  .quick-shop { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
+  .quick-shop .summary { padding-left: 45px; }
 }

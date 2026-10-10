@@ -1,37 +1,52 @@
 /**
- * Product page: variation buttons ↔ WooCommerce's (hidden) selects, price/stock sync, sticky add to cart.
- * Vanilla JS. WooCommerce's own variation script keeps doing its job (variation_id, images, AJAX lookups);
- * we only set the selects and fire native `change` events, which its listeners receive.
+ * Product forms: variation buttons ↔ WooCommerce's (hidden) selects, price/stock sync, sticky add to cart.
+ * Vanilla JS.
+ *
+ * On the product page WooCommerce's variation script (jQuery) keeps doing its job (variation_id, images,
+ * AJAX lookups); we only set the selects and fire native `change` events, which its listeners receive.
+ * In Quick Shop that script isn't loaded, so we run "standalone": set variation_id, the image and the
+ * button state ourselves from the variation map.
  */
 (() => {
-  const priceEl = document.querySelector('[data-product-price]');
-  const stockEl = document.querySelector('[data-product-stock]');
-  const sticky = document.querySelector('[data-sticky-atc]');
-  const stickyPrice = sticky?.querySelector('[data-sticky-price]');
-  const basePrice = priceEl?.innerHTML ?? '';
+  const ns = (window.CustomImpulse = window.CustomImpulse || {});
+  if (ns.initVariantForm) return; // Loaded twice (product page + Quick Shop loader)
 
-  const setPrice = (html) => {
-    if (priceEl && priceEl.innerHTML !== html) priceEl.innerHTML = html;
-    if (stickyPrice && stickyPrice.innerHTML !== html) stickyPrice.innerHTML = html;
-  };
+  function initVariantForm(form) {
+    if (!form || form.dataset.ciInit) return;
+    form.dataset.ciInit = '1';
 
-  const setStock = (state, qty) => {
-    if (!stockEl) return;
-    stockEl.classList.remove('product-stock--ok', 'product-stock--low', 'product-stock--out');
-    stockEl.classList.add(`product-stock--${state}`);
-    const label = stockEl.dataset[`label${state[0].toUpperCase()}${state.slice(1)}`] || '';
-    stockEl.querySelector('.product-stock__text').textContent = label.replace('%d', qty ?? '');
-  };
+    const scope = form.closest('[data-product-scope]') || document;
+    const priceEl = scope.querySelector('[data-product-price]');
+    const stockEl = scope.querySelector('[data-product-stock]');
+    const sticky = scope === document ? document.querySelector('[data-sticky-atc]') : null;
+    const stickyPrice = sticky?.querySelector('[data-sticky-price]');
+    const basePrice = priceEl?.innerHTML ?? '';
 
-  /* ---------- Variation buttons ---------- */
+    const setPrice = (html) => {
+      if (priceEl && priceEl.innerHTML !== html) priceEl.innerHTML = html;
+      if (stickyPrice && stickyPrice.innerHTML !== html) stickyPrice.innerHTML = html;
+    };
 
-  const form = document.querySelector('form.variations_form');
-  const dataEl = form?.querySelector('.ci-variant-data');
+    const setStock = (state, qty) => {
+      if (!stockEl) return;
+      stockEl.classList.remove('product-stock--ok', 'product-stock--low', 'product-stock--out');
+      stockEl.classList.add(`product-stock--${state}`);
+      const label = stockEl.dataset[`label${state[0].toUpperCase()}${state.slice(1)}`] || '';
+      stockEl.querySelector('.product-stock__text').textContent = label.replace('%d', qty ?? '');
+    };
 
-  if (form && dataEl) {
+    const dataEl = form.querySelector('.ci-variant-data');
+    if (!dataEl) return; // Simple product: nothing to sync
+
     const { attrs, variations, prices, threshold } = JSON.parse(dataEl.textContent);
     const select = (name) => form.querySelector(`select[name="${CSS.escape(name)}"]`);
     const group = (name) => form.querySelector(`[data-variant-group="${CSS.escape(name)}"]`);
+    // Check the script tag, not jQuery.fn: WooCommerce's (deferred) script may not have run yet.
+    const standalone = !document.getElementById('wc-add-to-cart-variation-js');
+    const button = form.querySelector('.single_add_to_cart_button');
+    const variationInput = form.querySelector('input[name="variation_id"]');
+    const mainImage = scope.querySelector('[data-qs-main]');
+    const baseImage = mainImage ? { src: mainImage.src, srcset: mainImage.getAttribute('srcset') || '' } : null;
     let applying = false;
 
     const current = () => Object.fromEntries(attrs.map((n) => [n, select(n)?.value || '']));
@@ -46,6 +61,14 @@
       attrs.slice(0, index).forEach((n) => (partial[n] = sel[n]));
       partial[attrs[index]] = value;
       return variations.some((v) => v.s && fits(v, partial));
+    };
+
+    const setImage = (img) => {
+      if (!mainImage || !baseImage) return;
+      const next = img || baseImage;
+      mainImage.src = next.src;
+      if (next.srcset) mainImage.setAttribute('srcset', next.srcset);
+      else mainImage.removeAttribute('srcset');
     };
 
     const render = () => {
@@ -64,6 +87,13 @@
         setStock(match.s ? (low ? 'low' : 'ok') : 'out', match.q);
       } else {
         setPrice(basePrice);
+      }
+
+      if (standalone) {
+        if (variationInput) variationInput.value = match && match.s ? match.i : '';
+        button?.classList.toggle('disabled', !(match && match.s));
+        button?.classList.toggle('wc-variation-selection-needed', !match);
+        setImage(match?.img);
       }
     };
 
@@ -107,13 +137,23 @@
       }
     });
 
+    if (standalone) {
+      // WooCommerce's script normally reveals these; without it they'd stay hidden or disabled.
+      form.querySelector('.single_variation_wrap')?.removeAttribute('style');
+      form.querySelector('.woocommerce-variation-add-to-cart')?.classList.remove('woocommerce-variation-add-to-cart-disabled');
+    }
+
     render();
   }
 
-  /* ---------- Sticky add to cart (mobile) ---------- */
+  /* ---------- Sticky add to cart (mobile, product page only) ---------- */
 
-  const mainButton = document.querySelector('form.cart .single_add_to_cart_button');
-  if (sticky && mainButton) {
+  function initSticky() {
+    const sticky = document.querySelector('[data-sticky-atc]');
+    const mainButton = document.querySelector('form.cart .single_add_to_cart_button');
+    if (!sticky || !mainButton) return;
+
+    const form = mainButton.closest('form');
     const stickyButton = sticky.querySelector('[data-sticky-button]');
     const mobile = window.matchMedia('(max-width: 768px)');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -139,7 +179,6 @@
     mobile.addEventListener('change', update);
 
     const isBlocked = () => mainButton.disabled || mainButton.classList.contains('disabled');
-
     const sync = () => {
       stickyButton.classList.toggle('is-disabled', isBlocked());
       stickyButton.textContent = mainButton.textContent.trim();
@@ -156,10 +195,14 @@
     stickyButton.addEventListener('click', () => {
       if (isBlocked()) {
         // Nothing valid selected yet: take the shopper to the options.
-        (form || mainButton).scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'center' });
+        form.scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'center' });
         return;
       }
       mainButton.click(); // Same path as the main button (validation, AJAX cart, pixel events)
     });
   }
+
+  ns.initVariantForm = initVariantForm;
+  document.querySelectorAll('form.variations_form').forEach(initVariantForm);
+  initSticky();
 })();
