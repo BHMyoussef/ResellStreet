@@ -202,7 +202,116 @@
     });
   }
 
+  /* ---------- Reviews: form toggle, "Load more", photo lightbox ---------- */
+
+  function initReviews() {
+    const root = document.querySelector('[data-reviews]');
+    if (!root) return;
+    const cfg = window.ciReviews || {};
+    const form = document.getElementById('review-form');
+    const list = root.querySelector('[data-reviews-list]');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let uploadLoaded = false;
+
+    // CusRev's upload script (photo upload on the form) is only fetched when the form is about to be used.
+    // If a photo was picked before it finished loading, replay the change so CusRev still uploads it.
+    const loadUploadScript = () => {
+      if (uploadLoaded || !cfg.uploadScript || !window.jQuery) return;
+      uploadLoaded = true;
+      const script = document.createElement('script');
+      script.src = cfg.uploadScript;
+      // CusRev binds its handler in a jQuery ready callback, which jQuery runs asynchronously even after load:
+      // queue the replay as a ready callback too, so it runs after CusRev's.
+      script.onload = () =>
+        window.jQuery(() => {
+          const input = form?.querySelector('input[type="file"]');
+          if (input?.files?.length) input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+      document.body.append(script);
+    };
+    root.querySelectorAll('[data-review-form-toggle]').forEach((btn) => {
+      ['pointerenter', 'touchstart', 'focus'].forEach((type) => btn.addEventListener(type, loadUploadScript, { once: true, passive: true }));
+    });
+
+    const setFormOpen = (open, focus = true) => {
+      if (!form) return;
+      form.hidden = !open;
+      root.querySelectorAll('[data-review-form-toggle]').forEach((b) => b.setAttribute('aria-expanded', String(open)));
+      if (!open) return;
+      loadUploadScript();
+      form.scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'start' });
+      if (focus) form.querySelector('p.stars a, select#rating, textarea')?.focus({ preventScroll: true });
+    };
+
+    root.addEventListener('click', async (e) => {
+      if (e.target.closest('[data-review-form-toggle]')) {
+        setFormOpen(form?.hidden ?? false);
+        return;
+      }
+      const more = e.target.closest('[data-reviews-more]');
+      if (!more || !list) return;
+      more.disabled = true;
+      more.classList.add('is-loading');
+      const page = Number(root.dataset.page || 1) + 1;
+      try {
+        const res = await fetch(`${cfg.moreUrl}${root.dataset.product}?page=${page}`, { credentials: 'same-origin' });
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        list.insertAdjacentHTML('beforeend', data.html); // markup from our own endpoint
+        root.dataset.page = String(page);
+        if (!data.hasMore) more.closest('.reviews__more')?.remove();
+      } catch {
+        more.insertAdjacentHTML('afterend', `<p class="form-error" role="alert">${cfg.error || ''}</p>`);
+      } finally {
+        more.disabled = false;
+        more.classList.remove('is-loading');
+      }
+    });
+
+    // Masonry: each card spans as many 4px grid rows as it is tall (CSS grid fallback without JS).
+    if (list) {
+      const layout = () => {
+        list.classList.add('is-masonry');
+        const gap = parseFloat(getComputedStyle(list).getPropertyValue('--review-gap')) || 12;
+        list.querySelectorAll('.review-card').forEach((card) => {
+          card.style.gridRowEnd = '';
+          card.style.gridRowEnd = `span ${Math.ceil((card.getBoundingClientRect().height + gap) / 4)}`;
+        });
+      };
+      let frame;
+      const schedule = () => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(layout);
+      };
+      layout();
+      list.addEventListener('load', schedule, true); // images inside cards
+      window.addEventListener('resize', schedule, { passive: true });
+      new MutationObserver(schedule).observe(list, { childList: true }); // "Load more"
+    }
+
+    // Arriving from a review request link (#review_form / #respond) opens the form.
+    if (['#review-form', '#review_form', '#respond'].includes(window.location.hash)) {
+      setFormOpen(true, false);
+    }
+
+    // Customer photo lightbox (photo strip, card photos, extra thumbnails).
+    const modal = document.querySelector('dialog[data-modal="review-photo"]');
+    if (!modal) return;
+    const img = modal.querySelector('[data-review-photo-img]');
+    const reviewBox = modal.querySelector('[data-review-photo-review]');
+    document.addEventListener('click', (e) => {
+      const trigger = e.target.closest('[data-review-photo]');
+      if (!trigger) return;
+      img.src = trigger.dataset.reviewPhoto;
+      const body = document.querySelector(`#review-${CSS.escape(trigger.dataset.reviewId || '')} [data-review-body]`);
+      reviewBox.replaceChildren(...(body ? [body.cloneNode(true)] : []));
+      modal.showModal();
+      document.documentElement.classList.add('has-drawer');
+    });
+  }
+
   ns.initVariantForm = initVariantForm;
   document.querySelectorAll('form.variations_form').forEach(initVariantForm);
   initSticky();
+  initReviews();
 })();

@@ -38,11 +38,39 @@ Local site: http://resellstreet.local
 - Variation buttons: sold-out options crossed out and disabled; must work in AJAX variation mode
   (> 30 variations, `woocommerce_ajax_variation_threshold`). The native `<select>` stays in the DOM (visually hidden)
   for plugin compatibility. Buttons drive the select and fire `change`.
-- Product page: sticky Add to Cart bar on mobile. Hook slots: `ci_product_after_title` (Judge.me stars)
+- Product page: sticky Add to Cart bar on mobile. Hook slots: `ci_product_after_title` (theme star rating + count)
   and `ci_product_after_add_to_cart` (trust badges, static theme component).
 - Size guide: theme modal, content set per product category (term meta).
 - Search is enabled (header icon + overlay + product search results).
-- Shopify apps: reviews = Judge.me slot only; trust badges = static theme component; no "Get £5" widget.
+- Shopify apps: trust badges = static theme component; no "Get £5" widget.
+
+## Reviews (replaces the earlier Judge.me plan; Judge.me no longer supports WooCommerce)
+- Reviews are native WooCommerce product reviews (comments, type `review`, meta `rating`), collected with the
+  "Customer Reviews for WooCommerce" (CusRev) plugin. CusRev's job: review request emails + photo upload on the
+  review form. Its frontend widgets, templates and CSS are NOT used; the theme renders everything (Loox-style):
+  1. Star rating + review count under the product title (links to #reviews), via `ci_product_after_title`.
+  2. Product page review section: rating summary, photo grid, review cards (stars, name, date, text, photos,
+     verified-buyer badge), "Load more".
+  3. Homepage testimonials carousel = real reviews (Customizer: number of reviews, min rating, photos required).
+     No hardcoded testimonials.
+- CusRev data: photos = comment meta `ivole_review_image2` (one row per attachment ID; legacy `ivole_review_image`,
+  videos `ivole_review_video2` / `ivole_review_video`, count `ivole_media_count`). Verified buyer = WooCommerce
+  comment meta `verified` OR CusRev `ivole_order` (order ID).
+- Disable CusRev's frontend output wherever the theme replaces it; keep its review emails and the photo upload field
+  on the review form working (its upload script stays, its CSS doesn't).
+- Schema: WooCommerce already outputs Product JSON-LD with `aggregateRating`; CusRev filters it. The theme adds review
+  schema only if it's missing, so it never appears twice. (Verified: exactly once; theme adds none.)
+- Implementation (`inc/reviews.php`, `template-parts/product/reviews.php` + `review-card.php`, product.js `initReviews`):
+  stars = `ci_stars()` (one element, CSS mask, partial fill, in base.css). Section: summary + breakdown, customer
+  photo strip, masonry cards (CSS grid + JS row spans), "Load more" via REST `ci/v1/reviews/<id>?page=N`
+  (`ci_reviews_per_page` filter, default 6), photo lightbox dialog, review form = WooCommerce form args + CusRev's
+  upload field (`ivole_attach_image` = yes, set by seed).
+  CusRev frontend CSS/JS/colcade dequeued site-wide (it loads them + jQuery on every page). On product pages its upload
+  script is loaded on demand when "Write a review" is hovered/opened; a file picked before it's ready is replayed via a
+  jQuery ready callback (CusRev binds in one, and jQuery 3 runs those async). CusRev's email review form is a
+  standalone page with its own assets (unaffected).
+- Test reviews: `npm run fixtures` (8 reviews, tagged `_ci_fixture`). WooCommerce excludes reviews from untyped
+  comment queries: always pass `'type' => 'review'`.
 
 ## Performance (paid Meta traffic, mostly mobile)
 - Keep CSS small. One critical global stylesheet plus per-template CSS enqueued conditionally.
@@ -73,7 +101,9 @@ Local site: http://resellstreet.local
 | 4 | AJAX cart drawer (Store API + nonce, jQuery `added_to_cart`/`updated_cart_totals` for Meta Pixel) + Quick Shop "Shop Now" on cards; dequeue WC jQuery scripts where unused | ✅ done |
 | 5 | Homepage `front-page.php`: slideshow, collection tiles, testimonials, image-with-text (all Customizer) | ✅ done |
 | 6 | Cart/checkout/account styling; switch Cart & Checkout pages to classic shortcodes; test logged-in cart (X-WP-Nonce) | ✅ done |
-| 7 | Search overlay (header icon already links to product search) + results page | ⏭ next |
+| 3b | Reviews on the product page (CusRev data, theme display): stars under title, review section, test reviews | ✅ done |
+| 5b | Homepage testimonials from real reviews (Customizer: count, min rating, photos) | ⏭ next |
+| 7 | Search overlay (header icon already links to product search) + results page | ⬜ after 3b/5b |
 | 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ⬜ waiting for CSV |
 
 ### Decisions made so far

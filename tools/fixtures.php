@@ -200,3 +200,114 @@ if ( ! get_user_by( 'login', 'ci-test-customer' ) ) {
 	wc_create_new_customer( 'ci-test-customer@example.com', 'ci-test-customer', 'ci-test-Passw0rd!' );
 }
 WP_CLI::success( 'Checkout fixtures: Cash on delivery enabled, coupon TEST10, customer ci-test-customer.' );
+
+// ---------------------------------------------------------------------------
+// Test reviews (DEV ONLY): native WooCommerce reviews stored exactly like CusRev stores them.
+//   rating → comment meta `rating`; verified → `verified` (WooCommerce) and/or `ivole_order` (CusRev order ID);
+//   photos → one `ivole_review_image2` row per attachment ID + `ivole_media_count`.
+// Re-running deletes the previous fixture reviews (tagged `_ci_fixture`) and recreates them.
+// ---------------------------------------------------------------------------
+
+/**
+ * Attachment for a file in reference/media (imported once, tagged `_ci_seed` like tools/seed.sh does).
+ */
+function ci_fx_local_media( $file ) {
+	$found = get_posts(
+		array(
+			'post_type'   => 'attachment',
+			'post_status' => 'inherit',
+			'meta_key'    => '_ci_seed', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'meta_value'  => $file, // phpcs:ignore WordPress.DB.SlowDBQuery
+			'fields'      => 'ids',
+			'numberposts' => 1,
+		)
+	);
+	if ( $found ) {
+		return (int) $found[0];
+	}
+	$path = get_theme_file_path( 'reference/media/' . $file );
+	if ( ! file_exists( $path ) ) {
+		WP_CLI::warning( "Missing reference/media/{$file}" );
+		return 0;
+	}
+	$tmp = wp_tempnam( $file );
+	copy( $path, $tmp );
+	$id = media_handle_sideload( array( 'name' => $file, 'tmp_name' => $tmp ), 0, 'Review photo' );
+	if ( is_wp_error( $id ) ) {
+		WP_CLI::warning( $id->get_error_message() );
+		return 0;
+	}
+	update_post_meta( $id, '_ci_seed', $file );
+	return (int) $id;
+}
+
+// Remove previous fixture reviews.
+foreach ( get_comments( array( 'meta_key' => '_ci_fixture', 'type' => 'review', 'status' => 'all' ) ) as $old ) { // phpcs:ignore WordPress.DB.SlowDBQuery
+	wp_delete_comment( $old->comment_ID, true );
+}
+
+$sneaker    = wc_get_product_id_by_sku( 'CI-TEST-SNEAKER' );
+$sneaker_xl = wc_get_product_id_by_sku( 'CI-TEST-SNEAKER-XL' );
+$hoodie     = get_page_by_path( 'hoodie', OBJECT, 'product' );
+$hoodie     = $hoodie ? $hoodie->ID : 0;
+$any_order  = wc_get_orders( array( 'limit' => 1, 'return' => 'ids' ) );
+$fx_images  = (array) get_option( 'ci_fixture_images', array() );
+
+$reviews = array(
+	// product, stars, name, verified (true | 'order' = CusRev order meta), photos, days ago, text
+	array( $sneaker, 5, 'Liam P.', 'order', array( 'avatar-1.jpg', $fx_images[1] ?? 0 ), 3, 'The product looks exactly like the photos, maybe even better. Clean stitching, no issues, and arrived quicker than I expected.' ),
+	array( $sneaker, 5, 'James R.', true, array( 'avatar-2.jpg' ), 9, 'Honestly wasn’t expecting this level of quality for the price. The fit is perfect and the material feels premium. Will definitely order again.' ),
+	array( $sneaker, 4, 'Oliver M.', true, array(), 14, 'Great fit, runs slightly small, go half a size up.' ),
+	array( $sneaker, 3, 'Sam T.', false, array(), 21, 'Comfortable, but the laces came loose a lot.' ),
+	array( $sneaker_xl, 5, 'Daniel M.', true, array( 'avatar-3.jpg' ), 5, 'Really comfortable and stylish. I’ve worn it a few times now and keep getting compliments. Great value for money.' ),
+	array( $sneaker_xl, 5, 'Adam K.', false, array(), 12, 'Sizing was accurate and the shape holds well. The fabric feels durable but still soft. Honestly impressed.' ),
+	array( $hoodie, 5, 'Marc T.', true, array( 'avatar-5.jpg' ), 7, 'Super happy with this purchase. Lightweight, stylish, and feels way more expensive than it is. Will be buying more colours.' ),
+	array( $hoodie, 2, 'Chris B.', true, array(), 18, 'Colour faded after the first wash.' ),
+);
+
+$touched = array();
+foreach ( $reviews as $i => list( $product_id, $stars, $name, $verified, $photos, $days, $text ) ) {
+	if ( ! $product_id ) {
+		WP_CLI::warning( "Review {$i}: product missing (run the product fixtures first)." );
+		continue;
+	}
+	$date       = gmdate( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS );
+	$comment_id = wp_insert_comment(
+		array(
+			'comment_post_ID'      => $product_id,
+			'comment_author'       => $name,
+			'comment_author_email' => sanitize_title( $name ) . '@example.com',
+			'comment_content'      => $text,
+			'comment_type'         => 'review',
+			'comment_approved'     => 1,
+			'comment_date'         => get_date_from_gmt( $date ),
+			'comment_date_gmt'     => $date,
+		)
+	);
+	add_comment_meta( $comment_id, 'rating', $stars );
+	add_comment_meta( $comment_id, 'verified', $verified ? 1 : 0 );
+	if ( 'order' === $verified && $any_order ) {
+		add_comment_meta( $comment_id, 'ivole_order', $any_order[0] ); // collected through a CusRev review request
+	}
+	$count = 0;
+	foreach ( $photos as $photo ) {
+		$attachment = is_int( $photo ) ? $photo : ci_fx_local_media( $photo );
+		if ( $attachment ) {
+			add_comment_meta( $comment_id, 'ivole_review_image2', $attachment );
+			++$count;
+		}
+	}
+	if ( $count ) {
+		update_comment_meta( $comment_id, 'ivole_media_count', $count );
+	}
+	add_comment_meta( $comment_id, '_ci_fixture', $i + 1 );
+	$touched[ $product_id ] = true;
+}
+
+// Recalculate average rating / review counts.
+foreach ( array_keys( $touched ) as $product_id ) {
+	WC_Comments::clear_transients( $product_id );
+	$p = wc_get_product( $product_id );
+	WP_CLI::log( sprintf( '  %s: %s★ from %d reviews', $p->get_name(), $p->get_average_rating(), $p->get_review_count() ) );
+}
+WP_CLI::success( count( $reviews ) . ' test reviews created.' );

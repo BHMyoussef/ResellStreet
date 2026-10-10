@@ -38,6 +38,8 @@
   --color-section-alt-text: #1c1d1d;
   --color-on-image: #ffffff;          /* hero text over photos */
   --color-focus: #000000;
+  --color-star: var(--color-text);
+  --color-star-empty: var(--color-border);
   --color-stock-ok: #56ad6a;
   --color-stock-low: #ee9441;
   --color-stock-out: #c20000;

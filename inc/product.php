@@ -4,7 +4,7 @@
  *
  * Summary order: title → [ci_product_after_title] → divider → price → excerpt → variations (buttons)
  * → selling points + stock → add to cart → [ci_product_after_add_to_cart] (trust badges) → description → tabs.
- * Below the product: [ci_product_reviews] (Judge.me / WC reviews), upsells, related (optional).
+ * Below the product: [ci_product_reviews] (theme review section, inc/reviews.php), upsells, related (optional).
  *
  * @package CustomImpulse
  */
@@ -21,7 +21,7 @@ remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_singl
 remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40 );
 remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_product_data_tabs', 10 );
 
-/* Slot under the title for review stars. WC's own rating goes there by default; Judge.me etc. can hook in too. */
+/* Slot under the title for review stars (inc/reviews.php: theme stars + count). */
 add_action(
 	'woocommerce_single_product_summary',
 	function () {
@@ -31,7 +31,6 @@ add_action(
 	},
 	6
 );
-add_action( 'ci_product_after_title', 'woocommerce_template_single_rating', 10 );
 
 add_action(
 	'woocommerce_single_product_summary',
@@ -58,7 +57,7 @@ add_action( 'ci_product_after_add_to_cart', 'ci_product_trust_badges', 10 );
 add_action( 'woocommerce_single_product_summary', 'ci_product_description', 35 );
 add_action( 'woocommerce_single_product_summary', 'ci_product_tabs', 36 );
 
-/* Reviews: full width under the product (like the reference store's review app section). */
+/* Reviews: full width under the product (like the reference store's review app section); filled by inc/reviews.php. */
 add_action(
 	'woocommerce_after_single_product_summary',
 	function () {
@@ -71,7 +70,6 @@ add_action(
 	},
 	12
 );
-add_action( 'ci_product_reviews', 'ci_product_reviews_default', 10 );
 
 /* Related products are off on the reference store. */
 add_action(
@@ -425,20 +423,6 @@ function ci_product_tabs() {
 			$tab['html'] // phpcs:ignore WordPress.Security.EscapeOutput -- kses'd above or plugin tab output.
 		);
 	}
-	echo '</div>';
-}
-
-/**
- * Default occupant of the reviews slot: whatever renders WooCommerce's "reviews" tab
- * (core reviews, or a reviews plugin such as Judge.me that replaces that tab's callback).
- */
-function ci_product_reviews_default() {
-	$tabs = apply_filters( 'woocommerce_product_tabs', array() );
-	if ( empty( $tabs['reviews']['callback'] ) ) {
-		return;
-	}
-	echo '<div class="product-reviews__inner">';
-	call_user_func( $tabs['reviews']['callback'], 'reviews', $tabs['reviews'] );
 	echo '</div>';
 }
 

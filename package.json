@@ -11,10 +11,11 @@
     "check:product": "node tools/product-check.mjs",
     "fixtures": "tools/wp eval-file tools/fixtures.php",
     "check:cart": "node tools/cart-check.mjs",
-    "check:all": "node tools/behavior.mjs && node tools/product-check.mjs && node tools/cart-check.mjs && node tools/home-check.mjs && node tools/pages-check.mjs && node tools/checkout-errors-check.mjs",
+    "check:all": "node tools/behavior.mjs && node tools/product-check.mjs && node tools/cart-check.mjs && node tools/home-check.mjs && node tools/pages-check.mjs && node tools/checkout-errors-check.mjs && node tools/reviews-check.mjs",
     "check:home": "node tools/home-check.mjs",
     "check:pages": "node tools/pages-check.mjs",
-    "check:checkout-errors": "node tools/checkout-errors-check.mjs"
+    "check:checkout-errors": "node tools/checkout-errors-check.mjs",
+    "check:reviews": "node tools/reviews-check.mjs"
   },
   "devDependencies": {
     "playwright": "^1.64.0"
