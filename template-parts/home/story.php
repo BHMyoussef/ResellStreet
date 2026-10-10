@@ -23,7 +23,8 @@ $ci_layout = ci_sanitize_align( ci_mod( 'home_story_layout' ) );
 ?>
 <section class="story story--<?php echo esc_attr( $ci_layout ); ?><?php echo ci_mod( 'home_story_parallax' ) ? ' story--parallax' : ''; ?>" style="--story-h:<?php echo esc_attr( max( 300, absint( ci_mod( 'home_story_height' ) ) ) ); ?>px">
 	<?php if ( $ci_image ) : ?>
-		<div class="story__media" data-parallax>
+		<picture class="story__media" data-parallax>
+			<source media="(max-width: 768px)" srcset="<?php echo esc_attr( ci_mobile_srcset( $ci_image ) ); ?>" sizes="100vw">
 			<?php
 			echo wp_get_attachment_image(
 				$ci_image,
@@ -38,7 +39,7 @@ $ci_layout = ci_sanitize_align( ci_mod( 'home_story_layout' ) );
 				)
 			);
 			?>
-		</div>
+		</picture>
 	<?php endif; ?>
 	<div class="story__box">
 		<?php if ( $ci_subtitle ) : ?>

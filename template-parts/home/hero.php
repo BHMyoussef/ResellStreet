@@ -40,9 +40,7 @@ $ci_style = sprintf(
 			<div class="hero__slide hero__slide--<?php echo esc_attr( $ci_slide['align'] ); ?><?php echo $ci_first ? ' is-active' : ''; ?>" data-hero-slide<?php echo $ci_first ? '' : ' inert aria-hidden="true"'; ?><?php echo $ci_count > 1 ? ' role="group" aria-roledescription="' . esc_attr__( 'slide', 'customimpulse' ) . '"' : ''; ?>>
 				<div class="hero__media" data-parallax>
 					<picture>
-						<?php if ( $ci_slide['image_mobile'] ) : ?>
-							<source media="(max-width: 768px)" srcset="<?php echo esc_attr( (string) wp_get_attachment_image_srcset( $ci_slide['image_mobile'], 'full' ) ); ?>" sizes="100vw">
-						<?php endif; ?>
+						<source media="(max-width: 768px)" srcset="<?php echo esc_attr( ci_mobile_srcset( $ci_slide['image_mobile'] ? $ci_slide['image_mobile'] : $ci_slide['image'] ) ); ?>" sizes="100vw">
 						<?php echo wp_get_attachment_image( $ci_slide['image'], 'full', false, $ci_img ); ?>
 					</picture>
 					<?php if ( $ci_slide['overlay'] ) : ?>
