@@ -466,6 +466,16 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .woocommerce-MyAccount-content .shop_table th { padding: 10px 8px 10px 0; border-bottom: 1px solid var(--color-text); font-size: var(--fs-label); font-weight: var(--fw-body); letter-spacing: var(--ls-wide); text-align: left; text-transform: uppercase; }
 .woocommerce-MyAccount-content .shop_table td { padding: 12px 8px 12px 0; border-bottom: 1px solid var(--color-border); }
 .woocommerce-MyAccount-content .shop_table .button { min-height: 0; padding: 6px 12px; font-size: 11px; }
+.woocommerce-MyAccount-content .shop_table tfoot th, .woocommerce-MyAccount-content .shop_table tfoot td { border-bottom: 1px solid var(--color-border); }
+/* Row headers (order number in the orders list) look like normal cells. */
+.woocommerce-MyAccount-content .shop_table tbody th { padding: 12px 8px 12px 0; border-bottom-color: var(--color-border); font-size: inherit; letter-spacing: 0; text-transform: none; }
+/* View order: "Order #123 was placed on … and is currently Processing." */
+.woocommerce-MyAccount-content mark { background: none; color: inherit; font-weight: var(--fw-bold); }
+.woocommerce-MyAccount-content .woocommerce-order-details,
+.woocommerce-MyAccount-content .woocommerce-customer-details,
+.woocommerce-MyAccount-content .woocommerce-OrderUpdates { margin-top: 30px; }
+.woocommerce-MyAccount-content .woocommerce-order-details__title,
+.woocommerce-MyAccount-content .woocommerce-column__title { margin-bottom: 15px; }
 .woocommerce-Addresses { display: grid; gap: 30px; }
 .woocommerce-Address { width: auto; float: none; }
 .woocommerce-Address-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
@@ -475,8 +485,11 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 @media (max-width: 768px) {
   .woocommerce-MyAccount-content .shop_table_responsive thead { display: none; }
   .woocommerce-MyAccount-content .shop_table_responsive tr { display: block; padding: 10px 0; border-bottom: 1px solid var(--color-border); }
-  .woocommerce-MyAccount-content .shop_table_responsive td { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; border: 0; text-align: right; }
-  .woocommerce-MyAccount-content .shop_table_responsive td::before { content: attr(data-title); font-weight: var(--fw-bold); text-align: left; }
+  /* Block + floated label (not flex): cell content like "£91.50 for 2 items" stays one line of text. */
+  .woocommerce-MyAccount-content .shop_table_responsive :is(td, tbody th) { display: block; padding: 4px 0; border: 0; font-size: var(--fs-small); letter-spacing: 0; text-align: right; text-transform: none; }
+  .woocommerce-MyAccount-content .shop_table_responsive :is(td, tbody th)::before { content: attr(data-title); float: left; margin-right: 10px; font-weight: var(--fw-bold); text-align: left; }
+  .woocommerce-MyAccount-content .shop_table_responsive :is(td, tbody th)::after { content: ""; display: table; clear: both; }
+  .woocommerce-MyAccount-content .shop_table_responsive .button { display: inline-flex; }
 }
 
 @media (min-width: 769px) {
