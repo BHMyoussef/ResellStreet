@@ -176,3 +176,27 @@ ci_fx_product(
 	array(),
 	array_reverse( $images )
 );
+
+// ---------------------------------------------------------------------------
+// Checkout / account testing (DEV ONLY)
+// ---------------------------------------------------------------------------
+
+// A payment method so checkout can be completed locally.
+$cod            = get_option( 'woocommerce_cod_settings', array() );
+$cod['enabled'] = 'yes';
+update_option( 'woocommerce_cod_settings', $cod );
+
+// 10% coupon for the checkout discount field.
+if ( ! wc_get_coupon_id_by_code( 'TEST10' ) ) {
+	$coupon = new WC_Coupon();
+	$coupon->set_code( 'TEST10' );
+	$coupon->set_discount_type( 'percent' );
+	$coupon->set_amount( 10 );
+	$coupon->save();
+}
+
+// Customer account for the logged-in cart test (tools/pages-check.mjs).
+if ( ! get_user_by( 'login', 'ci-test-customer' ) ) {
+	wc_create_new_customer( 'ci-test-customer@example.com', 'ci-test-customer', 'ci-test-Passw0rd!' );
+}
+WP_CLI::success( 'Checkout fixtures: Cash on delivery enabled, coupon TEST10, customer ci-test-customer.' );

@@ -14,6 +14,16 @@ $ci_contact_text     = (string) ci_mod( 'contact_text' );
 ?>
 </main>
 
+<?php
+// Checkout: policy links only.
+if ( function_exists( 'ci_is_minimal_checkout' ) && ci_is_minimal_checkout() ) {
+	get_template_part( 'template-parts/footer/checkout' );
+	wp_footer();
+	echo "</body>\n</html>\n";
+	return;
+}
+?>
+
 <footer class="site-footer">
 	<div class="page-width">
 		<div class="footer__blocks">

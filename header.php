@@ -18,6 +18,14 @@ $ci_cart_count = ci_cart_count();
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <a class="skip-link" href="#main"><?php esc_html_e( 'Skip to content', 'customimpulse' ); ?></a>
+<?php
+// Checkout: minimal header, like Shopify's hosted checkout.
+if ( function_exists( 'ci_is_minimal_checkout' ) && ci_is_minimal_checkout() ) {
+	get_template_part( 'template-parts/header/checkout' );
+	echo '<main id="main" class="site-main" tabindex="-1">';
+	return;
+}
+?>
 
 <header class="site-header" id="site-header">
 	<div class="site-header__inner page-width">

@@ -45,6 +45,18 @@
   --shadow-bar: 0 -6px 20px rgb(0 0 0 / 0.06);
   --shadow-card: 0 10px 30px rgb(0 0 0 / 0.08);
 
+  /* Checkout (settings_data.json checkout_*: Shopify-checkout look) */
+  --checkout-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --checkout-accent: #111111;
+  --checkout-button: #111111;
+  --checkout-button-text: #ffffff;
+  --checkout-sidebar: #fafafa;
+  --checkout-error: #ff6d6d;
+  --checkout-border: #dedede;
+  --checkout-muted: #707070;
+  --checkout-field-muted: #ededed;
+  --checkout-radius: 5px;
+
   /* Fonts */
   --font-heading: "Tenor Sans", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Outfit", "Helvetica Neue", Arial, sans-serif;

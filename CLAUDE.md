@@ -72,8 +72,8 @@ Local site: http://resellstreet.local
 | 3 | Product page: gallery, variation buttons (sold-out crossed, AJAX >30 variations, hidden native select), sticky mobile ATC, hook slots `ci_product_after_title` / `ci_product_after_add_to_cart`, trust badges, size guide modal (per category), tabs | ✅ done |
 | 4 | AJAX cart drawer (Store API + nonce, jQuery `added_to_cart`/`updated_cart_totals` for Meta Pixel) + Quick Shop "Shop Now" on cards; dequeue WC jQuery scripts where unused | ✅ done |
 | 5 | Homepage `front-page.php`: slideshow, collection tiles, testimonials, image-with-text (all Customizer) | ✅ done |
-| 6 | Cart/checkout/account styling; switch Cart & Checkout pages to classic shortcodes; test logged-in cart (X-WP-Nonce) | ⏭ next |
-| 7 | Search overlay (header icon already links to product search) + results page | ⬜ |
+| 6 | Cart/checkout/account styling; switch Cart & Checkout pages to classic shortcodes; test logged-in cart (X-WP-Nonce) | ✅ done |
+| 7 | Search overlay (header icon already links to product search) + results page | ⏭ next |
 | 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ⬜ waiting for CSV |
 
 ### Decisions made so far
@@ -109,6 +109,16 @@ Local site: http://resellstreet.local
   (`ci-square` 480 / `ci-square-lg` 720 crops). Testimonials = scroll-snap carousel. Parallax desktop-only (home.js).
 - Homepage media for seeding lives in `reference/media/` (downloaded from the live store).
 - If Chromium can't resolve novarende.com, run Playwright tools with `LIVE_IP=23.227.38.65`.
+- Cart/checkout/account (`inc/wc-pages.php`, `wc-pages.css/js`), hooks only:
+  cart = Impulse layout, subtotal only (no shipping calc / coupon on cart), "Check out" button, auto-update steppers
+  (clicks WC's hidden Update button → WC fires updated_cart_totals).
+  Checkout = Shopify-checkout look from checkout_* settings (tokens `--checkout-*`, system font), minimal
+  header/footer (`ci_is_minimal_checkout()`), payment moved to the left column, discount code row inside the
+  summary table (posts to wc-ajax=apply_coupon, then triggers WC `update_checkout`), mobile summary toggle.
+  Order-received/order-pay = single column (`ci-checkout-page--single`).
+  selectWoo/select2 and wc-add-to-cart are dequeued everywhere (native selects; country→state still works).
+- MutationObserver callbacks must only write to the DOM when the value changed (writing textContent inside an
+  observed subtree re-triggers the observer → infinite loop; this froze the checkout once).
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
@@ -117,6 +127,9 @@ Local site: http://resellstreet.local
 - Product data is still WooCommerce sample data until the Shopify CSV import (step 9).
 - Dev test products from `npm run fixtures` (tools/fixtures.php): "Test Sneaker" (21 variations, inline mode) and
   "Test Sneaker XL" (33 variations, AJAX mode) in category "Shoes" (has a size guide). Delete them after step 9.
+  Fixtures also enable Cash on delivery, create coupon TEST10 (10%) and customer `ci-test-customer`
+  (password `ci-test-Passw0rd!`). Test orders exist from `npm run check:pages`.
+- Cart & Checkout pages contain the classic shortcodes; My Account registration is enabled (both via seed.sh).
 
 ### Resume checklist
 1. `npm run shots:local` / `npm run measure -- <profile>` (global|collection|product) / `npm run check:all`.

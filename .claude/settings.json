@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(wp *)",
+      "Bash(composer *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Edit",
+      "Write",
+      "Bash(cd *)",
+      "Bash(grep *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(find *)",
+      "Bash(sed *)",
+      "Bash(wc *)",
+      "Bash(python3 *)",
+      "Bash(/Users/youssef/Library/Application Support/Local/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)"
+    ]
+  }
+}

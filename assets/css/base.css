@@ -261,3 +261,17 @@ label { display: inline-block; margin-bottom: 6px; }
 @keyframes ci-fade-up { from { opacity: 0; transform: translateY(15px); } }
 @media (min-width: 769px) { .modal__inner { padding: 50px 40px 40px; } }
 @media (prefers-reduced-motion: reduce) { .modal[open] { animation: none; } }
+
+/* WooCommerce notices (can show up on any page after a form post) */
+.woocommerce-message, .woocommerce-info, .woocommerce-error {
+  margin: 0 0 25px;
+  padding: 14px 18px;
+  border-left: 3px solid var(--color-text);
+  background: var(--color-section-alt);
+  list-style: none;
+  font-size: var(--fs-small);
+}
+.woocommerce-error { border-left-color: var(--color-savings); }
+.woocommerce-error li + li { margin-top: 6px; }
+.woocommerce-message .button, .woocommerce-info .button { float: right; min-height: 0; margin: -4px 0 0 15px; padding: 6px 14px; font-size: 12px; }
+.woocommerce-message::after, .woocommerce-info::after { content: ""; display: table; clear: both; }

@@ -87,6 +87,11 @@ fi
 
 "$WP" media regenerate --image_size=ci-card-sm --only-missing --yes | tail -1
 
+# Cart & Checkout use the classic shortcodes (not blocks); customers can register on My Account.
+"$WP" post update "$("$WP" option get woocommerce_cart_page_id)" --post_content='<!-- wp:shortcode -->[woocommerce_cart]<!-- /wp:shortcode -->' >/dev/null
+"$WP" post update "$("$WP" option get woocommerce_checkout_page_id)" --post_content='<!-- wp:shortcode -->[woocommerce_checkout]<!-- /wp:shortcode -->' >/dev/null
+"$WP" option update woocommerce_enable_myaccount_registration yes >/dev/null
+
 # ---------- Homepage (templates/index.json) ----------
 # Media files come from reference/media (downloaded once from the live store; reference/ is git-ignored).
 MEDIA_DIR="$(cd "$(dirname "$0")/.." && pwd)/reference/media"
