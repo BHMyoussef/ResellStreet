@@ -63,5 +63,34 @@ Local site: http://resellstreet.local
 - After each section: screenshot http://resellstreet.local with `npm run shots:local` and compare
   against `reference/screens`. Then commit (one commit per completed section).
 
+## Build status (update after every completed section)
+| # | Section | Status |
+|---|---------|--------|
+| 0 | Setup: CLAUDE.md, ignores, Playwright captures in `reference/screens` | ✅ done |
+| 1 | Foundation: tokens, fonts, buttons, announcement bar, sticky header, mobile menu drawer, footer | ✅ done |
+| 2 | Collection page: promo banner, count, grid, product card, pagination | ✅ done |
+| 3 | Product page: gallery, variation buttons (sold-out crossed, AJAX >30 variations, hidden native select), sticky mobile ATC, hook slots `ci_product_after_title` / `ci_product_after_add_to_cart`, trust badges, size guide modal (per category), tabs | ⏭ next |
+| 4 | AJAX cart drawer (Store API + nonce, jQuery `added_to_cart`/`updated_cart_totals` for Meta Pixel) + Quick Shop "Shop Now" on cards; dequeue WC jQuery scripts where unused | ⬜ |
+| 5 | Homepage `front-page.php`: slideshow, collection tiles, testimonials, image-with-text (all Customizer) | ⬜ |
+| 6 | Cart/checkout/account styling; switch Cart & Checkout pages to classic shortcodes | ⬜ |
+| 7 | Search overlay (header icon already links to product search) + results page | ⬜ |
+| 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ⬜ waiting for CSV |
+
+### Decisions made so far
+- Body font is Outfit (live store), not Twentieth Century (export). Desktop/mobile sizes measured from live computed styles.
+- Drawers are native `<dialog data-drawer="name">`, opened by `[data-drawer-open="name"]`; API `window.CustomImpulse.openDrawer/closeDrawer`.
+- Product card is built on WC loop hooks in `inc/woocommerce.php`; `ci_price_html()` is shared with the product page.
+- Card images: WC thumbnail cropped 4:3 (600×450) + `ci-card-sm` 360×270 for srcset.
+- Newsletter form only renders with a provider shortcode or action URL (Customizer → Footer). Provider not chosen yet.
+
+### Local site state (not in git: recreate with `tools/seed.sh`)
+- Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
+- Seeded pages, menus (Main menu, Footer), Customizer content, logo, catalog 3×7, 4:3 thumbnails.
+- Product data is still WooCommerce sample data until the Shopify CSV import (step 9).
+
+### Resume checklist
+1. `npm run shots:local` / `npm run measure -- <profile>` / `npm run check` to verify current state.
+2. Compare with `reference/screens/*`, then continue with the next ⏭ row above.
+
 ## WooCommerce template overrides
 _(none yet. Add every file in `/woocommerce` here with the reason)_
