@@ -12,7 +12,12 @@
   overflow: hidden;
   opacity: 1 !important;
 }
+/* Slide width comes from the gallery (container units), not from the slide track: flexslider first makes the
+   track ~1000% wide and only then gives slides pixel widths, so "width: 100%" made every slide 10× wide and
+   tall for a frame, pushing the summary off screen (CLS ≈ 0.9 on mobile). */
+.woocommerce-product-gallery { container-type: inline-size; --slide-w: 100cqw; }
 .woocommerce-product-gallery__wrapper { margin: 0; }
+.woocommerce-product-gallery__wrapper > .woocommerce-product-gallery__image { width: var(--slide-w); }
 .woocommerce-product-gallery__wrapper > .woocommerce-product-gallery__image:nth-child(n + 2) { display: none; }
 .woocommerce-product-gallery__image { position: relative; background: var(--color-small-image-bg); }
 .woocommerce-product-gallery__image a { display: block; }
@@ -24,6 +29,9 @@
   width: 75%;
   margin-inline: auto;
 }
+.woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image) { --slide-w: 75cqw; }
+/* Room for the dots before flexslider adds them */
+.woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image):not(:has(.flex-control-nav)) { padding-bottom: 22px; }
 .woocommerce-product-gallery .flex-viewport { overflow: visible !important; }
 .woocommerce-product-gallery .flex-viewport .woocommerce-product-gallery__image { padding-inline: 2px; }
 
@@ -415,7 +423,8 @@ body.has-sticky-atc .site-footer { padding-bottom: 110px; }
 
   .woocommerce-product-gallery { margin: 0; overflow: visible; }
   /* Thumbnails beside: a fixed 80px column on the left, as tall as the main image */
-  .woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image) { padding-left: 95px; }
+  .woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image) { --slide-w: 100cqw; padding-left: 95px; }
+  .woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image):not(:has(.flex-control-nav)) { padding-bottom: 0; }
   .woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image) > .woocommerce-product-gallery__wrapper,
   .woocommerce-product-gallery .flex-viewport { width: auto; margin: 0; overflow: hidden !important; }
   .woocommerce-product-gallery .flex-viewport .woocommerce-product-gallery__image { padding-inline: 0; }
