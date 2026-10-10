@@ -61,6 +61,19 @@ add_action(
 					'decrease' => __( 'Reduce quantity', 'customimpulse' ),
 					'increase' => __( 'Increase quantity', 'customimpulse' ),
 					'summary'  => __( 'Order summary', 'customimpulse' ),
+					/* translators: %s: field label */
+					'required' => __( '%s is a required field.', 'customimpulse' ),
+					'email'    => __( 'Enter a valid email address.', 'customimpulse' ),
+					'phone'    => __( 'Enter a valid phone number.', 'customimpulse' ),
+					// WooCommerce prefixes server messages ("Billing First name is…"); redundant under the field.
+					'prefixes' => array_values(
+						array_filter(
+							array(
+								trim( str_replace( '%s', '', __( 'Billing %s', 'woocommerce' ) ) ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
+								trim( str_replace( '%s', '', __( 'Shipping %s', 'woocommerce' ) ) ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
+							)
+						)
+					),
 				)
 			);
 		}

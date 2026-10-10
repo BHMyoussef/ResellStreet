@@ -52,6 +52,8 @@
   --checkout-button-text: #ffffff;
   --checkout-sidebar: #fafafa;
   --checkout-error: #ff6d6d;
+  /* #ff6d6d is too light for text on white (≈2.6:1): darken it for messages (≈5:1) */
+  --checkout-error-text: color-mix(in srgb, var(--checkout-error) 68%, #000);
   --checkout-border: #dedede;
   --checkout-muted: #707070;
   --checkout-field-muted: #ededed;

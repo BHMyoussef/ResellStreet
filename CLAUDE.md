@@ -116,6 +116,10 @@ Local site: http://resellstreet.local
   header/footer (`ci_is_minimal_checkout()`), payment moved to the left column, discount code row inside the
   summary table (posts to wc-ajax=apply_coupon, then triggers WC `update_checkout`), mobile summary toggle.
   Order-received/order-pay = single column (`ci-checkout-page--single`).
+  Checkout errors (user rule): field errors → highlighted field + message under it (WC `li[data-id]` moved out of
+  the notice list; "Billing "/"Shipping " prefix stripped; blur validation gets messages too); general errors →
+  `.checkout-errors` banner above the form, page scrolls to top and focuses it. Field-only errors: no banner,
+  focus + scroll to the first invalid field. Error text uses `--checkout-error-text` (darkened #ff6d6d for contrast).
   selectWoo/select2 and wc-add-to-cart are dequeued everywhere (native selects; country→state still works).
 - MutationObserver callbacks must only write to the DOM when the value changed (writing textContent inside an
   observed subtree re-triggers the observer → infinite loop; this froze the checkout once).

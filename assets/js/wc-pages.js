@@ -149,4 +149,116 @@
       }
     });
   }
+
+  /* ---------- Checkout errors: field errors under the field, general errors at the top ---------- */
+
+  const checkoutForm = document.querySelector('form.checkout');
+  if (checkoutForm) {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const behavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
+
+    const fieldOf = (row) => row.querySelector('input:not([type="hidden"]), select, textarea');
+    const labelOf = (row) => (row.querySelector('label')?.textContent || '').replace(/\*|\(optional\)/gi, '').trim();
+
+    // Message under the field (reuses WooCommerce's element/ids when it already added one).
+    const setInline = (row, text) => {
+      if (!text) return;
+      const field = fieldOf(row);
+      let msg = row.querySelector('.checkout-inline-error-message');
+      if (!msg) {
+        msg = document.createElement('p');
+        msg.className = 'checkout-inline-error-message';
+        msg.id = `${field?.id || 'field'}_description`;
+        row.append(msg);
+      }
+      if (msg.textContent !== text) msg.textContent = text;
+      if (field) {
+        field.setAttribute('aria-invalid', 'true');
+        field.setAttribute('aria-describedby', msg.id);
+      }
+    };
+
+    // "Billing First name is a required field." → "First name is a required field."
+    const withoutPrefix = (text) => {
+      for (const prefix of i18n.prefixes || []) {
+        if (prefix && text.startsWith(`${prefix} `)) {
+          const rest = text.slice(prefix.length + 1);
+          return rest.charAt(0).toUpperCase() + rest.slice(1);
+        }
+      }
+      return text;
+    };
+
+    // Client-side validation (on blur) only toggles classes; give those rows a message too.
+    const clientMessage = (row) => {
+      if (row.classList.contains('woocommerce-invalid-email')) return i18n.email;
+      if (row.classList.contains('woocommerce-invalid-phone')) return i18n.phone;
+      if (row.classList.contains('woocommerce-invalid-required-field')) return (i18n.required || '%s').replace('%s', labelOf(row));
+      return '';
+    };
+    new MutationObserver((mutations) => {
+      mutations.forEach(({ target }) => {
+        if (!target.classList?.contains('form-row')) return;
+        if (target.classList.contains('woocommerce-invalid')) {
+          if (!target.querySelector('.checkout-inline-error-message')) setInline(target, clientMessage(target));
+        } else {
+          target.querySelector('.checkout-inline-error-message')?.remove();
+          const field = fieldOf(target);
+          field?.removeAttribute('aria-invalid');
+        }
+      });
+      // Only class attributes are observed, so adding a message can't re-trigger this.
+    }).observe(checkoutForm, { attributes: true, attributeFilter: ['class'], subtree: true });
+
+    // Server errors: WooCommerce prepends a notice group to the form after "Place order" (and on order review updates).
+    const handleGroup = (group) => {
+      const rows = [];
+      group.querySelectorAll('li[data-id]').forEach((li) => {
+        const row = document.getElementById(li.dataset.id)?.closest('.form-row');
+        if (!row) return; // Unknown field: keep it as a general error
+        row.classList.add('woocommerce-invalid');
+        setInline(row, withoutPrefix(li.textContent.trim()));
+        rows.push(row);
+        li.remove();
+      });
+
+      window.jQuery?.('html, body').stop(true); // cancel WooCommerce's scroll to the (top) notice list
+
+      if (group.textContent.trim()) {
+        // General error(s): banner above the whole checkout.
+        let slot = document.querySelector('.checkout-errors');
+        if (!slot) {
+          slot = document.createElement('div');
+          slot.className = 'checkout-errors';
+          checkoutForm.before(slot);
+        }
+        slot.replaceChildren(group);
+        const notice = group.querySelector('.woocommerce-error') || group;
+        notice.tabIndex = -1;
+        // The banner sits right under the header: scroll to the top so both are visible.
+        window.scrollTo({ top: 0, behavior: behavior() });
+        notice.focus({ preventScroll: true });
+      } else {
+        group.remove();
+        const first = rows.find((r) => r.offsetParent !== null) || rows[0];
+        if (first) {
+          first.scrollIntoView({ behavior: behavior(), block: 'center' });
+          fieldOf(first)?.focus({ preventScroll: true });
+        }
+      }
+    };
+
+    new MutationObserver((mutations) => {
+      mutations.forEach((m) =>
+        m.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && node.classList.contains('woocommerce-NoticeGroup')) handleGroup(node);
+        })
+      );
+    }).observe(checkoutForm, { childList: true }); // direct children only
+
+    // A new attempt clears the previous banner (WooCommerce removes its own groups by class).
+    document.addEventListener('submit', (e) => {
+      if (e.target === checkoutForm) document.querySelector('.checkout-errors')?.replaceChildren();
+    }, true);
+  }
 })();

@@ -193,10 +193,86 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
   border-color: var(--checkout-accent);
   box-shadow: 0 0 0 1px var(--checkout-accent);
 }
-.ci-checkout-page .woocommerce-invalid input { border-color: var(--checkout-error); box-shadow: 0 0 0 1px var(--checkout-error); }
 .ci-checkout-page input[type="checkbox"], .ci-checkout-page input[type="radio"] { accent-color: var(--checkout-accent); width: 18px; height: 18px; margin: 0; }
 #ship-to-different-address { margin: 10px 0 14px; font-size: 16px; }
 .woocommerce-additional-fields > h3 { display: none; }
+
+/* Errors
+   Field errors: highlighted field + message under it (wc-pages.js moves them out of the top list).
+   General errors: banner above the checkout. */
+.ci-checkout-page { --error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15H9v-2h2v2zm0-4H9V5h2v6z'/%3E%3C/svg%3E"); }
+.ci-checkout-page .form-row.woocommerce-invalid > label { color: var(--checkout-error-text); }
+.ci-checkout-page .form-row.woocommerce-invalid input.input-text,
+.ci-checkout-page .form-row.woocommerce-invalid select,
+.ci-checkout-page .form-row.woocommerce-invalid textarea {
+  border-color: var(--checkout-error);
+  background: color-mix(in srgb, var(--checkout-error) 4%, var(--color-bg));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--checkout-error) 18%, transparent);
+}
+.ci-checkout-page .form-row.woocommerce-invalid input:focus-visible,
+.ci-checkout-page .form-row.woocommerce-invalid select:focus-visible,
+.ci-checkout-page .form-row.woocommerce-invalid textarea:focus-visible {
+  border-color: var(--checkout-error);
+  box-shadow: 0 0 0 1px var(--checkout-error), 0 0 0 4px color-mix(in srgb, var(--checkout-error) 18%, transparent);
+}
+.ci-checkout-page .form-row.woocommerce-invalid input[type="checkbox"] { outline: 2px solid var(--checkout-error); outline-offset: 2px; }
+.checkout-inline-error-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 7px 0 0;
+  color: var(--checkout-error-text);
+  font-size: 13px;
+  line-height: 1.4;
+  animation: ci-error-in 0.2s ease-out;
+}
+.checkout-inline-error-message::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  background: currentColor;
+  -webkit-mask: var(--error-icon) center / contain no-repeat;
+  mask: var(--error-icon) center / contain no-repeat;
+}
+.checkout-inline-error-message strong { font-weight: 600; }
+@keyframes ci-error-in { from { opacity: 0; transform: translateY(-4px); } }
+
+.checkout-errors { max-width: 1100px; margin: 24px auto 0; padding-inline: 17px; }
+.ci-checkout-page .woocommerce-notices-wrapper .woocommerce-error,
+.checkout-errors .woocommerce-error {
+  position: relative;
+  margin: 0 0 12px;
+  padding: 14px 18px 14px 48px;
+  border: 1px solid color-mix(in srgb, var(--checkout-error) 55%, transparent);
+  border-radius: var(--checkout-radius);
+  background: color-mix(in srgb, var(--checkout-error) 8%, var(--color-bg));
+  color: var(--checkout-error-text);
+  font-size: 14px;
+  line-height: 1.45;
+  list-style: none;
+  animation: ci-error-in 0.25s ease-out;
+}
+.ci-checkout-page .woocommerce-notices-wrapper .woocommerce-error::before,
+.checkout-errors .woocommerce-error::before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: 18px;
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  -webkit-mask: var(--error-icon) center / contain no-repeat;
+  mask: var(--error-icon) center / contain no-repeat;
+}
+.checkout-errors .woocommerce-error li + li { margin-top: 6px; }
+.checkout-errors .woocommerce-error a { color: inherit; text-decoration: underline; }
+/* Focus is set by script for screen readers (the group is also role=alert); no visible ring needed. */
+.checkout-errors .woocommerce-error:focus { outline: none; }
+@media (prefers-reduced-motion: reduce) {
+  .checkout-inline-error-message, .checkout-errors .woocommerce-error { animation: none; }
+}
 
 /* Payment */
 .woocommerce-checkout-payment { padding-top: 14px; padding-bottom: 10px; }
@@ -270,14 +346,14 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 }
 .checkout-coupon:focus-within .checkout-coupon__apply, .checkout-coupon__apply:hover { border-color: var(--checkout-button); background: var(--checkout-button); color: var(--checkout-button-text); }
 .checkout-coupon__message { margin: 8px 0 0; font-size: 13px; text-align: left; }
-.checkout-coupon__message.is-error { color: var(--checkout-error); }
+.checkout-coupon__message.is-error { color: var(--checkout-error-text); }
 .woocommerce-remove-coupon { margin-left: 4px; font-size: 12px; text-decoration: underline; }
-.ci-checkout-page .woocommerce-NoticeGroup .woocommerce-error { border-radius: var(--checkout-radius); border: 1px solid var(--checkout-error); }
 .ci-checkout-page .blockUI.blockOverlay { background: var(--color-bg) !important; opacity: 0.6 !important; }
 
 @media (min-width: 769px) {
   .checkout-header__inner { padding: 20px 40px; }
   .checkout-header__logo img { width: var(--logo-w-desktop); }
+  .checkout-errors { margin-top: 30px; padding-inline: 20px; }
   /* Two columns; the sidebar colour runs to the right edge of the screen */
   body.ci-checkout-page:not(.ci-checkout-page--single) {
     background: linear-gradient(to right, var(--color-bg) 50%, var(--checkout-border) 50%, var(--checkout-border) calc(50% + 1px), var(--checkout-sidebar) calc(50% + 1px));
