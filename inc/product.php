@@ -610,6 +610,20 @@ add_filter(
 );
 
 /*
+ * Gallery slides: no "sizes=auto" (WordPress adds it to lazy images). Flexslider resizes the slides after init,
+ * and with "auto" the browser re-picks a candidate and downloads every slide a second time.
+ */
+add_filter(
+	'wp_get_attachment_image_attributes',
+	function ( $attr ) {
+		if ( isset( $attr['data-large_image'], $attr['sizes'] ) ) {
+			$attr['sizes'] = preg_replace( '/^auto,\s*/i', '', $attr['sizes'] );
+		}
+		return $attr;
+	}
+);
+
+/*
  * Hover zoom only where there is a hover: on touch screens it does nothing useful, but jquery.zoom still downloads
  * the full-size image (≈250 KB) while the page loads, competing with the LCP image on mobile data.
  * The plugin becomes a no-op there; WC's zoom setting stays on, so the magnifier button + lightbox are unchanged.
