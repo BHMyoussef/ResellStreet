@@ -639,6 +639,21 @@ add_action(
 	30
 );
 
+/*
+ * Thumbnail nav (80px on desktop, dots on mobile): flexslider sets the thumb's srcset before its sizes, so the browser
+ * first picks for 100vw and downloads the full-size file (≈250 KB each), then the 300px one. Offer only small files.
+ */
+add_filter(
+	'woocommerce_single_product_image_thumbnail_html',
+	function ( $html ) {
+		return preg_replace_callback(
+			'/data-thumb-srcset="([^"]*)"/',
+			fn( $m ) => 'data-thumb-srcset="' . esc_attr( ci_srcset_upto( html_entity_decode( $m[1] ), 300 ) ) . '"',
+			$html
+		);
+	}
+);
+
 /* Thumbnails as dots on mobile are cheap; keep WC's thumbnail nav, no direction arrows. */
 add_filter(
 	'woocommerce_single_product_carousel_options',

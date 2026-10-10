@@ -177,16 +177,14 @@ function ci_payment_icon( $key ) {
 }
 
 /**
- * Full-width image on phones: srcset limited to files up to $max px wide.
- * A 3x phone asks for ~1200px on a 100vw image and would otherwise pick the 1600px+
- * original (≈800 KB); past ~2x the difference isn't visible on photos.
+ * A srcset string without the candidates wider than $max px (the narrowest one is kept if none fit).
  *
- * @param int $id  Attachment ID.
- * @param int $max Widest candidate to keep.
+ * @param string $srcset Srcset attribute value.
+ * @param int    $max    Widest candidate to keep.
  */
-function ci_mobile_srcset( $id, $max = 1024 ) {
+function ci_srcset_upto( $srcset, $max ) {
 	$keep = array();
-	foreach ( explode( ',', (string) wp_get_attachment_image_srcset( $id, 'full' ) ) as $candidate ) {
+	foreach ( explode( ',', (string) $srcset ) as $candidate ) {
 		$parts = preg_split( '/\s+/', trim( $candidate ) );
 		if ( 2 === count( $parts ) ) {
 			$keep[ (int) $parts[1] ] = $parts[0];
@@ -200,4 +198,16 @@ function ci_mobile_srcset( $id, $max = 1024 ) {
 		$out[] = "{$url} {$w}w";
 	}
 	return implode( ', ', $out );
+}
+
+/**
+ * Full-width image on phones: srcset limited to files up to $max px wide.
+ * A 3x phone asks for ~1200px on a 100vw image and would otherwise pick the 1600px+
+ * original (≈800 KB); past ~2x the difference isn't visible on photos.
+ *
+ * @param int $id  Attachment ID.
+ * @param int $max Widest candidate to keep.
+ */
+function ci_mobile_srcset( $id, $max = 1024 ) {
+	return ci_srcset_upto( wp_get_attachment_image_srcset( $id, 'full' ), $max );
 }
