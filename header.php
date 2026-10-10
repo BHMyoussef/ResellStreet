@@ -83,6 +83,7 @@ if ( function_exists( 'ci_is_minimal_checkout' ) && ci_is_minimal_checkout() ) {
 </header>
 
 <?php
+get_template_part( 'template-parts/header/search' );
 get_template_part( 'template-parts/header/announcement' );
 get_template_part( 'template-parts/header/drawer-menu' );
 ?>

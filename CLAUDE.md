@@ -69,6 +69,11 @@ Local site: http://resellstreet.local
   script is loaded on demand when "Write a review" is hovered/opened; a file picked before it's ready is replayed via a
   jQuery ready callback (CusRev binds in one, and jQuery 3 runs those async). CusRev's email review form is a
   standalone page with its own assets (unaffected).
+- Search (`inc/search.php`, `template-parts/header/search.php`, `search.js`): <dialog> over the header row (Impulse
+  look), predictive results from REST `ci/v1/search?q=` (≈1 KB: name, link, 150px thumb, `ci_price_html`) instead of
+  the Store API (≈13 KB+ with all gallery srcsets). Debounced, aborts stale requests, caches per query, combobox
+  keyboard nav. Results page = WC product archive with visible title + search form; plain `?s=` → redirected to
+  `post_type=product`. WordPress adds `search-results` to <body> on search pages: never use that as a component class.
 - Homepage testimonials = `ci_home_testimonials()` (inc/customizer-home.php): approved reviews on published products,
   newest first, filtered by Customizer (count, min rating, photos required, verified only); cached in a transient
   keyed by settings + `ci_reviews_cache_version` (bumped on any comment/comment-meta change). No hardcoded slots.
@@ -106,8 +111,8 @@ Local site: http://resellstreet.local
 | 6 | Cart/checkout/account styling; switch Cart & Checkout pages to classic shortcodes; test logged-in cart (X-WP-Nonce) | ✅ done |
 | 3b | Reviews on the product page (CusRev data, theme display): stars under title, review section, test reviews | ✅ done |
 | 5b | Homepage testimonials from real reviews (Customizer: count, min rating, photos) | ✅ done |
-| 7 | Search overlay (header icon already links to product search) + results page | ⏭ next |
-| 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ⬜ waiting for CSV |
+| 7 | Search overlay (header icon already links to product search) + results page | ✅ done |
+| 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ⏭ next (waiting for CSV) |
 
 ### Decisions made so far
 - Body font is Outfit (live store), not Twentieth Century (export). Desktop/mobile sizes measured from live computed styles.

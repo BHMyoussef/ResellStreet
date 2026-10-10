@@ -44,7 +44,8 @@ function ci_is_collection() {
 add_filter(
 	'body_class',
 	function ( $classes ) {
-		if ( function_exists( 'is_shop' ) && ci_is_collection() && ! ci_mod( 'collection_title_enable' ) ) {
+		// The search results page always shows its title ("Search results: …").
+		if ( function_exists( 'is_shop' ) && ci_is_collection() && ! is_search() && ! ci_mod( 'collection_title_enable' ) ) {
 			$classes[] = 'collection--title-hidden';
 		}
 		return $classes;

@@ -174,3 +174,22 @@ ul.products > li.product-category mark { background: none; color: inherit; }
   }
   .woocommerce-loop-product__link:hover .product-card__img--hover { opacity: 1; }
 }
+
+/* Search results page */
+.search-page__form { max-width: 520px; margin: 20px auto 0; }
+.search-form { position: relative; }
+.search-form input[type="search"] { padding-right: 52px; }
+.search-form__submit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+}
+.search-form__submit .icon { width: 22px; height: 22px; }
+.search-page__empty { margin: 40px 0; text-align: center; }
+.search-page__empty .btn { margin-top: 15px; }

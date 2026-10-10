@@ -46,6 +46,7 @@
   --shadow-dropdown: 0 10px 20px rgb(0 0 0 / 0.09);
   --shadow-bar: 0 -6px 20px rgb(0 0 0 / 0.06);
   --shadow-card: 0 10px 30px rgb(0 0 0 / 0.08);
+  --shadow-search: 0 15px 45px rgb(0 0 0 / 0.1);
 
   /* Checkout (settings_data.json checkout_*: Shopify-checkout look) */
   --checkout-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
