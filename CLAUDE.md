@@ -74,8 +74,10 @@ Local site: http://resellstreet.local
   NOT imported (categories are assigned by hand). Default = first 5 products (`CI_LIMIT`, 0 = all), `CI_DRY_RUN=1`
   writes nothing. Two store attributes: Color, Size (any "*size*" option). Values normalized ("7-5" → 7.5, xxl → 2XL,
   slug colours → words). Duplicate combinations after normalizing are skipped; single-value options become plain
-  attributes; no real choice → simple product. EU-like sizes (38/39/40 = metafield handles, = 5/6/7) mixed with UK/US
-  sizes are kept as-is with a warning. Price → sale, Compare At → regular; no stock quantities → instock.
+  attributes; no real choice → simple product. Size fix (user-approved): in mixed UK/US size lists the metafield
+  handles 37/38/39/40 → 4/5/6/7 and 6.6 → 6.5 (verified by position across the catalogue; 39/40 confirmed on the live
+  store); skipped if the target size already exists. Other EU-like values (36, 42 on 4 products) kept + warned.
+  Unused Color/Size terms are deleted after each run. Price → sale, Compare At → regular; no stock quantities → instock.
   Idempotent via meta `_shopify_handle`; images once via `_shopify_image_src`.
   Two steps (user rule: the product import loads nothing from Shopify):
   1. `CI_LIMIT=0 npm run import:products` → products + variations; image list saved as `_shopify_images` (product)

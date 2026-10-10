@@ -20,8 +20,11 @@
  * - Only the variations that are needed: combinations that become duplicates after normalizing are created once;
  *   an option with a single value for the whole product is a plain attribute (not a variation); a product with no
  *   real choice left is a simple product.
- * - Sizes that look like EU sizes (≥ 30) mixed with UK/US sizes (Shopify metafield handles such as "39", "40") are kept
- *   as-is and listed in a warning so they can be fixed by hand.
+ * - Size fix: in products whose sizes mix EU-like numbers with UK/US sizes, the Shopify metafield handles
+ *   37/38/39/40 are the sizes 4/5/6/7 (they sit exactly in those gaps; confirmed on the live store for 39/40), and
+ *   "6.6" is 6.5. They are converted unless the converted size already exists in that product (then kept + warned).
+ *   Other EU-like values (35, 36, 41–44) are kept as-is and listed in a warning.
+ * - After a run, Color/Size terms that no product uses any more are deleted.
  * - Price → sale price, Compare At → regular price. SKU when unique, weight from grams. The CSV has no stock
  *   quantities: everything is imported "in stock".
  * - Images: by default NOTHING is fetched from Shopify. The image list is stored for a later step:
@@ -128,6 +131,7 @@ function ci_shopify_plan( array $rows ) {
 	$main     = $rows[0];
 	$variants = array_values( array_filter( $rows, fn( $r ) => '' !== $r['Variant Price'] ) );
 	$warnings = array();
+	$notes    = array();
 
 	// Options → store attributes (two Shopify options mapping to the same attribute keep the first one).
 	$options = array(); // attribute => CSV option index
@@ -144,14 +148,52 @@ function ci_shopify_plan( array $rows ) {
 		$options[ $attribute ] = $i;
 	}
 
-	// Variants with normalized values; duplicates after normalizing are dropped.
-	$clean = array();
-	$seen  = array();
+	// Normalized values per variant.
+	$normalized = array();
 	foreach ( $variants as $r ) {
 		$values = array();
 		foreach ( $options as $attribute => $i ) {
 			$values[ $attribute ] = ci_shopify_normalize_value( $attribute, $r[ "Option{$i} Value" ] );
 		}
+		$normalized[] = array( $r, $values );
+	}
+
+	// Size fix (see header): metafield handles 37/38/39/40 → 4/5/6/7 and 6.6 → 6.5 in mixed UK/US size lists.
+	if ( isset( $options['Size'] ) ) {
+		$sizes   = array_unique( array_map( fn( $n ) => $n[1]['Size'], $normalized ) );
+		$numbers = array_filter( $sizes, 'is_numeric' );
+		$mixed   = array_filter( $numbers, fn( $x ) => (float) $x >= 30 ) && array_filter( $numbers, fn( $x ) => (float) $x < 20 );
+		$map     = array( '6.6' => '6.5' );
+		if ( $mixed ) {
+			$map += array( '37' => '4', '38' => '5', '39' => '6', '40' => '7' );
+		}
+		$fixed = array();
+		foreach ( $map as $from => $to ) {
+			if ( ! in_array( (string) $from, $sizes, true ) ) {
+				continue;
+			}
+			if ( in_array( $to, $sizes, true ) ) {
+				$warnings[] = "size {$from} kept: {$to} already exists in this product";
+				unset( $map[ $from ] );
+				continue;
+			}
+			$fixed[] = "{$from}→{$to}";
+		}
+		foreach ( $normalized as &$n ) {
+			if ( isset( $map[ $n[1]['Size'] ] ) ) {
+				$n[1]['Size'] = $map[ $n[1]['Size'] ];
+			}
+		}
+		unset( $n );
+		if ( $fixed ) {
+			$notes[] = 'sizes fixed: ' . implode( ', ', $fixed );
+		}
+	}
+
+	// Duplicates after normalizing are dropped.
+	$clean = array();
+	$seen  = array();
+	foreach ( $normalized as list( $r, $values ) ) {
 		$key = strtolower( implode( '|', $values ) );
 		if ( isset( $seen[ $key ] ) ) {
 			$warnings[] = 'duplicate variant after normalizing skipped: ' . implode( ' / ', $values );
@@ -178,7 +220,7 @@ function ci_shopify_plan( array $rows ) {
 		$eu      = array_filter( $numbers, fn( $n ) => (float) $n >= 30 );
 		$small   = array_filter( $numbers, fn( $n ) => (float) $n < 20 );
 		if ( $eu && $small ) {
-			$warnings[] = 'size values look mixed (EU-like ' . implode( ', ', $eu ) . ' among ' . implode( ', ', $small ) . '): kept as-is, check them';
+			$warnings[] = 'EU-like sizes kept as-is, check them: ' . implode( ', ', $eu );
 		}
 	}
 
@@ -189,6 +231,7 @@ function ci_shopify_plan( array $rows ) {
 		'variation_attributes' => $variation_attributes,
 		'is_variable'          => count( $variation_attributes ) > 0 && count( $clean ) > 1,
 		'warnings'             => $warnings,
+		'notes'                => $notes,
 	);
 }
 
@@ -466,9 +509,40 @@ foreach ( $ci_handles as $handle ) {
 	if ( $summary ) {
 		WP_CLI::log( '    ' . implode( ' | ', $summary ) );
 	}
+	foreach ( $plan['notes'] as $note ) {
+		WP_CLI::log( "    {$note}" );
+	}
 	foreach ( $plan['warnings'] as $warning ) {
 		WP_CLI::warning( "  {$handle}: {$warning}" );
 	}
 	++$ci_done;
 }
 WP_CLI::log( sprintf( '%s %d product(s).', $ci_dry ? 'Would import' : 'Imported', $ci_done ) );
+
+/* Color/Size terms that no product uses any more (e.g. "39" after the size fix). */
+if ( ! $ci_dry ) {
+	$removed = array();
+	foreach ( array( 'pa_color', 'pa_size' ) as $taxonomy ) {
+		if ( ! taxonomy_exists( $taxonomy ) ) {
+			continue;
+		}
+		foreach ( get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => false ) ) as $term ) {
+			$used = get_posts(
+				array(
+					'post_type'   => array( 'product', 'product_variation' ),
+					'post_status' => 'any',
+					'numberposts' => 1,
+					'fields'      => 'ids',
+					'tax_query'   => array( array( 'taxonomy' => $taxonomy, 'terms' => $term->term_id ) ), // phpcs:ignore WordPress.DB.SlowDBQuery
+				)
+			);
+			if ( ! $used ) {
+				wp_delete_term( $term->term_id, $taxonomy );
+				$removed[] = $term->name;
+			}
+		}
+	}
+	if ( $removed ) {
+		WP_CLI::log( 'Removed unused Color/Size values: ' . implode( ', ', $removed ) );
+	}
+}
