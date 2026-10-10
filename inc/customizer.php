@@ -119,6 +119,8 @@ function ci_defaults() {
 	foreach ( array_keys( ci_payment_icon_choices() ) as $key ) {
 		$defaults[ "payment_{$key}" ] = ! in_array( $key, array( 'paypal', 'klarna' ), true );
 	}
+	// Other modules (homepage…) register their defaults here.
+	$defaults = apply_filters( 'ci_defaults', $defaults );
 	return $defaults;
 }
 

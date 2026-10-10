@@ -34,13 +34,16 @@
   --color-image-overlay: #697565;
   --color-grid-tint: #697565;
   --grid-tint-opacity: 0.1;
-  --color-section-alt: #f9f9f9;
+  --color-section-alt: #f9f9f9;      /* testimonials background */
+  --color-section-alt-text: #1c1d1d;
+  --color-on-image: #ffffff;          /* hero text over photos */
   --color-focus: #000000;
   --color-stock-ok: #56ad6a;
   --color-stock-low: #ee9441;
   --color-stock-out: #c20000;
   --shadow-dropdown: 0 10px 20px rgb(0 0 0 / 0.09);
   --shadow-bar: 0 -6px 20px rgb(0 0 0 / 0.06);
+  --shadow-card: 0 10px 30px rgb(0 0 0 / 0.08);
 
   /* Fonts */
   --font-heading: "Tenor Sans", "Helvetica Neue", Arial, sans-serif;
@@ -73,6 +76,7 @@
   --page-width: 1500px;
   --page-gutter: 17px;
   --section-space: 40px;
+  --home-section-space: 40px;
   --grid-gap: 10px;
 
   /* Header */
@@ -108,6 +112,7 @@
     --fs-collection-title: 20px;
     --page-gutter: 40px;
     --section-space: 60px;
+    --home-section-space: 75px;
     --grid-gap: 20px;
     --header-pad-y: 20px;
     --icon-size: 28px;

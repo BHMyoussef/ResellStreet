@@ -47,6 +47,9 @@ add_action(
 
 		// Small 4:3 crop so product cards get a mobile-sized srcset candidate next to woocommerce_thumbnail (600×450).
 		add_image_size( 'ci-card-sm', 360, 270, true );
+		// Square crops for homepage collection tiles: 480 for phones (≈170px at 2×), 720 for desktop retina.
+		add_image_size( 'ci-square', 480, 480, true );
+		add_image_size( 'ci-square-lg', 720, 720, true );
 
 		register_nav_menus(
 			array(

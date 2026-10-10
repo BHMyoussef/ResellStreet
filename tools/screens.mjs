@@ -83,7 +83,8 @@ async function trigger(page, action) {
   await page.locator(action).filter({ visible: true }).first().click();
 }
 
-const browser = await chromium.launch();
+// LIVE_IP=23.227.38.65 pins novarende.com if local DNS fails for Chromium.
+const browser = await chromium.launch(process.env.LIVE_IP ? { args: [`--host-resolver-rules=MAP novarende.com ${process.env.LIVE_IP}`] } : {});
 
 for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
   const context = await browser.newContext({

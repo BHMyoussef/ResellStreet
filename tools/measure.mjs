@@ -55,13 +55,32 @@ const PROFILES = {
       tab: ['.collapsible-trigger-btn', '.product-tab__title'],
     },
   },
+  home: {
+    live: 'https://novarende.com/',
+    local: 'http://resellstreet.local/',
+    els: {
+      eyebrow: ['.hero__top-subtitle', '.hero__eyebrow'],
+      heroTitle: ['.hero__title', '.hero__title'],
+      heroBtn: ['.hero__link .btn', '.hero__buttons .btn'],
+      tilesTitle: ['.index-section .section-header__title', '.collection-tiles .section-title'],
+      tile: ['.collection-item', '.collection-tile'],
+      tileLabel: ['.collection-item__title span', '.collection-tile__label'],
+      tSection: ['.testimonials-section', '.testimonials'],
+      tSlide: ['.testimonials-slide', '.testimonial'],
+      story: ['.background-media-text', '.story'],
+      storyTitle: ['.background-media-text__inner .h3', '.story__title'],
+      storyText: ['.background-media-text__inner .rte p', '.story__text p'],
+      footer: ['.site-footer', '.site-footer'],
+    },
+  },
 };
 
 const name = process.argv[2] || 'global';
 const P = PROFILES[name];
 if (!P) throw new Error(`Unknown profile "${name}". Known: ${Object.keys(PROFILES).join(', ')}`);
 
-const b = await chromium.launch();
+// LIVE_IP=23.227.38.65 pins novarende.com if local DNS fails for Chromium.
+const b = await chromium.launch(process.env.LIVE_IP ? { args: [`--host-resolver-rules=MAP novarende.com ${process.env.LIVE_IP}`] } : {});
 for (const w of [1440, 390]) {
   for (const [site, idx] of [['live', 0], ['local', 1]]) {
     const p = await b.newPage({ viewport: { width: w, height: 900 } });

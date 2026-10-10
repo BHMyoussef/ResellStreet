@@ -71,8 +71,8 @@ Local site: http://resellstreet.local
 | 2 | Collection page: promo banner, count, grid, product card, pagination | ✅ done |
 | 3 | Product page: gallery, variation buttons (sold-out crossed, AJAX >30 variations, hidden native select), sticky mobile ATC, hook slots `ci_product_after_title` / `ci_product_after_add_to_cart`, trust badges, size guide modal (per category), tabs | ✅ done |
 | 4 | AJAX cart drawer (Store API + nonce, jQuery `added_to_cart`/`updated_cart_totals` for Meta Pixel) + Quick Shop "Shop Now" on cards; dequeue WC jQuery scripts where unused | ✅ done |
-| 5 | Homepage `front-page.php`: slideshow, collection tiles, testimonials, image-with-text (all Customizer) | ⏭ next |
-| 6 | Cart/checkout/account styling; switch Cart & Checkout pages to classic shortcodes | ⬜ |
+| 5 | Homepage `front-page.php`: slideshow, collection tiles, testimonials, image-with-text (all Customizer) | ✅ done |
+| 6 | Cart/checkout/account styling; switch Cart & Checkout pages to classic shortcodes; test logged-in cart (X-WP-Nonce) | ⏭ next |
 | 7 | Search overlay (header icon already links to product search) + results page | ⬜ |
 | 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ⬜ waiting for CSV |
 
@@ -103,10 +103,17 @@ Local site: http://resellstreet.local
   "standalone" (sets variation_id/image itself) when WC's variation script isn't on the page.
 - WC jQuery scripts (woocommerce, add-to-cart, blockUI, js-cookie) are dequeued except on product/cart/checkout/account
   → home and collection pages ship no jQuery (plugins may still add it).
+- Homepage: `front-page.php` + `template-parts/home/*`, settings in `inc/customizer-home.php` (Customizer → Homepage;
+  modules add defaults via the `ci_defaults` filter). Hero = up to 3 slides (+ optional mobile image via <picture>),
+  first image eager + fetchpriority=high; mobile hero height = image ratio. Tiles use category thumbnails
+  (`ci-square` 480 / `ci-square-lg` 720 crops). Testimonials = scroll-snap carousel. Parallax desktop-only (home.js).
+- Homepage media for seeding lives in `reference/media/` (downloaded from the live store).
+- If Chromium can't resolve novarende.com, run Playwright tools with `LIVE_IP=23.227.38.65`.
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
-- Seeded pages, menus (Main menu, Footer), Customizer content, logo, catalog 3×7, 4:3 thumbnails.
+- Seeded pages, menus (Main menu, Footer), Customizer content, logo, catalog 3×7, 4:3 thumbnails,
+  homepage content + media, categories Shoes / Sets / Bags (Accessories existed) with thumbnails.
 - Product data is still WooCommerce sample data until the Shopify CSV import (step 9).
 - Dev test products from `npm run fixtures` (tools/fixtures.php): "Test Sneaker" (21 variations, inline mode) and
   "Test Sneaker XL" (33 variations, AJAX mode) in category "Shoes" (has a size guide). Delete them after step 9.
