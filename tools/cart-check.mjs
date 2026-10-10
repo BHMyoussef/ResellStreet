@@ -183,6 +183,24 @@ const drawerState = (p) =>
   await ctx.close();
 }
 
+/* ---------- Tap right after load, before WooCommerce has resolved the default variation ---------- */
+{
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const p = await ctx.newPage();
+  let reloads = -1;
+  p.on('framenavigated', (f) => f === p.mainFrame() && reloads++);
+  await p.goto(PRODUCT, { waitUntil: 'load' });
+  const early = await p.evaluate(() => document.querySelector('input.variation_id')?.value || '0');
+  await p.locator('.single_add_to_cart_button').click();
+  const opened = await p.waitForSelector('dialog[data-drawer="cart"][open] .cart-item', { timeout: 10000 }).then(() => true, () => false);
+  check('early tap (variation not resolved yet) → held, added via AJAX', opened && reloads === 0, `variation_id at tap=${early} reloads=${reloads}`);
+  await p.evaluate(async () => {
+    const c = await window.CustomImpulse.cart.api('cart');
+    for (const item of c.items) await window.CustomImpulse.cart.api('cart/remove-item', { method: 'POST', body: { key: item.key } });
+  });
+  await ctx.close();
+}
+
 console.log(fails ? `\n${fails} check(s) failed` : '\nAll cart checks passed');
 await b.close();
 process.exit(fails ? 1 : 0);

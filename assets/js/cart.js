@@ -350,13 +350,45 @@
       observer.observe(button, { attributes: true, attributeFilter: ['class'] });
     });
 
+  // Right after page load every option can already be chosen while WooCommerce hasn't resolved the variation yet
+  // (variation_id still 0, button not disabled): a tap then would fall through to a full-page POST. Wait for it.
+  // The value is set without a native event, so poll briefly (AJAX variation mode needs a request).
+  const variationIdOf = (form) => {
+    const value = form.querySelector('input[name="variation_id"]')?.value;
+    return value && value !== '0' ? value : '';
+  };
+  const whenResolved = (form, button, timeout = 3000) =>
+    new Promise((resolve) => {
+      const start = Date.now();
+      const timer = setInterval(() => {
+        const done = variationIdOf(form);
+        if (done || button.classList.contains('wc-variation-is-unavailable') || Date.now() - start > timeout) {
+          clearInterval(timer);
+          resolve(Boolean(done));
+        }
+      }, 50);
+    });
+
   document.addEventListener(
     'click',
     (e) => {
       const button = e.target.closest?.('form.variations_form .single_add_to_cart_button');
-      if (!drawer || !button?.classList.contains('disabled')) return;
-      const variationId = button.form?.querySelector('input[name="variation_id"]')?.value;
-      if (!variationId || variationId === '0') return; // Really incomplete: let WooCommerce say so
+      if (!drawer || !button) return;
+      const form = button.form;
+      if (form && !variationIdOf(form) && !button.classList.contains('disabled')) {
+        const selects = [...form.querySelectorAll('select[name^="attribute_"]')];
+        if (!selects.length || selects.some((select) => !select.value)) return; // Really incomplete: let WooCommerce say so
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        whenResolved(form, button).then((ok) => {
+          if (ok) button.click(); // Back through this handler, now with a variation (and WC's disabled state, if any)
+          else formError(form, button.classList.contains('wc-variation-is-unavailable') ? cfg.i18n.unavailable : cfg.i18n.selectOptions);
+        });
+        return;
+      }
+      if (!button.classList.contains('disabled')) return;
+      const variationId = form && variationIdOf(form);
+      if (!variationId) return; // Really incomplete: let WooCommerce say so
       e.preventDefault();
       e.stopImmediatePropagation();
       whenEnabled(button).then((ok) => {
