@@ -42,7 +42,7 @@ const drawerState = (p) =>
   await p.goto(COLLECTION, { waitUntil: 'networkidle' });
   check('collection page loads without jQuery', await p.evaluate(() => !window.jQuery));
 
-  const card = p.locator('ul.products > li', { hasText: 'Casual Leather' });
+  const card = p.locator('ul.products > li', { hasText: /Test Sneaker [–-] Men/ });
   await card.hover();
   await p.waitForTimeout(300);
   check('"Shop Now" appears on hover', await card.locator('.product-card__quick').isVisible());

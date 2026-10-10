@@ -58,7 +58,7 @@ const b = await chromium.launch();
 
   // Quick Shop (collection page) shows the same stars
   await p.goto(`${SITE}/product-category/shoes/`, { waitUntil: 'networkidle' });
-  const card = p.locator('ul.products > li', { hasText: 'Casual Leather' });
+  const card = p.locator('ul.products > li', { hasText: /Test Sneaker [–-] Men/ });
   await card.hover();
   await card.locator('.product-card__quick').click();
   await p.waitForSelector('dialog[data-modal="quick-shop"] .rating-summary', { timeout: 10000 });

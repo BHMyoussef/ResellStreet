@@ -31,11 +31,14 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   check('predictive results for the latest query only', names.length >= 1 && names.every((n) => /hood/i.test(n)), names.join(', '));
   await p.fill('.search-dialog__input', 'sneaker');
   await p.waitForFunction(() => [...document.querySelectorAll('.search-result__name')].some((n) => /sneaker/i.test(n.textContent)), null, { timeout: 10000 });
-  const first = await p.$eval('.search-result', (a) => ({ img: a.querySelector('img').src.includes('150x150'), price: a.querySelector('.search-result__price').textContent.replace(/\s+/g, ' ').trim() }));
-  check('result shows thumbnail + price with savings', first.img && /£45\.75.*Save 51%/.test(first.price), JSON.stringify(first));
+  const first = await p.$eval('.search-result', (a) => ({ img: /-150x150\.|placeholder/.test(a.querySelector('img').src), price: a.querySelector('.search-result__price').textContent.replace(/\s+/g, ' ').trim() }));
+  check('result shows thumbnail + price with savings', first.img && /£\d+\.\d{2}.*£\d+\.\d{2}.*Save \d+%/.test(first.price), JSON.stringify(first));
+  const shown = await p.$$eval('.search-result', (n) => n.length);
   const all = await p.getAttribute('.search-panel__all', 'href');
   check('"View all results" links to the product search', /[?&]s=sneaker/.test(all) && /post_type=product/.test(all), all);
-  check('result count announced for screen readers', /2 products found/.test(await p.textContent('[data-search-status]')));
+  const announced = await p.textContent('[data-search-status]');
+  const total = Number((announced.match(/\d+/) || [0])[0]);
+  check('result count announced for screen readers', total >= shown && shown >= 2 && /products? found/.test(announced), announced);
   if (w === 1440) await p.screenshot({ path: 'screens-local/search-open-1440.png' });
   else await p.screenshot({ path: 'screens-local/search-open-390.png' });
 
@@ -82,7 +85,7 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
     form: document.querySelector('.search-page__form input[name="s"]')?.value,
     cards: document.querySelectorAll('ul.products > li').length,
   }));
-  check('results page: visible title, count, search form, product cards', /sneaker/i.test(page.title) && page.titleVisible && page.count === '2 products' && page.form === 'sneaker' && page.cards === 2, JSON.stringify(page));
+  check('results page: visible title, count, search form, product cards', /sneaker/i.test(page.title) && page.titleVisible && page.count === `${page.cards} products` && page.form === 'sneaker' && page.cards >= 2, JSON.stringify(page));
   if (w === 1440) await p.screenshot({ path: 'screens-local/search-results-1440.png', fullPage: true });
 
   await p.goto(`${SITE}/?s=zzqqxx&post_type=product`, { waitUntil: 'networkidle' });

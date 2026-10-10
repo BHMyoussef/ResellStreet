@@ -69,6 +69,12 @@ Local site: http://resellstreet.local
   script is loaded on demand when "Write a review" is hovered/opened; a file picked before it's ready is replayed via a
   jQuery ready callback (CusRev binds in one, and jQuery 3 runs those async). CusRev's email review form is a
   standalone page with its own assets (unaffected).
+- Shopify import (`tools/import-shopify.php`, `npm run import:products -- [handle ...]`): CSV = reference/products_export_1.csv.
+  Options linked to Shopify category metafields export metaobject HANDLES ("39", "7-5", "beige-1"), not labels:
+  labels come from the live store's /products/<handle>.js (same variant order as the CSV, verified per product),
+  fallback cleanup rule. Price → sale, Compare At → regular. No stock quantities in Shopify's product CSV → instock.
+  Matched by meta `_shopify_handle` (idempotent), images by `_shopify_image_src`. Description images stay hotlinked
+  to cdn.shopify.com (must be migrated before the Shopify store closes). SEO kept in `_shopify_seo_*` meta.
 - Search (`inc/search.php`, `template-parts/header/search.php`, `search.js`): <dialog> over the header row (Impulse
   look), predictive results from REST `ci/v1/search?q=` (≈1 KB: name, link, 150px thumb, `ci_price_html`) instead of
   the Store API (≈13 KB+ with all gallery srcsets). Debounced, aborts stale requests, caches per query, combobox
@@ -112,7 +118,7 @@ Local site: http://resellstreet.local
 | 3b | Reviews on the product page (CusRev data, theme display): stars under title, review section, test reviews | ✅ done |
 | 5b | Homepage testimonials from real reviews (Customizer: count, min rating, photos) | ✅ done |
 | 7 | Search overlay (header icon already links to product search) + results page | ✅ done |
-| 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ⏭ next (waiting for CSV) |
+| 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ✅ done |
 
 ### Decisions made so far
 - Body font is Outfit (live store), not Twentieth Century (export). Desktop/mobile sizes measured from live computed styles.
@@ -166,7 +172,8 @@ Local site: http://resellstreet.local
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
 - Seeded pages, menus (Main menu, Footer), Customizer content, logo, catalog 3×7, 4:3 thumbnails,
   homepage content + media, categories Shoes / Sets / Bags (Accessories existed) with thumbnails.
-- Product data is still WooCommerce sample data until the Shopify CSV import (step 9).
+- Imported from the Shopify CSV (step 9): 5 products (Flaireve casual leather sneakers, Retro-Style Low-Top Orange & White,
+  SpringFlow, Ribbed Knit Zip-Up Sweater, Varsity Bomber Jacket). WooCommerce sample products are still present.
 - Dev test products from `npm run fixtures` (tools/fixtures.php): "Test Sneaker" (21 variations, inline mode) and
   "Test Sneaker XL" (33 variations, AJAX mode) in category "Shoes" (has a size guide). Delete them after step 9.
   Fixtures also enable Cash on delivery, create coupon TEST10 (10%) and customer `ci-test-customer`
@@ -175,7 +182,9 @@ Local site: http://resellstreet.local
 - Plugin "Customer Reviews for WooCommerce" (CusRev) installed + active; photo uploads on (`ivole_attach_image`, seed.sh).
 
 ### Resume checklist
-1. `npm run shots:local` / `npm run measure -- <profile>` (global|collection|product) / `npm run check:all`.
+1. `npm run shots:local` / `npm run measure -- <profile>` (global|collection|product|home) / `npm run check:all`.
+   Product profile/screens now point at the imported Flaireve product (1:1 with the live reference).
+   Tests select fixture products by exact title and don't assume catalogue size.
 2. Compare with `reference/screens/*`, then continue with the next ⏭ row above.
 
 ## WooCommerce template overrides

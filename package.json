@@ -16,7 +16,8 @@
     "check:pages": "node tools/pages-check.mjs",
     "check:checkout-errors": "node tools/checkout-errors-check.mjs",
     "check:reviews": "node tools/reviews-check.mjs",
-    "check:search": "node tools/search-check.mjs"
+    "check:search": "node tools/search-check.mjs",
+    "import:products": "tools/wp eval-file tools/import-shopify.php"
   },
   "devDependencies": {
     "playwright": "^1.64.0"

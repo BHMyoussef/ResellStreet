@@ -161,6 +161,8 @@ add_action(
 				/* translators: %s: search terms */
 				'none'     => __( 'No products found for “%s”', 'customimpulse' ),
 				'products' => __( 'Products', 'customimpulse' ),
+				/* translators: %d: number of products found (1) */
+				'countOne' => __( '%d product found', 'customimpulse' ),
 				/* translators: %d: number of products found */
 				'count'    => __( '%d products found', 'customimpulse' ),
 				'error'    => __( 'Search is unavailable right now. Press Enter to see all results.', 'customimpulse' ),

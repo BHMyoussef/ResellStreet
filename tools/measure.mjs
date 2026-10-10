@@ -38,7 +38,7 @@ const PROFILES = {
   },
   product: {
     live: 'https://novarende.com/products/mens-casual-leather-sneakers-1',
-    local: 'http://resellstreet.local/product/test-sneaker-mens-casual-leather-sneakers/',
+    local: 'http://resellstreet.local/product/mens-casual-leather-sneakers-1/',
     els: {
       thumbs: ['.product__thumbs', '.flex-control-thumbs'],
       thumb: ['.product__thumb-item', '.flex-control-thumbs li'],

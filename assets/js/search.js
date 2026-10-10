@@ -135,7 +135,7 @@
       all.setAttribute('role', 'option');
       all.textContent = text(cfg.viewAll, query);
       wrap.append(title, list, all);
-      status.textContent = text(cfg.count, data.total);
+      status.textContent = text(data.total === 1 ? cfg.countOne : cfg.count, data.total);
     }
 
     results.replaceChildren(wrap);

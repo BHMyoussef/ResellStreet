@@ -45,7 +45,7 @@ const TARGETS = {
     pages: {
       home: '/',
       collection: '/product-category/clothing/',
-      product: '/product/test-sneaker-mens-casual-leather-sneakers/',
+      product: '/product/mens-casual-leather-sneakers-1/',
     },
     addToCart: async (page) => {
       await page.goto(TARGETS.local.base + '/?add-to-cart=35', { waitUntil: 'networkidle' });
