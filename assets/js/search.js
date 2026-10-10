@@ -99,8 +99,11 @@
       title.textContent = cfg.products;
       const list = document.createElement('ul');
       list.className = 'search-panel__list';
-      list.setAttribute('role', 'listbox');
-      list.setAttribute('aria-label', cfg.products);
+      list.setAttribute('role', 'group');
+      // One listbox holds the products and "View all" (an option must sit inside a listbox).
+      const box = document.createElement('div');
+      box.setAttribute('role', 'listbox');
+      box.setAttribute('aria-label', cfg.products);
       data.items.forEach((item, i) => {
         const li = document.createElement('li');
         li.setAttribute('role', 'presentation');
@@ -134,7 +137,8 @@
       all.href = data.url;
       all.setAttribute('role', 'option');
       all.textContent = text(cfg.viewAll, query);
-      wrap.append(title, list, all);
+      box.append(list, all);
+      wrap.append(title, box);
       status.textContent = text(data.total === 1 ? cfg.countOne : cfg.count, data.total);
     }
 
