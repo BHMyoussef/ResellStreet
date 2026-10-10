@@ -1,6 +1,7 @@
 <?php
 /**
- * Testimonials carousel (scroll-snap; home.js marks the centred card and wires the dots).
+ * Testimonials carousel: real product reviews (ci_home_testimonials(), Customizer → Homepage → Testimonials).
+ * Scroll-snap; home.js marks the centred card and wires the dots.
  *
  * @package CustomImpulse
  */
@@ -26,32 +27,32 @@ $ci_title = (string) ci_mod( 'home_testimonials_title' );
 				<li class="testimonial" data-carousel-slide>
 					<figure class="testimonial__card">
 						<?php if ( $ci_item['stars'] ) : ?>
-							<p class="testimonial__stars" aria-label="<?php echo esc_attr( sprintf( /* translators: %d: star rating */ __( 'Rated %d out of 5', 'customimpulse' ), $ci_item['stars'] ) ); ?>">
-								<?php echo esc_html( str_repeat( '★', $ci_item['stars'] ) ); ?>
-							</p>
+							<p class="testimonial__stars"><?php echo ci_stars( $ci_item['stars'], 'ci-stars--lg' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></p>
 						<?php endif; ?>
-						<blockquote class="testimonial__text rte"><?php echo wp_kses_post( wpautop( $ci_item['text'] ) ); ?></blockquote>
+						<blockquote class="testimonial__text rte"><?php echo wp_kses_post( wpautop( esc_html( $ci_item['text'] ) ) ); ?></blockquote>
 						<figcaption class="testimonial__author">
-							<?php
-							if ( $ci_item['image'] ) {
+							<?php if ( $ci_item['image'] ) : ?>
+								<?php
 								echo wp_get_attachment_image(
 									$ci_item['image'],
 									'thumbnail',
 									false,
 									array(
 										'class'   => 'testimonial__photo',
-										'sizes'   => '64px',
+										'sizes'   => '72px',
 										'loading' => 'lazy',
 										'alt'     => '',
 									)
 								);
-							}
-							?>
+								?>
+							<?php elseif ( $ci_item['image_url'] ) : ?>
+								<img class="testimonial__photo" src="<?php echo esc_url( $ci_item['image_url'] ); ?>" alt="" width="72" height="72" loading="lazy">
+							<?php endif; ?>
 							<?php if ( $ci_item['author'] ) : ?>
 								<cite class="testimonial__name"><?php echo esc_html( $ci_item['author'] ); ?></cite>
 							<?php endif; ?>
 							<?php if ( $ci_item['info'] ) : ?>
-								<span class="testimonial__info"><?php echo esc_html( $ci_item['info'] ); ?></span>
+								<a class="testimonial__info" href="<?php echo esc_url( $ci_item['url'] ); ?>"><?php echo esc_html( $ci_item['info'] ); ?></a>
 							<?php endif; ?>
 						</figcaption>
 					</figure>

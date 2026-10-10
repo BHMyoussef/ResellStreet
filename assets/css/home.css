@@ -158,13 +158,15 @@
 }
 .testimonial.is-selected { position: relative; z-index: 1; }
 .testimonial.is-selected .testimonial__card { transform: none; box-shadow: var(--shadow-card); }
-.testimonial__stars { margin: 0 0 15px; font-size: 20px; letter-spacing: 3px; line-height: 28px; }
+.testimonial__stars { margin: 0 0 15px; line-height: 28px; }
+.testimonial__stars .ci-stars { --star-size: 19px; }
 .testimonial__text { margin: 0 0 15px; }
 .testimonial__text p { margin-bottom: 10px; }
 .testimonial__author { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .testimonial__photo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
 .testimonial__name { font-size: 19px; font-style: normal; font-weight: var(--fw-bold); }
-.testimonial__info { font-size: var(--fs-small); }
+.testimonial__info { color: color-mix(in srgb, var(--color-text) 60%, transparent); font-size: 13px; }
+.testimonial__info:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .carousel-dots { position: relative; z-index: 2; display: flex; justify-content: center; gap: 2px; margin-top: -40px; padding-bottom: 15px; }
 .carousel-dots__dot {
@@ -221,7 +223,8 @@
 
   .testimonials { padding-block: 75px; }
   .testimonials .section-title { margin-bottom: 50px; }
-  .testimonials__track { padding-inline: 33.3333%; }
+  /* Spacers (not padding: end padding of a flex scroller isn't always scrollable) so the first and last cards can centre. */
+  .testimonials__track::before, .testimonials__track::after { content: ""; flex: 0 0 33.3333%; }
   .testimonial { flex-basis: 33.3333%; }
   .testimonial__card { width: 100%; padding: 30px; transform: scale(0.95); }
   .testimonial.is-selected .testimonial__card { transform: scale(1.1); }

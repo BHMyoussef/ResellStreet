@@ -51,6 +51,29 @@ const b = await chromium.launch();
   await p.close();
 }
 
+/* ---------- Testimonials = real reviews (Customizer filters) ---------- */
+{
+  const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+  const names = async () => {
+    await p.goto(HOME, { waitUntil: 'networkidle' });
+    return p.$$eval('.testimonial__name', (n) => n.map((x) => x.textContent).join(', '));
+  };
+  check('testimonials: 5★ reviews with photos, newest first', (await names()) === 'Liam P., Daniel M., Marc T., James R.', await names());
+  check('testimonial cards link to the review on its product page', await p.$$eval('.testimonial__info', (a) => a.every((x) => /\/product\/.+#review-\d+$/.test(x.getAttribute('href')))));
+  try {
+    wp('theme', 'mod', 'set', 'home_testimonials_photos', '');
+    const noPhotos = await names();
+    check('"photos required" off → 5★ review without photo appears (Adam K.)', noPhotos.includes('Adam K.') && noPhotos.split(', ').length === 5, noPhotos);
+    wp('theme', 'mod', 'set', 'home_testimonials_min', '4');
+    const min4 = await names();
+    check('minimum rating 4 → the 4★ review appears too (Oliver M.)', min4.includes('Oliver M.') && !min4.includes('Sam T.'), min4);
+  } finally {
+    wp('theme', 'mod', 'set', 'home_testimonials_photos', '1');
+    wp('theme', 'mod', 'set', 'home_testimonials_min', '5');
+  }
+  await p.close();
+}
+
 /* ---------- Mobile: no parallax ---------- */
 {
   const p = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });

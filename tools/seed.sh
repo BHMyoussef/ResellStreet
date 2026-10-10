@@ -144,16 +144,10 @@ done
 i=1; for t in "$T_SHOES" "$T_ACC" "$T_SETS" "$T_BAGS"; do "$WP" theme mod set "home_tile_${i}_cat" "$t" >/dev/null; i=$((i+1)); done
 
 "$WP" theme mod set home_testimonials_title "Hear From Our Customers"
-testimonial() { # n text author image
-  "$WP" theme mod set "home_testimonial_$1_text" "$2" >/dev/null
-  "$WP" theme mod set "home_testimonial_$1_author" "$3" >/dev/null
-  "$WP" theme mod set "home_testimonial_$1_image" "$(media_id "$4" "$3")" >/dev/null
-}
-testimonial 1 "<p>The product looks exactly like the photos, maybe even better. Clean stitching, no issues, and arrived quicker than I expected.</p>" "Liam P." avatar-1.jpg
-testimonial 2 "<p>Honestly wasn’t expecting this level of quality for the price. The fit is perfect and the material feels premium. Will definitely order again.</p>" "James R." avatar-2.jpg
-testimonial 3 "<p>Really comfortable and stylish. I’ve worn it a few times now and keep getting compliments. Great value for money.</p>" "Daniel M." avatar-3.jpg
-testimonial 4 "<p>Sizing was accurate and the shape holds well. The fabric feels durable but still soft. Honestly impressed.</p>" "Adam K." avatar-4.jpg
-testimonial 5 "<p>Super happy with this purchase. Lightweight, stylish, and feels way more expensive than it is. Will be buying more colours.</p>" "Marc T." avatar-5.jpg
+# Testimonials come from real product reviews (Customizer → Homepage → Testimonials); remove the old slot mods.
+for n in 1 2 3 4 5 6 7 8; do
+  "$WP" theme mod remove "home_testimonial_${n}_text" "home_testimonial_${n}_author" "home_testimonial_${n}_image" "home_testimonial_${n}_stars" "home_testimonial_${n}_info" >/dev/null 2>&1 || true
+done
 
 "$WP" theme mod set home_story_image "$(media_id banner-1.jpg 'Street-luxury')"
 "$WP" theme mod set home_story_subtitle "Novareve is not just a shoe"

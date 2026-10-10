@@ -69,6 +69,9 @@ Local site: http://resellstreet.local
   script is loaded on demand when "Write a review" is hovered/opened; a file picked before it's ready is replayed via a
   jQuery ready callback (CusRev binds in one, and jQuery 3 runs those async). CusRev's email review form is a
   standalone page with its own assets (unaffected).
+- Homepage testimonials = `ci_home_testimonials()` (inc/customizer-home.php): approved reviews on published products,
+  newest first, filtered by Customizer (count, min rating, photos required, verified only); cached in a transient
+  keyed by settings + `ci_reviews_cache_version` (bumped on any comment/comment-meta change). No hardcoded slots.
 - Test reviews: `npm run fixtures` (8 reviews, tagged `_ci_fixture`). WooCommerce excludes reviews from untyped
   comment queries: always pass `'type' => 'review'`.
 
@@ -102,8 +105,8 @@ Local site: http://resellstreet.local
 | 5 | Homepage `front-page.php`: slideshow, collection tiles, testimonials, image-with-text (all Customizer) | ✅ done |
 | 6 | Cart/checkout/account styling; switch Cart & Checkout pages to classic shortcodes; test logged-in cart (X-WP-Nonce) | ✅ done |
 | 3b | Reviews on the product page (CusRev data, theme display): stars under title, review section, test reviews | ✅ done |
-| 5b | Homepage testimonials from real reviews (Customizer: count, min rating, photos) | ⏭ next |
-| 7 | Search overlay (header icon already links to product search) + results page | ⬜ after 3b/5b |
+| 5b | Homepage testimonials from real reviews (Customizer: count, min rating, photos) | ✅ done |
+| 7 | Search overlay (header icon already links to product search) + results page | ⏭ next |
 | 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ⬜ waiting for CSV |
 
 ### Decisions made so far
@@ -164,6 +167,7 @@ Local site: http://resellstreet.local
   Fixtures also enable Cash on delivery, create coupon TEST10 (10%) and customer `ci-test-customer`
   (password `ci-test-Passw0rd!`). Test orders exist from `npm run check:pages`.
 - Cart & Checkout pages contain the classic shortcodes; My Account registration is enabled (both via seed.sh).
+- Plugin "Customer Reviews for WooCommerce" (CusRev) installed + active; photo uploads on (`ivole_attach_image`, seed.sh).
 
 ### Resume checklist
 1. `npm run shots:local` / `npm run measure -- <profile>` (global|collection|product) / `npm run check:all`.

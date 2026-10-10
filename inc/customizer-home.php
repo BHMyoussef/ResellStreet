@@ -11,7 +11,6 @@ defined( 'ABSPATH' ) || exit;
 
 const CI_HERO_SLOTS        = 3;
 const CI_TILE_SLOTS        = 8;
-const CI_TESTIMONIAL_SLOTS = 8;
 
 function ci_focal_choices() {
 	return array(
@@ -31,8 +30,8 @@ function ci_sanitize_align( $value ) {
 	return in_array( $value, array( 'left', 'center', 'right' ), true ) ? $value : 'center';
 }
 
-function ci_sanitize_stars( $value ) {
-	return in_array( (int) $value, array( 0, 4, 5 ), true ) ? (int) $value : 5;
+function ci_sanitize_rating( $value ) {
+	return min( 5, max( 1, absint( $value ) ) );
 }
 
 add_filter(
@@ -49,6 +48,10 @@ add_filter(
 			'home_tiles_per_row'          => 4,
 			'home_testimonials_enable'    => true,
 			'home_testimonials_title'     => '',
+			'home_testimonials_count'     => 8,
+			'home_testimonials_min'       => 5,
+			'home_testimonials_photos'    => true,
+			'home_testimonials_verified'  => false,
 			'home_story_enable'           => true,
 			'home_story_subtitle'         => '',
 			'home_story_title'            => '',
@@ -82,15 +85,6 @@ add_filter(
 				"home_tile_{$i}_cat"   => 0,
 				"home_tile_{$i}_title" => '',
 				"home_tile_{$i}_image" => 0,
-			);
-		}
-		for ( $i = 1; $i <= CI_TESTIMONIAL_SLOTS; $i++ ) {
-			$d += array(
-				"home_testimonial_{$i}_stars"  => 5,
-				"home_testimonial_{$i}_text"   => '',
-				"home_testimonial_{$i}_image"  => 0,
-				"home_testimonial_{$i}_author" => '',
-				"home_testimonial_{$i}_info"   => '',
 			);
 		}
 		return $d;
@@ -206,25 +200,27 @@ add_action(
 		}
 
 		/* Testimonials */
-		$wp_customize->add_section( 'ci_home_testimonials', array( 'title' => __( 'Testimonials', 'customimpulse' ), 'panel' => 'ci_home' ) );
+		$wp_customize->add_section(
+			'ci_home_testimonials',
+			array(
+				'title'       => __( 'Testimonials', 'customimpulse' ),
+				'panel'       => 'ci_home',
+				'description' => __( 'Shows real product reviews (newest first). Reviews are collected with Customer Reviews for WooCommerce.', 'customimpulse' ),
+			)
+		);
 		$check( 'home_testimonials_enable', 'ci_home_testimonials', __( 'Show testimonials', 'customimpulse' ) );
 		$add( 'home_testimonials_title', 'ci_home_testimonials', __( 'Section title', 'customimpulse' ) );
-		for ( $i = 1; $i <= CI_TESTIMONIAL_SLOTS; $i++ ) {
-			/* translators: %d: testimonial number */
-			$n = fn( $label ) => sprintf( $label, $i );
-			$add( "home_testimonial_{$i}_text", 'ci_home_testimonials', $n( __( 'Testimonial %d: text', 'customimpulse' ) ), 'textarea', 'wp_kses_post' );
-			$add( "home_testimonial_{$i}_author", 'ci_home_testimonials', $n( __( 'Testimonial %d: author', 'customimpulse' ) ) );
-			$add( "home_testimonial_{$i}_info", 'ci_home_testimonials', $n( __( 'Testimonial %d: author details (optional)', 'customimpulse' ) ) );
-			$image( "home_testimonial_{$i}_image", 'ci_home_testimonials', $n( __( 'Testimonial %d: photo', 'customimpulse' ) ) );
-			$add(
-				"home_testimonial_{$i}_stars",
-				'ci_home_testimonials',
-				$n( __( 'Testimonial %d: stars', 'customimpulse' ) ),
-				'select',
-				'ci_sanitize_stars',
-				array( 'choices' => array( 5 => '★★★★★', 4 => '★★★★', 0 => __( 'None', 'customimpulse' ) ) )
-			);
-		}
+		$add( 'home_testimonials_count', 'ci_home_testimonials', __( 'Number of reviews', 'customimpulse' ), 'number', 'absint', $px( 1, 12 ) );
+		$add(
+			'home_testimonials_min',
+			'ci_home_testimonials',
+			__( 'Minimum rating', 'customimpulse' ),
+			'select',
+			'ci_sanitize_rating',
+			array( 'choices' => array( 5 => '★★★★★', 4 => '★★★★ +', 3 => '★★★ +', 2 => '★★ +', 1 => '★ +' ) )
+		);
+		$check( 'home_testimonials_photos', 'ci_home_testimonials', __( 'Only reviews with photos', 'customimpulse' ) );
+		$check( 'home_testimonials_verified', 'ci_home_testimonials', __( 'Only verified buyers', 'customimpulse' ) );
 
 		/* Image with text */
 		$wp_customize->add_section( 'ci_home_story', array( 'title' => __( 'Image with text', 'customimpulse' ), 'panel' => 'ci_home' ) );
@@ -319,24 +315,83 @@ function ci_home_tiles() {
 }
 
 /**
- * Testimonials with text.
+ * Homepage testimonials: real product reviews, newest first, filtered by the Customizer settings.
+ * Cached; the cache is invalidated whenever a review changes.
  *
- * @return array<int,array<string,mixed>>
+ * @return array<int,array{text:string,stars:int,image:int,image_url:string,author:string,info:string,url:string}>
  */
 function ci_home_testimonials() {
-	$items = array();
-	for ( $i = 1; $i <= CI_TESTIMONIAL_SLOTS; $i++ ) {
-		$text = trim( (string) ci_mod( "home_testimonial_{$i}_text" ) );
-		if ( '' === $text ) {
-			continue;
-		}
-		$items[] = array(
-			'text'   => $text,
-			'stars'  => ci_sanitize_stars( ci_mod( "home_testimonial_{$i}_stars" ) ),
-			'image'  => absint( ci_mod( "home_testimonial_{$i}_image" ) ),
-			'author' => (string) ci_mod( "home_testimonial_{$i}_author" ),
-			'info'   => (string) ci_mod( "home_testimonial_{$i}_info" ),
+	if ( ! function_exists( 'ci_review_photos' ) ) {
+		return array();
+	}
+	$args = array(
+		'count'    => min( 12, max( 1, absint( ci_mod( 'home_testimonials_count' ) ) ) ),
+		'min'      => ci_sanitize_rating( ci_mod( 'home_testimonials_min' ) ),
+		'photos'   => (bool) ci_mod( 'home_testimonials_photos' ),
+		'verified' => (bool) ci_mod( 'home_testimonials_verified' ),
+	);
+	$key    = 'ci_home_reviews_' . md5( wp_json_encode( $args ) . get_option( 'ci_reviews_cache_version', 1 ) );
+	$cached = get_transient( $key );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+
+	$meta = array(
+		'relation' => 'AND',
+		array(
+			'key'     => 'rating',
+			'value'   => $args['min'],
+			'compare' => '>=',
+			'type'    => 'NUMERIC',
+		),
+	);
+	if ( $args['photos'] ) {
+		$meta[] = array(
+			'relation' => 'OR',
+			array( 'key' => 'ivole_review_image2', 'compare' => 'EXISTS' ),
+			array( 'key' => 'ivole_review_image', 'compare' => 'EXISTS' ),
 		);
 	}
+	if ( $args['verified'] ) {
+		$meta[] = array(
+			'relation' => 'OR',
+			array( 'key' => 'verified', 'value' => '1' ),
+			array( 'key' => 'ivole_order', 'compare' => 'EXISTS' ),
+		);
+	}
+
+	$items = array();
+	foreach ( get_comments(
+		array(
+			'type'        => 'review',
+			'status'      => 'approve',
+			'post_status' => 'publish',
+			'parent'      => 0,
+			'number'      => $args['count'],
+			'orderby'     => 'comment_date_gmt',
+			'order'       => 'DESC',
+			'meta_query'  => $meta, // phpcs:ignore WordPress.DB.SlowDBQuery
+		)
+	) as $review ) {
+		$photos  = ci_review_photos( $review->comment_ID, 'thumbnail' );
+		$items[] = array(
+			'text'      => wp_trim_words( $review->comment_content, 40, '…' ),
+			'stars'     => (int) get_comment_meta( $review->comment_ID, 'rating', true ),
+			'image'     => $photos ? (int) $photos[0]['id'] : 0,
+			'image_url' => $photos ? $photos[0]['thumb'] : '',
+			'author'    => get_comment_author( $review ),
+			'info'      => get_the_title( $review->comment_post_ID ),
+			'url'       => get_permalink( $review->comment_post_ID ) . '#review-' . $review->comment_ID,
+		);
+	}
+	set_transient( $key, $items, 12 * HOUR_IN_SECONDS );
 	return $items;
+}
+
+/* Any review change invalidates the homepage testimonials cache. */
+$ci_bump_reviews_cache = function () {
+	update_option( 'ci_reviews_cache_version', (int) get_option( 'ci_reviews_cache_version', 1 ) + 1, false );
+};
+foreach ( array( 'wp_insert_comment', 'edit_comment', 'deleted_comment', 'transition_comment_status', 'added_comment_meta', 'updated_comment_meta' ) as $ci_hook ) {
+	add_action( $ci_hook, $ci_bump_reviews_cache );
 }
