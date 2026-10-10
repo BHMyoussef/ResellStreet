@@ -58,6 +58,23 @@ done
 "$WP" theme mod set contact_title "contact informations"
 "$WP" theme mod set contact_text '<p><strong>Novarende</strong></p><p>71-75 Shelton Street, Covent Garden, London, WC2H 9JQ, United Kingdom.</p><p><strong>E-mail</strong>: support@novarende.com</p><p><strong>Customer service hours:</strong><br/>Monday to Saturday: 09:00 am to 5:00 pm</p><p><strong>Shop hours:</strong></p><p>Monday to Friday: 10:00 am to 3:00 pm</p>'
 
+# Collection page promo banner (templates/collection.json → promo-grid "banner" block)
+"$WP" theme mod set banner_heading "Don’t Miss Out! 🔥"
+"$WP" theme mod set banner_text "Limited pairs remaining!"
+
+# ---------- WooCommerce catalog settings ----------
+# Grid: 3 columns × 7 rows (main-collection per_row / rows_per_page). Card images are 4:3 (landscape grid).
+"$WP" option update woocommerce_catalog_columns 3 >/dev/null
+"$WP" option update woocommerce_catalog_rows 7 >/dev/null
+if [ "$("$WP" option get woocommerce_thumbnail_cropping)" != "custom" ] || [ "$("$WP" option get woocommerce_thumbnail_cropping_custom_height)" != "3" ]; then
+  "$WP" option update woocommerce_thumbnail_cropping custom >/dev/null
+  "$WP" option update woocommerce_thumbnail_cropping_custom_width 4 >/dev/null
+  "$WP" option update woocommerce_thumbnail_cropping_custom_height 3 >/dev/null
+  "$WP" media regenerate --image_size=woocommerce_thumbnail --yes
+fi
+
+"$WP" media regenerate --image_size=ci-card-sm --only-missing --yes | tail -1
+
 # ---------- Logo (once) ----------
 if [ -z "$("$WP" theme mod get custom_logo --field=value 2>/dev/null)" ]; then
   LOGO=$("$WP" media import "https://novarende.com/cdn/shop/files/high-resolution-color-logo_1_600x.png" --title="Logo" --porcelain)

@@ -57,6 +57,10 @@ add_action(
 		ci_enqueue_style( 'header' );
 		ci_enqueue_style( 'footer' );
 
+		if ( function_exists( 'ci_is_collection' ) && ci_is_collection() ) {
+			ci_enqueue_style( 'collection' );
+		}
+
 		ci_enqueue_script( 'global' );
 	}
 );

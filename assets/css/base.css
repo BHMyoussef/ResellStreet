@@ -82,7 +82,8 @@ h4, h5, h6, .label {
 /* Utilities */
 .text-center { text-align: center; }
 .u-mt-30 { margin-top: 30px; }
-.visually-hidden {
+.visually-hidden,
+.screen-reader-text {
   position: absolute !important;
   width: 1px; height: 1px;
   margin: -1px; padding: 0;

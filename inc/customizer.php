@@ -59,6 +59,18 @@ function ci_defaults() {
 		'footer_logo_height'    => 40,
 		'payment_icons_enable'  => true,
 		'copyright_text'        => '',
+		// Collection page.
+		'collection_title_enable' => false,
+		'collection_sort_enable'  => false,
+		'card_hover_image'        => true,
+		'savings_type'            => 'percent',
+		'banner_enable'           => true,
+		'banner_heading'          => '',
+		'banner_text'             => '',
+		'banner_link'             => '',
+		'banner_label'            => '',
+		'banner_tint'             => '#e95454',
+		'banner_tint_opacity'     => 10,
 	);
 	for ( $i = 1; $i <= CI_ANNOUNCEMENT_SLOTS; $i++ ) {
 		$defaults[ "announcement_{$i}_text" ] = '';
@@ -83,6 +95,10 @@ function ci_mod( $key ) {
 
 function ci_sanitize_checkbox( $value ) {
 	return (bool) $value;
+}
+
+function ci_sanitize_savings_type( $value ) {
+	return in_array( $value, array( 'percent', 'amount', 'none' ), true ) ? $value : 'percent';
 }
 
 add_action(
@@ -191,6 +207,69 @@ add_action(
 		foreach ( ci_payment_icon_choices() as $key => $label ) {
 			$add( "payment_{$key}", 'ci_footer', $label, 'checkbox', 'ci_sanitize_checkbox' );
 		}
+		// Collection page.
+		$wp_customize->add_section(
+			'ci_collection',
+			array(
+				'title' => __( 'Collection page', 'customimpulse' ),
+				'panel' => 'ci_theme',
+			)
+		);
+		$add( 'collection_title_enable', 'ci_collection', __( 'Show collection title', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'collection_sort_enable', 'ci_collection', __( 'Show sorting', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'card_hover_image', 'ci_collection', __( 'Show second image on hover', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add(
+			'savings_type',
+			'ci_collection',
+			__( 'Sale savings', 'customimpulse' ),
+			'select',
+			'ci_sanitize_savings_type',
+			array(
+				'choices' => array(
+					'percent' => __( 'Percentage (Save 50%)', 'customimpulse' ),
+					'amount'  => __( 'Amount (Save £50.00)', 'customimpulse' ),
+					'none'    => __( 'Hidden', 'customimpulse' ),
+				),
+			)
+		);
+		$add( 'banner_enable', 'ci_collection', __( 'Show promo banner', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'banner_heading', 'ci_collection', __( 'Banner heading', 'customimpulse' ) );
+		$add( 'banner_text', 'ci_collection', __( 'Banner text', 'customimpulse' ) );
+		$add( 'banner_link', 'ci_collection', __( 'Banner link (optional)', 'customimpulse' ), 'url', 'esc_url_raw' );
+		$add(
+			'banner_label',
+			'ci_collection',
+			__( 'Banner link label (optional)', 'customimpulse' ),
+			'text',
+			'sanitize_text_field',
+			array( 'description' => __( 'Without a label the whole banner is clickable.', 'customimpulse' ) )
+		);
+		$wp_customize->add_setting(
+			'banner_tint',
+			array(
+				'default'           => $d['banner_tint'],
+				'sanitize_callback' => 'sanitize_hex_color',
+			)
+		);
+		$wp_customize->add_control(
+			new WP_Customize_Color_Control(
+				$wp_customize,
+				'banner_tint',
+				array(
+					'label'   => __( 'Banner tint color', 'customimpulse' ),
+					'section' => 'ci_collection',
+				)
+			)
+		);
+		$add(
+			'banner_tint_opacity',
+			'ci_collection',
+			__( 'Banner tint opacity (%)', 'customimpulse' ),
+			'number',
+			'absint',
+			array( 'input_attrs' => array( 'min' => 0, 'max' => 100 ) )
+		);
+
 		$add(
 			'copyright_text',
 			'ci_footer',

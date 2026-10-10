@@ -21,6 +21,8 @@ function ci_icon( $name, $class = '' ) {
 		'bag'          => '<path d="M12 21h40l-3 35H15z"/><path d="M24 21v-5a8 8 0 0116 0v5"/>',
 		'search'       => '<circle cx="27" cy="27" r="17"/><path d="M39 39l17 17"/>',
 		'chevron-down' => '<path d="M12 24l20 20 20-20"/>',
+		'chevron-left' => '<path d="M40 12L20 32l20 20"/>',
+		'chevron-right' => '<path d="M24 12l20 20-20 20"/>',
 		'email'        => '<path d="M7 15h50v34H7z"/><path d="M7 15l25 20 25-20"/>',
 	);
 	if ( ! isset( $paths[ $name ] ) ) {
