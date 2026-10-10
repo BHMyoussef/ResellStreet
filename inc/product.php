@@ -609,6 +609,22 @@ add_filter(
 	4
 );
 
+/*
+ * Hover zoom only where there is a hover: on touch screens it does nothing useful, but jquery.zoom still downloads
+ * the full-size image (≈250 KB) while the page loads, competing with the LCP image on mobile data.
+ * The plugin becomes a no-op there; WC's zoom setting stays on, so the magnifier button + lightbox are unchanged.
+ */
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		$handle = wp_script_is( 'wc-zoom', 'registered' ) ? 'wc-zoom' : 'zoom';
+		if ( wp_script_is( $handle, 'enqueued' ) ) {
+			wp_add_inline_script( $handle, 'if(window.jQuery&&jQuery.fn.zoom&&!matchMedia("(hover:hover)").matches){jQuery.fn.zoom=function(){return this;};}' );
+		}
+	},
+	30
+);
+
 /* Thumbnails as dots on mobile are cheap; keep WC's thumbnail nav, no direction arrows. */
 add_filter(
 	'woocommerce_single_product_carousel_options',
