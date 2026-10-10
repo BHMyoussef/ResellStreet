@@ -274,7 +274,7 @@ form.cart:not(.variations_form) { margin-bottom: 0; }
 .review-card__body { padding: 14px; }
 .review-card__author { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0 0 6px; }
 .review-card__name { font-weight: var(--fw-bold); }
-.review-card__verified { display: inline-flex; align-items: center; gap: 3px; color: var(--color-stock-ok); font-size: 12px; letter-spacing: 0.04em; }
+.review-card__verified { display: inline-flex; align-items: center; gap: 3px; color: var(--color-stock-ok-text); font-size: 12px; letter-spacing: 0.04em; }
 .review-card__verified .icon { width: 13px; height: 13px; stroke-width: 6px; }
 .review-card__meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 10px; }
 .review-card__meta .ci-stars { --star-size: 13px; }

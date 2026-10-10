@@ -41,6 +41,7 @@
   --color-star: var(--color-text);
   --color-star-empty: var(--color-border);
   --color-stock-ok: #56ad6a;
+  --color-stock-ok-text: color-mix(in srgb, var(--color-stock-ok) 70%, #000); /* 5.2:1 on white (the dot colour is 2.8:1) */
   --color-stock-low: #ee9441;
   --color-stock-out: #c20000;
   --shadow-dropdown: 0 10px 20px rgb(0 0 0 / 0.09);
