@@ -61,6 +61,7 @@
   --checkout-border: #dedede;
   --checkout-muted: #707070;
   --checkout-field-muted: #ededed;
+  --checkout-muted-on-field: color-mix(in srgb, var(--checkout-muted) 88%, #000); /* 5:1 on the grey field (muted is 4.2:1) */
   --checkout-radius: 5px;
 
   /* Fonts */

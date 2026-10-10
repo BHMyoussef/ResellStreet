@@ -21,6 +21,8 @@ while ( have_posts() ) :
 			<header class="section-header">
 				<h1 class="page-title"><?php the_title(); ?></h1>
 			</header>
+		<?php else : ?>
+			<h1 class="visually-hidden"><?php the_title(); ?></h1>
 		<?php endif; ?>
 		<div class="<?php echo $ci_wc_page ? 'page-content' : 'rte page-content'; ?>"><?php the_content(); ?></div>
 	</article>

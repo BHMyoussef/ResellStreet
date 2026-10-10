@@ -341,7 +341,7 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
   border: 1px solid var(--checkout-border);
   border-radius: var(--checkout-radius);
   background: var(--checkout-field-muted);
-  color: var(--checkout-muted);
+  color: var(--checkout-muted-on-field);
   font: 600 14px var(--checkout-font);
 }
 .checkout-coupon:focus-within .checkout-coupon__apply, .checkout-coupon__apply:hover { border-color: var(--checkout-button); background: var(--checkout-button); color: var(--checkout-button-text); }
