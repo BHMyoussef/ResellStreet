@@ -87,6 +87,9 @@ fi
 
 "$WP" media regenerate --image_size=ci-card-sm --only-missing --yes | tail -1
 
+# Size attributes sort numerically (imported terms have no custom order: "4, 4.5 … 11.5", not "10, 11, 4").
+"$WP" eval 'foreach ( wc_get_attribute_taxonomies() as $a ) { if ( 0 === strpos( $a->attribute_name, "size" ) && "name_num" !== $a->attribute_orderby ) { wc_update_attribute( $a->attribute_id, array( "name" => $a->attribute_label, "slug" => $a->attribute_name, "type" => $a->attribute_type, "order_by" => "name_num", "has_archives" => $a->attribute_public ) ); } }'
+
 # Cart & Checkout use the classic shortcodes (not blocks); customers can register on My Account.
 "$WP" post update "$("$WP" option get woocommerce_cart_page_id)" --post_content='<!-- wp:shortcode -->[woocommerce_cart]<!-- /wp:shortcode -->' >/dev/null
 "$WP" post update "$("$WP" option get woocommerce_checkout_page_id)" --post_content='<!-- wp:shortcode -->[woocommerce_checkout]<!-- /wp:shortcode -->' >/dev/null
