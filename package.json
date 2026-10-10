@@ -7,7 +7,9 @@
     "shots:local": "node tools/screens.mjs local",
     "measure": "node tools/measure.mjs",
     "check": "node tools/behavior.mjs",
-    "seed": "tools/seed.sh"
+    "seed": "tools/seed.sh",
+    "check:product": "node tools/product-check.mjs",
+    "fixtures": "tools/wp eval-file tools/fixtures.php"
   },
   "devDependencies": {
     "playwright": "^1.64.0"

@@ -9,6 +9,25 @@
 defined( 'ABSPATH' ) || exit;
 
 const CI_ANNOUNCEMENT_SLOTS = 3;
+const CI_SALES_POINT_SLOTS = 3;
+const CI_PRODUCT_TAB_SLOTS = 3;
+
+/**
+ * Icons offered for selling points.
+ *
+ * @return array<string,string>
+ */
+function ci_sales_point_icons() {
+	return array(
+		'truck'  => __( 'Truck', 'customimpulse' ),
+		'lock'   => __( 'Lock', 'customimpulse' ),
+		'return' => __( 'Return', 'customimpulse' ),
+		'gift'   => __( 'Gift', 'customimpulse' ),
+		'check'  => __( 'Check mark', 'customimpulse' ),
+		'chat'   => __( 'Chat', 'customimpulse' ),
+	);
+}
+
 
 /**
  * Payment icons available in the footer, in display order.
@@ -71,7 +90,24 @@ function ci_defaults() {
 		'banner_label'            => '',
 		'banner_tint'             => '#e95454',
 		'banner_tint_opacity'     => 10,
+		// Product page.
+		'variant_preselect'          => true,
+		'product_qty_enable'         => false,
+		'product_description_inline' => true,
+		'related_enable'             => false,
+		'sticky_atc_enable'          => true,
+		'stock_status_enable'        => true,
+		'stock_low_threshold'        => 10,
+		'trust_badges_enable'        => true,
+		'trust_badges_title'         => '',
 	);
+	$point_icons = array( 1 => 'truck', 2 => 'lock', 3 => 'return' );
+	for ( $i = 1; $i <= 3; $i++ ) {
+		$defaults[ "sales_point_{$i}_icon" ] = $point_icons[ $i ];
+		$defaults[ "sales_point_{$i}_text" ] = '';
+		$defaults[ "product_tab_{$i}_title" ]   = '';
+		$defaults[ "product_tab_{$i}_content" ] = '';
+	}
 	for ( $i = 1; $i <= CI_ANNOUNCEMENT_SLOTS; $i++ ) {
 		$defaults[ "announcement_{$i}_text" ] = '';
 		$defaults[ "announcement_{$i}_link" ] = '';
@@ -95,6 +131,10 @@ function ci_mod( $key ) {
 
 function ci_sanitize_checkbox( $value ) {
 	return (bool) $value;
+}
+
+function ci_sanitize_sales_point_icon( $value ) {
+	return array_key_exists( $value, ci_sales_point_icons() ) ? $value : 'check';
 }
 
 function ci_sanitize_savings_type( $value ) {
@@ -269,6 +309,50 @@ add_action(
 			'absint',
 			array( 'input_attrs' => array( 'min' => 0, 'max' => 100 ) )
 		);
+
+		// Product page.
+		$wp_customize->add_section(
+			'ci_product',
+			array(
+				'title' => __( 'Product page', 'customimpulse' ),
+				'panel' => 'ci_theme',
+			)
+		);
+		$add( 'variant_preselect', 'ci_product', __( 'Preselect the first available variant', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'product_qty_enable', 'ci_product', __( 'Show quantity selector', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'product_description_inline', 'ci_product', __( 'Show description under the add to cart button (otherwise as a tab)', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'sticky_atc_enable', 'ci_product', __( 'Sticky add to cart bar on mobile', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'related_enable', 'ci_product', __( 'Show related products', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'stock_status_enable', 'ci_product', __( 'Show stock status', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add(
+			'stock_low_threshold',
+			'ci_product',
+			__( 'Show "Low stock" at or below (units)', 'customimpulse' ),
+			'number',
+			'absint',
+			array( 'input_attrs' => array( 'min' => 0, 'max' => 100 ) )
+		);
+		for ( $i = 1; $i <= CI_SALES_POINT_SLOTS; $i++ ) {
+			/* translators: %d: selling point number */
+			$add( "sales_point_{$i}_text", 'ci_product', sprintf( __( 'Selling point %d', 'customimpulse' ), $i ) );
+			$add(
+				"sales_point_{$i}_icon",
+				'ci_product',
+				/* translators: %d: selling point number */
+				sprintf( __( 'Selling point %d icon', 'customimpulse' ), $i ),
+				'select',
+				'ci_sanitize_sales_point_icon',
+				array( 'choices' => ci_sales_point_icons() )
+			);
+		}
+		$add( 'trust_badges_enable', 'ci_product', __( 'Show trust badges under add to cart (payment icons from Footer settings)', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'trust_badges_title', 'ci_product', __( 'Trust badges title (optional)', 'customimpulse' ) );
+		for ( $i = 1; $i <= CI_PRODUCT_TAB_SLOTS; $i++ ) {
+			/* translators: %d: tab number */
+			$add( "product_tab_{$i}_title", 'ci_product', sprintf( __( 'Tab %d title', 'customimpulse' ), $i ) );
+			/* translators: %d: tab number */
+			$add( "product_tab_{$i}_content", 'ci_product', sprintf( __( 'Tab %d content (HTML allowed)', 'customimpulse' ), $i ), 'textarea', 'wp_kses_post' );
+		}
 
 		$add(
 			'copyright_text',

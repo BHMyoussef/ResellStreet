@@ -85,6 +85,29 @@
     }
     // A click on the ::backdrop targets the dialog element itself
     if (e.target.matches('dialog[data-drawer]')) closeDrawer(e.target);
+
+    /* Modals (size guide, …): <dialog data-modal="name"> */
+    const modalOpener = e.target.closest('[data-modal-open]');
+    if (modalOpener) {
+      const modal = document.querySelector(`dialog[data-modal="${modalOpener.dataset.modalOpen}"]`);
+      if (modal) {
+        e.preventDefault();
+        modal.showModal();
+        root.classList.add('has-drawer');
+      }
+      return;
+    }
+    if (e.target.closest('[data-modal-close]')) {
+      e.target.closest('dialog').close();
+      return;
+    }
+    if (e.target.matches('dialog[data-modal]')) e.target.close();
+  });
+
+  document.querySelectorAll('dialog[data-modal]').forEach((modal) => {
+    modal.addEventListener('close', () => {
+      if (!document.querySelector('dialog[open]')) root.classList.remove('has-drawer');
+    });
   });
 
   desktop.addEventListener('change', (e) => {

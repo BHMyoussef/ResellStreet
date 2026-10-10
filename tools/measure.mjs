@@ -36,6 +36,25 @@ const PROFILES = {
     // second card in the 2nd row tells us the row gap
     extra: [['.grid-product', 'ul.products > li', 3]],
   },
+  product: {
+    live: 'https://novarende.com/products/mens-casual-leather-sneakers-1',
+    local: 'http://resellstreet.local/product/test-sneaker-mens-casual-leather-sneakers/',
+    els: {
+      thumbs: ['.product__thumbs', '.flex-control-thumbs'],
+      thumb: ['.product__thumb-item', '.flex-control-thumbs li'],
+      mainImage: ['.product__main-photos', '.flex-viewport'],
+      info: ['.product-single__meta', '.summary'],
+      title: ['.product-single__title', '.product_title'],
+      divider: ['.product-single__meta hr', '.product-summary__divider'],
+      price: ['.product-block--price', '.product-price'],
+      optionLabel: ['.variant__label', '.variations th label'],
+      optionBtn: ['.variant-input-wrap label', '.variant-buttons__label'],
+      sellingPoint: ['.product-block--sales-point', '.selling-points__item'],
+      addToCart: ['.add-to-cart', '.single_add_to_cart_button'],
+      description: ['.product-block .rte', '.product-description'],
+      tab: ['.collapsible-trigger-btn', '.product-tab__title'],
+    },
+  },
 };
 
 const name = process.argv[2] || 'global';

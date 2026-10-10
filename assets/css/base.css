@@ -66,6 +66,10 @@ h4, h5, h6, .label {
 .rte p, .rte ul, .rte ol { margin-bottom: 15px; }
 .rte a { text-decoration: underline; text-underline-offset: 2px; }
 .rte > :last-child { margin-bottom: 0; }
+.rte table { width: 100%; margin-bottom: 15px; border-collapse: collapse; font-size: var(--fs-small); }
+.rte th, .rte td { padding: 6px 8px; border: 1px solid var(--color-border); text-align: center; }
+.rte th { font-weight: var(--fw-bold); }
+.rte .table-wrap, .modal__content { overflow-x: auto; }
 
 /* Layout */
 .page-width {
@@ -175,6 +179,11 @@ input[type="submit"].button {
 
 .text-link { text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; padding: 0; }
 
+/* Prices (ci_price_html: cards, product page, sticky bar, cart) */
+.price__compare { margin-right: 5px; }
+.price__savings { margin-left: 5px; color: var(--color-savings); white-space: nowrap; }
+.price__compare .woocommerce-Price-amount, .price__current .woocommerce-Price-amount { white-space: nowrap; }
+
 /* Forms */
 input[type="text"], input[type="email"], input[type="search"], input[type="tel"], input[type="url"],
 input[type="password"], input[type="number"], select, textarea {
@@ -233,3 +242,22 @@ label { display: inline-block; margin-bottom: 6px; }
 @media (prefers-reduced-motion: reduce) {
   .drawer, .drawer::backdrop { transition: none; }
 }
+
+/* Modals: native <dialog data-modal="name">, opened by [data-modal-open="name"] */
+.modal {
+  width: min(700px, calc(100% - 34px));
+  max-width: none;
+  max-height: calc(100% - 60px);
+  padding: 0;
+  border: 0;
+  background: var(--color-drawer);
+  color: var(--color-drawer-text);
+}
+.modal[open] { animation: ci-fade-up 0.25s var(--ease-drawer); }
+.modal::backdrop { background: var(--color-overlay); opacity: var(--overlay-opacity); }
+.modal__inner { position: relative; padding: 45px 20px 30px; }
+.modal__title { margin-bottom: 20px; text-align: center; }
+.modal__close { position: absolute; top: 5px; right: 5px; display: inline-flex; padding: 10px; border: 0; background: none; }
+@keyframes ci-fade-up { from { opacity: 0; transform: translateY(15px); } }
+@media (min-width: 769px) { .modal__inner { padding: 50px 40px 40px; } }
+@media (prefers-reduced-motion: reduce) { .modal[open] { animation: none; } }

@@ -36,6 +36,11 @@
   --grid-tint-opacity: 0.1;
   --color-section-alt: #f9f9f9;
   --color-focus: #000000;
+  --color-stock-ok: #56ad6a;
+  --color-stock-low: #ee9441;
+  --color-stock-out: #c20000;
+  --shadow-dropdown: 0 10px 20px rgb(0 0 0 / 0.09);
+  --shadow-bar: 0 -6px 20px rgb(0 0 0 / 0.06);
 
   /* Fonts */
   --font-heading: "Tenor Sans", "Helvetica Neue", Arial, sans-serif;

@@ -60,6 +60,13 @@ add_action(
 		if ( function_exists( 'ci_is_collection' ) && ci_is_collection() ) {
 			ci_enqueue_style( 'collection' );
 		}
+		if ( function_exists( 'is_product' ) && is_product() ) {
+			ci_enqueue_style( 'product' );
+			ci_enqueue_script( 'product' );
+			if ( ci_mod( 'related_enable' ) ) {
+				ci_enqueue_style( 'collection' ); // Product cards in related/upsells.
+			}
+		}
 
 		ci_enqueue_script( 'global' );
 	}

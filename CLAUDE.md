@@ -69,8 +69,8 @@ Local site: http://resellstreet.local
 | 0 | Setup: CLAUDE.md, ignores, Playwright captures in `reference/screens` | ✅ done |
 | 1 | Foundation: tokens, fonts, buttons, announcement bar, sticky header, mobile menu drawer, footer | ✅ done |
 | 2 | Collection page: promo banner, count, grid, product card, pagination | ✅ done |
-| 3 | Product page: gallery, variation buttons (sold-out crossed, AJAX >30 variations, hidden native select), sticky mobile ATC, hook slots `ci_product_after_title` / `ci_product_after_add_to_cart`, trust badges, size guide modal (per category), tabs | ⏭ next |
-| 4 | AJAX cart drawer (Store API + nonce, jQuery `added_to_cart`/`updated_cart_totals` for Meta Pixel) + Quick Shop "Shop Now" on cards; dequeue WC jQuery scripts where unused | ⬜ |
+| 3 | Product page: gallery, variation buttons (sold-out crossed, AJAX >30 variations, hidden native select), sticky mobile ATC, hook slots `ci_product_after_title` / `ci_product_after_add_to_cart`, trust badges, size guide modal (per category), tabs | ✅ done |
+| 4 | AJAX cart drawer (Store API + nonce, jQuery `added_to_cart`/`updated_cart_totals` for Meta Pixel) + Quick Shop "Shop Now" on cards; dequeue WC jQuery scripts where unused | ⏭ next |
 | 5 | Homepage `front-page.php`: slideshow, collection tiles, testimonials, image-with-text (all Customizer) | ⬜ |
 | 6 | Cart/checkout/account styling; switch Cart & Checkout pages to classic shortcodes | ⬜ |
 | 7 | Search overlay (header icon already links to product search) + results page | ⬜ |
@@ -82,14 +82,25 @@ Local site: http://resellstreet.local
 - Product card is built on WC loop hooks in `inc/woocommerce.php`; `ci_price_html()` is shared with the product page.
 - Card images: WC thumbnail cropped 4:3 (600×450) + `ci-card-sm` 360×270 for srcset.
 - Newsletter form only renders with a provider shortcode or action URL (Customizer → Footer). Provider not chosen yet.
+- Product page lives in `inc/product.php` (hooks only). Variation buttons: radios drive WC's hidden selects
+  (set in attribute order + native `change`), availability/price/stock from our own JSON map
+  (`.ci-variant-data`, works in AJAX mode). Option availability only considers attributes *before* it;
+  later attributes auto-switch to their first available option. WC's variation JS (jQuery) still runs.
+- Sticky ATC clicks the main `.single_add_to_cart_button` (so step 4's AJAX handler only needs to hook the main form).
+- Gallery = WC flexslider/zoom/photoswipe; first image shown before JS (opacity override) for LCP.
+  Mobile "partial" peek = 75%-wide flex-viewport with overflow visible.
+- Modals: `<dialog data-modal="name">` + `[data-modal-open]` (global.js). Size guide = `ci_size_guide` term meta on product_cat.
+- Full-page Playwright captures of the product page on mobile show flexslider/sticky-bar artifacts; trust viewport shots + `npm run check:product`.
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
 - Seeded pages, menus (Main menu, Footer), Customizer content, logo, catalog 3×7, 4:3 thumbnails.
 - Product data is still WooCommerce sample data until the Shopify CSV import (step 9).
+- Dev test products from `npm run fixtures` (tools/fixtures.php): "Test Sneaker" (21 variations, inline mode) and
+  "Test Sneaker XL" (33 variations, AJAX mode) in category "Shoes" (has a size guide). Delete them after step 9.
 
 ### Resume checklist
-1. `npm run shots:local` / `npm run measure -- <profile>` / `npm run check` to verify current state.
+1. `npm run shots:local` / `npm run measure -- <profile>` (global|collection|product) / `npm run check` / `npm run check:product`.
 2. Compare with `reference/screens/*`, then continue with the next ⏭ row above.
 
 ## WooCommerce template overrides

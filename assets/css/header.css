@@ -96,7 +96,7 @@
   padding: 10px 0;
   list-style: none;
   background: var(--color-header);
-  box-shadow: 0 10px 20px rgb(0 0 0 / 0.09);
+  box-shadow: var(--shadow-dropdown);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-6px);

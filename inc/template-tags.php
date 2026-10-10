@@ -24,6 +24,15 @@ function ci_icon( $name, $class = '' ) {
 		'chevron-left' => '<path d="M40 12L20 32l20 20"/>',
 		'chevron-right' => '<path d="M24 12l20 20-20 20"/>',
 		'email'        => '<path d="M7 15h50v34H7z"/><path d="M7 15l25 20 25-20"/>',
+		'zoom'         => '<circle cx="27" cy="27" r="17"/><path d="M39 39l17 17M19 27h16M27 19v16"/>',
+		'ruler'        => '<path d="M6 42L42 6l16 16-36 36z"/><path d="M16 32l6 6M23 25l4 4M30 18l6 6M37 11l4 4"/>',
+		// Product page selling points.
+		'truck'        => '<path d="M4 16h34v28H4z"/><path d="M38 26h12l10 10v8H38"/><circle cx="15" cy="48" r="5"/><circle cx="49" cy="48" r="5"/>',
+		'lock'         => '<path d="M14 28h36v28H14z"/><path d="M22 28v-8a10 10 0 0120 0v8M32 38v8"/>',
+		'return'       => '<path d="M14 24h30a12 12 0 010 24H22"/><path d="M23 13L12 24l11 11"/>',
+		'gift'         => '<path d="M10 24h44v10H10zM14 34h36v22H14zM32 24v32"/><path d="M32 24c-3-9-15-11-15-4 0 4 8 4 15 4zm0 0c3-9 15-11 15-4 0 4-8 4-15 4z"/>',
+		'check'        => '<path d="M13 33l12 12 26-26"/>',
+		'chat'         => '<path d="M8 12h48v32H28L16 54V44H8z"/>',
 	);
 	if ( ! isset( $paths[ $name ] ) ) {
 		return '';
