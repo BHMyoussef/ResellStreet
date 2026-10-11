@@ -1,5 +1,5 @@
 // Visual reference captures.
-//   node tools/screens.mjs ref    -> reference/screens   (novarende.com)
+//   node tools/screens.mjs ref    -> reference/screens   (design reference: the Shopify store novarende.com)
 //   node tools/screens.mjs local  -> screens-local       (resellstreet.local)
 //   optional 2nd arg: comma list of shot names to limit the run, e.g. "home,cart"
 import { launch } from './lib/browser.mjs';

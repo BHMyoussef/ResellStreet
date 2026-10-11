@@ -1,7 +1,8 @@
 # CustomImpulse theme — project rules
 
-Custom classic WordPress theme for a WooCommerce shoe & apparel store (UK market, GBP).
-Goal: recreate the look and feel of the owner's Shopify store https://novarende.com/ (Impulse theme).
+Custom classic WordPress theme for ResellStreet, a WooCommerce shoe & apparel store (UK market, GBP).
+Design reference: the Shopify store https://novarende.com/ (Impulse theme). Its look and feel is the model; its brand
+(Novarende) is not used anywhere in the theme or content: the store is ResellStreet.
 Local site: http://resellstreet.local
 
 ## Architecture

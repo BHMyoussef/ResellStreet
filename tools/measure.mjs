@@ -79,7 +79,7 @@ const name = process.argv[2] || 'global';
 const P = PROFILES[name];
 if (!P) throw new Error(`Unknown profile "${name}". Known: ${Object.keys(PROFILES).join(', ')}`);
 
-// LIVE_IP=23.227.38.65 pins novarende.com if local DNS fails for Chromium.
+// LIVE_IP=23.227.38.65 pins novarende.com (the Shopify design reference) if local DNS fails for Chromium.
 const b = await launch(process.env.LIVE_IP ? { args: [`--host-resolver-rules=MAP novarende.com ${process.env.LIVE_IP}`] } : {});
 for (const w of [1440, 390]) {
   for (const [site, idx] of [['live', 0], ['local', 1]]) {
