@@ -175,7 +175,9 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .ci-checkout-page .form-row-first { grid-column: 1; }
 .ci-checkout-page .form-row-last { grid-column: 2; }
 .ci-checkout-page .form-row label { display: block; margin-bottom: 4px; color: var(--checkout-muted); font-size: 13px; }
-.ci-checkout-page .form-row label.checkbox, .ci-checkout-page .woocommerce-form__label-for-checkbox { display: flex; align-items: center; gap: 8px; color: inherit; font-size: 14px; }
+/* Top-aligned: plugin consent labels wrap over several lines (CusRev's review-invite opt-in) */
+.ci-checkout-page .form-row label.checkbox, .ci-checkout-page .woocommerce-form__label-for-checkbox { display: flex; align-items: flex-start; gap: 8px; color: inherit; font-size: 14px; }
+.ci-checkout-page .woocommerce-form__label-for-checkbox input { flex: none; margin-top: 1px; }
 .ci-checkout-page .required { color: var(--checkout-muted); text-decoration: none; }
 .ci-checkout-page .optional { color: var(--checkout-muted); }
 .ci-checkout-page input[type="text"], .ci-checkout-page input[type="email"], .ci-checkout-page input[type="tel"],
