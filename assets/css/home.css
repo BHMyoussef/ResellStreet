@@ -165,7 +165,7 @@
 .testimonial__author { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .testimonial__photo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
 .testimonial__name { font-size: 19px; font-style: normal; font-weight: var(--fw-bold); }
-.testimonial__info { color: color-mix(in srgb, var(--color-text) 60%, transparent); font-size: 13px; }
+.testimonial__info { color: var(--color-text-muted); font-size: 13px; }
 .testimonial__info:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .carousel-dots { position: relative; z-index: 2; display: flex; justify-content: center; gap: 2px; margin-top: -40px; padding-bottom: 15px; }

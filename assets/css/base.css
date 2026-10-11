@@ -154,6 +154,7 @@ input[type="submit"].button {
 }
 .btn:hover::before,
 .button:hover::before { --btn-bg: var(--color-button-hover); }
+.btn:hover, .button:hover { --btn-fg: var(--color-button-hover-text); } /* white on sand fails contrast */
 .btn--secondary {
   --btn-bg: transparent;
   --btn-fg: var(--color-text);
@@ -192,7 +193,7 @@ input[type="password"], input[type="number"], select, textarea {
   padding: 10px 12px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  background: var(--color-bg);
+  background: var(--color-surface);
   font-size: max(16px, var(--fs-small)); /* 16px min stops iOS zoom on focus */
   font-weight: 400;
 }

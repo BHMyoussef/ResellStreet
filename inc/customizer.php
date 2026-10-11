@@ -88,7 +88,7 @@ function ci_defaults() {
 		'banner_text'             => '',
 		'banner_link'             => '',
 		'banner_label'            => '',
-		'banner_tint'             => '#e95454',
+		'banner_tint'             => '#1c253b', // brand navy (tokens.css --brand-navy)
 		'banner_tint_opacity'     => 10,
 		// Product page.
 		'variant_preselect'          => true,

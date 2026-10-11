@@ -11,7 +11,7 @@
   align-items: stretch;
   height: 34px;
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  background: var(--color-surface);
 }
 .qty-stepper__btn { width: 28px; padding: 0; border: 0; background: none; font-size: 18px; line-height: 1; }
 .qty-stepper .qty {
@@ -121,7 +121,8 @@ dl.variation dd p { display: inline; margin: 0; }
 .ci-checkout-page .wc-page-shell { max-width: none; margin: 0; padding: 0; }
 .ci-checkout-page .site-main { min-height: 0; }
 
-.checkout-header { border-bottom: 1px solid var(--checkout-border); background: var(--color-bg); }
+body.ci-checkout-page { background: var(--color-surface); } /* white form column (Shopify checkout); the summary sidebar is --checkout-sidebar */
+.checkout-header { border-bottom: 1px solid var(--checkout-border); background: var(--color-surface); }
 .checkout-header__inner {
   display: flex;
   align-items: center;
@@ -186,7 +187,7 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
   padding: 11px 12px;
   border: 1px solid var(--checkout-border);
   border-radius: var(--checkout-radius);
-  background: var(--color-bg);
+  background: var(--color-surface);
   font-family: var(--checkout-font);
   font-size: 16px; /* no iOS zoom */
   font-weight: 400;
@@ -210,7 +211,7 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .ci-checkout-page .form-row.woocommerce-invalid select,
 .ci-checkout-page .form-row.woocommerce-invalid textarea {
   border-color: var(--checkout-error);
-  background: color-mix(in srgb, var(--checkout-error) 4%, var(--color-bg));
+  background: color-mix(in srgb, var(--checkout-error) 4%, var(--color-surface));
   box-shadow: 0 0 0 3px var(--checkout-error-ring);
 }
 .ci-checkout-page .form-row.woocommerce-invalid input:focus-visible,
@@ -251,7 +252,7 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
   padding: 14px 18px 14px 48px;
   border: 1px solid color-mix(in srgb, var(--checkout-error) 55%, transparent);
   border-radius: var(--checkout-radius);
-  background: color-mix(in srgb, var(--checkout-error) 8%, var(--color-bg));
+  background: color-mix(in srgb, var(--checkout-error) 8%, var(--color-surface));
   color: var(--checkout-error-text);
   font-size: 14px;
   line-height: 1.45;
@@ -318,7 +319,7 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .woocommerce-checkout-review-order-table .cart_item td { padding-block: 8px; }
 .summary-item { display: flex; align-items: center; gap: 14px; }
 .summary-item__media { position: relative; flex: none; }
-.summary-item__img { width: 64px; height: 64px; border: 1px solid var(--checkout-border); border-radius: 8px; background: var(--color-bg); object-fit: cover; }
+.summary-item__img { width: 64px; height: 64px; border: 1px solid var(--checkout-border); border-radius: 8px; background: var(--color-surface); object-fit: cover; }
 .summary-item__qty {
   position: absolute;
   top: -8px;
@@ -356,7 +357,7 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .checkout-coupon__message { margin: 8px 0 0; font-size: 13px; text-align: left; }
 .checkout-coupon__message.is-error { color: var(--checkout-error-text); }
 .woocommerce-remove-coupon { margin-left: 4px; font-size: 12px; text-decoration: underline; }
-.ci-checkout-page .blockUI.blockOverlay { background: var(--color-bg) !important; opacity: 0.6 !important; }
+.ci-checkout-page .blockUI.blockOverlay { background: var(--color-surface) !important; opacity: 0.6 !important; }
 
 @media (min-width: 769px) {
   .checkout-header__inner { padding: 20px 40px; }
@@ -364,7 +365,7 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
   .checkout-errors { margin-top: 30px; padding-inline: 20px; }
   /* Two columns; the sidebar colour runs to the right edge of the screen */
   body.ci-checkout-page:not(.ci-checkout-page--single) {
-    background: linear-gradient(to right, var(--color-bg) 50%, var(--checkout-border) 50%, var(--checkout-border) calc(50% + 1px), var(--checkout-sidebar) calc(50% + 1px));
+    background: linear-gradient(to right, var(--color-surface) 50%, var(--checkout-border) 50%, var(--checkout-border) calc(50% + 1px), var(--checkout-sidebar) calc(50% + 1px));
   }
   /* Everything but the summary stacks in the left column, including plugin output we don't know about
      (e.g. Stripe's express checkout buttons + "— OR —" before the customer details). The auto rows collapse

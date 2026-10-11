@@ -80,8 +80,8 @@
   left: 15px;
   right: calc(15px + var(--ls-wide));
   bottom: 4px;
-  height: 1px;
-  background: currentColor;
+  height: 2px;
+  background: var(--color-accent);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s ease;

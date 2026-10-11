@@ -4,46 +4,60 @@
  * Mobile values first; desktop overrides at 769px (same breakpoint as the reference).
  */
 :root {
+  /* Brand (ResellStreet). Sand is never text on a light background (2.2:1): only behind navy text, or as text on navy. */
+  --brand-navy: #1c253b;
+  --brand-sand: #c1a584;
+  --brand-bg: #fafafa;
+
   /* Colors */
-  --color-bg: #ffffff;
-  --color-text: #000000;
-  --color-price: #000000;
-  --color-savings: #c20000;
-  --color-border: #e8e8e1;
-  --color-button: #000000;
+  --color-bg: var(--brand-bg);
+  --color-surface: #ffffff;           /* cards, fields, checkout form column: white on the #fafafa page */
+  --color-text: var(--brand-navy);
+  --color-text-muted: color-mix(in srgb, var(--brand-navy) 70%, #ffffff); /* #606676: ≥ 5.1:1 on white, #fafafa and the sand band */
+  --color-accent: var(--brand-sand);
+  --color-on-accent: var(--brand-navy); /* text on sand: 6.6:1 */
+  --color-price: var(--brand-navy);
+  --color-savings: #c20000;           /* red only for sale prices / "Save X%" */
+  --color-border: #e3e4e8;
+  --color-button: var(--brand-navy);
   --color-button-text: #ffffff;
-  --color-button-hover: #2b2b2b;
-  --color-sale-tag: #000000;
-  --color-sale-tag-text: #ffffff;
-  --color-cart-dot: #ff4f33;
+  --color-button-hover: var(--brand-sand);
+  --color-button-hover-text: var(--brand-navy);
+  --color-sale-tag: var(--brand-sand);
+  --color-sale-tag-text: var(--brand-navy);
+  --color-cart-dot: var(--brand-sand);
+  --color-variant-selected: var(--brand-sand);
+  --color-variant-selected-text: var(--brand-navy);
   --color-small-image-bg: #ffffff;
   --color-large-image-bg: #000000;
-  --color-header: #ffffff;
-  --color-header-text: #000000;
-  --color-announcement: #000000;
-  --color-announcement-text: #ffffff;
-  --color-footer: #ffffff;
-  --color-footer-text: #000000;
+  --color-header: var(--brand-bg);
+  --color-header-text: var(--brand-navy);
+  --color-announcement: var(--brand-sand);
+  --color-announcement-text: var(--brand-navy);
+  --color-footer: var(--brand-navy);
+  --color-footer-text: #ffffff;
+  --color-footer-link: var(--brand-sand); /* 6.6:1 on navy */
+  --color-footer-border: rgb(255 255 255 / 0.16);
   --color-drawer: #ffffff;
-  --color-drawer-text: #000000;
-  --color-drawer-border: #e8e8e1;
-  --color-drawer-button: #000000;
+  --color-drawer-text: var(--brand-navy);
+  --color-drawer-border: #e3e4e8;
+  --color-drawer-button: var(--brand-navy);
   --color-drawer-button-text: #ffffff;
   --color-overlay: #e6e6e6;
   --overlay-opacity: 0.6;
   --color-image-overlay: #697565;
   --color-grid-tint: #697565;
   --grid-tint-opacity: 0.1;
-  --color-section-alt: #f9f9f9;      /* testimonials background */
-  --color-section-alt-text: #1c1d1d;
+  --color-section-alt: color-mix(in srgb, var(--brand-sand) 14%, #ffffff); /* testimonials band: light sand */
+  --color-section-alt-text: var(--brand-navy);
   --color-on-image: #ffffff;          /* hero text over photos */
-  --color-focus: #000000;
+  --color-focus: var(--brand-navy);
   --color-star: var(--color-text);
   --color-star-empty: var(--color-border);
   --color-stock-ok: #56ad6a;
   --color-stock-ok-text: color-mix(in srgb, var(--color-stock-ok) 70%, #000); /* 5.2:1 on white (the dot colour is 2.8:1) */
   --color-stock-low: #ee9441;
-  --color-stock-out: #c20000;
+  --color-stock-out: var(--brand-navy); /* red is reserved for sale prices */
   --shadow-dropdown: 0 10px 20px rgb(0 0 0 / 0.09);
   --shadow-bar: 0 -6px 20px rgb(0 0 0 / 0.06);
   --shadow-card: 0 10px 30px rgb(0 0 0 / 0.08);
@@ -51,10 +65,10 @@
 
   /* Checkout (settings_data.json checkout_*: Shopify-checkout look) */
   --checkout-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --checkout-accent: #111111;
-  --checkout-button: #111111;
+  --checkout-accent: var(--brand-navy);
+  --checkout-button: var(--brand-navy);
   --checkout-button-text: #ffffff;
-  --checkout-sidebar: #fafafa;
+  --checkout-sidebar: var(--brand-bg);
   --checkout-error: #ff6d6d;
   /* #ff6d6d is too light for text on white (≈2.6:1): darken it for messages (≈5:1) */
   --checkout-error-text: color-mix(in srgb, var(--checkout-error) 68%, #000);

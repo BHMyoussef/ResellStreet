@@ -136,7 +136,7 @@
   transition: box-shadow 0.15s ease;
 }
 .variant-buttons__label:hover { box-shadow: 0 0 0 1px var(--color-text); }
-.variant-buttons__input:checked + .variant-buttons__label { box-shadow: 0 0 0 2px var(--color-text); }
+.variant-buttons__input:checked + .variant-buttons__label { background: var(--color-variant-selected); color: var(--color-variant-selected-text); box-shadow: 0 0 0 2px var(--color-text); }
 .variant-buttons__input:focus-visible + .variant-buttons__label { outline: 2px solid var(--color-focus); outline-offset: 4px; }
 .variant-buttons__input:disabled + .variant-buttons__label {
   color: color-mix(in srgb, var(--color-text) 45%, transparent);
@@ -278,7 +278,7 @@ form.cart:not(.variations_form) { margin-bottom: 0; }
 .review-card__verified .icon { width: 13px; height: 13px; stroke-width: 6px; }
 .review-card__meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 10px; }
 .review-card__meta .ci-stars { --star-size: 13px; }
-.review-card__date { color: color-mix(in srgb, var(--color-text) 55%, transparent); font-size: 12px; }
+.review-card__date { color: var(--color-text-muted); font-size: 12px; }
 .review-card__text { font-size: var(--fs-small); line-height: 1.5; overflow-wrap: anywhere; }
 .review-card__text p { margin: 0 0 8px; }
 .review-card__text p:last-child { margin-bottom: 0; }
