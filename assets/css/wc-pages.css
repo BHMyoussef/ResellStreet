@@ -211,13 +211,13 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .ci-checkout-page .form-row.woocommerce-invalid textarea {
   border-color: var(--checkout-error);
   background: color-mix(in srgb, var(--checkout-error) 4%, var(--color-bg));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--checkout-error) 18%, transparent);
+  box-shadow: 0 0 0 3px var(--checkout-error-ring);
 }
 .ci-checkout-page .form-row.woocommerce-invalid input:focus-visible,
 .ci-checkout-page .form-row.woocommerce-invalid select:focus-visible,
 .ci-checkout-page .form-row.woocommerce-invalid textarea:focus-visible {
   border-color: var(--checkout-error);
-  box-shadow: 0 0 0 1px var(--checkout-error), 0 0 0 4px color-mix(in srgb, var(--checkout-error) 18%, transparent);
+  box-shadow: 0 0 0 1px var(--checkout-error), 0 0 0 4px var(--checkout-error-ring);
 }
 .ci-checkout-page .form-row.woocommerce-invalid input[type="checkbox"] { outline: 2px solid var(--checkout-error); outline-offset: 2px; }
 .checkout-inline-error-message {
