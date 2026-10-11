@@ -1,6 +1,6 @@
 <?php
 /**
- * Cart, checkout and account pages (classic shortcodes), via hooks only.
+ * Cart and checkout pages (classic shortcodes), via hooks only. Account pages: inc/account.php.
  *
  * Cart: Impulse layout (items left, grey subtotal box right), no shipping calculator / coupon field
  *       ("Shipping, taxes, and discount codes calculated at checkout").
@@ -51,7 +51,8 @@ add_action(
 		// Only drives AJAX buttons on product cards, which this theme doesn't render.
 		wp_dequeue_script( 'wc-add-to-cart' );
 
-		if ( is_cart() || is_checkout() || is_account_page() ) {
+		// Account pages have their own account.css/js (inc/account.php).
+		if ( is_cart() || is_checkout() ) {
 			ci_enqueue_style( 'wc-pages' );
 			ci_enqueue_script( 'wc-pages' );
 			wp_localize_script(

@@ -67,6 +67,19 @@
   --checkout-muted-on-field: color-mix(in srgb, var(--checkout-muted) 88%, #000); /* 5:1 on the grey field (muted is 4.2:1) */
   --checkout-radius: 5px;
 
+  /* Customer account (same Shopify-account look as the checkout) */
+  --account-bg: var(--checkout-sidebar);
+  --account-card-radius: 8px;
+  /* Order status pills: text ≥ 4.5:1 on their tint */
+  --status-success: #1a7f43;
+  --status-success-bg: #e3f4e9;
+  --status-progress: #8a5300;
+  --status-progress-bg: #fdf0d5;
+  --status-neutral: #4d4d4d;
+  --status-neutral-bg: #ededed;
+  --status-critical: #b42318;
+  --status-critical-bg: #fde7e5;
+
   /* Fonts */
   --font-heading: "Tenor Sans", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Outfit", "Helvetica Neue", Arial, sans-serif;
