@@ -285,7 +285,9 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .wc_payment_method > label { display: inline-flex; align-items: center; gap: 10px; margin: 0; padding: 15px 0; font-weight: 500; cursor: pointer; }
 .wc_payment_method > input { margin: 0 0 0 15px; vertical-align: middle; }
 .wc_payment_method > label img { max-height: 22px; width: auto; display: inline; }
-.wc_payment_method .payment_box { padding: 15px; background: var(--checkout-sidebar); border-top: 1px solid var(--checkout-border); color: var(--checkout-muted); }
+/* relative: gateways put absolutely positioned helpers in here (Stripe's invisible full-width style probe
+   input would otherwise be sized against the viewport and make the page scroll sideways). */
+.wc_payment_method .payment_box { position: relative; padding: 15px; background: var(--checkout-sidebar); border-top: 1px solid var(--checkout-border); color: var(--checkout-muted); }
 .wc_payment_method .payment_box p:last-child { margin-bottom: 0; }
 .woocommerce-checkout-payment .woocommerce-info { margin: 0 0 20px; }
 .woocommerce-privacy-policy-text, .woocommerce-terms-and-conditions-wrapper { margin-bottom: 16px; color: var(--checkout-muted); font-size: 13px; }
