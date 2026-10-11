@@ -178,3 +178,57 @@ function ci_quick_shop_response( WP_REST_Request $request ) {
 	$response->header( 'Cache-Control', 'public, max-age=60' );
 	return $response;
 }
+
+/* ---------------------------------------------------------------------------
+ * Tracking parity with WooCommerce's classic add to cart
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Whether the current REST request is a Store API "add item" (also inside /batch).
+ *
+ * @param bool|null $set Set the flag (internal).
+ */
+function ci_is_store_api_add_item( $set = null ) {
+	static $active = false;
+	if ( null !== $set ) {
+		$active = $set;
+	}
+	return $active;
+}
+
+add_filter(
+	'rest_request_before_callbacks',
+	function ( $response, $handler, $request ) {
+		ci_is_store_api_add_item( (bool) preg_match( '#^/wc/store(/v\d+)?/cart/add-item$#', $request->get_route() ) );
+		return $response;
+	},
+	10,
+	3
+);
+add_filter(
+	'rest_request_after_callbacks',
+	function ( $response ) {
+		ci_is_store_api_add_item( false );
+		return $response;
+	}
+);
+
+/*
+ * WC_Cart::add_to_cart() fires `woocommerce_add_to_cart` for new lines AND for products already in the cart.
+ * The Store API's add-item only fires it for new lines (an existing line just gets set_quantity()), so pixel plugins
+ * hooked on it (PixelYourSite, Facebook for WooCommerce…) missed every repeat add from the drawer. Fire it here with
+ * the added quantity, as the classic flow does.
+ */
+add_action(
+	'woocommerce_after_cart_item_quantity_update',
+	function ( $cart_item_key, $quantity, $old_quantity, $cart ) {
+		if ( ! ci_is_store_api_add_item() || $quantity <= $old_quantity || empty( $cart->cart_contents[ $cart_item_key ] ) ) {
+			return;
+		}
+		$item = $cart->cart_contents[ $cart_item_key ];
+		/** This action is documented in woocommerce/includes/class-wc-cart.php */
+		do_action( 'woocommerce_add_to_cart', $cart_item_key, $item['product_id'], $quantity - $old_quantity, $item['variation_id'], $item['variation'], $item );
+	},
+	10,
+	4
+);
