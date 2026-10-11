@@ -62,8 +62,9 @@ function ci_defaults() {
 
 	$defaults = array(
 		// Header.
-		'logo_width_desktop'    => 150,
-		'logo_width_mobile'     => 110,
+		// The ResellStreet wordmark is 10:1: 170px wide = 17px tall (mobile header height unchanged).
+		'logo_width_desktop'    => 220,
+		'logo_width_mobile'     => 170,
 		// Announcement bar.
 		'announcement_enable'   => true,
 		'announcement_interval' => 5,
@@ -75,7 +76,8 @@ function ci_defaults() {
 		'newsletter_field'      => 'email',
 		'contact_title'         => '',
 		'contact_text'          => '',
-		'footer_logo_height'    => 40,
+		'footer_logo'           => 0, // empty = bundled light logo (assets/brand/logo-light-*)
+		'footer_logo_height'    => 24,
 		'payment_icons_enable'  => true,
 		'copyright_text'        => '',
 		// Collection page.
@@ -182,7 +184,10 @@ add_action(
 			)
 		);
 
-		// Logo sizes sit with the core logo control.
+		// Logo sizes sit with the core logo control. No logo uploaded = the bundled ResellStreet logo.
+		if ( $wp_customize->get_control( 'custom_logo' ) ) {
+			$wp_customize->get_control( 'custom_logo' )->description = __( 'Leave empty to use the built-in ResellStreet logo (assets/brand).', 'customimpulse' );
+		}
 		$px = array( 'input_attrs' => array( 'min' => 40, 'max' => 400, 'step' => 1 ) );
 		$add( 'logo_width_desktop', 'title_tagline', __( 'Logo width on desktop (px)', 'customimpulse' ), 'number', 'absint', $px );
 		$add( 'logo_width_mobile', 'title_tagline', __( 'Logo width on mobile (px)', 'customimpulse' ), 'number', 'absint', $px );
@@ -241,6 +246,25 @@ add_action(
 		$add( 'newsletter_field', 'ci_footer', __( 'Email field name', 'customimpulse' ), 'text', 'sanitize_key' );
 		$add( 'contact_title', 'ci_footer', __( 'Contact column title', 'customimpulse' ) );
 		$add( 'contact_text', 'ci_footer', __( 'Contact column text (HTML allowed)', 'customimpulse' ), 'textarea', 'wp_kses_post' );
+		$wp_customize->add_setting(
+			'footer_logo',
+			array(
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+			)
+		);
+		$wp_customize->add_control(
+			new WP_Customize_Media_Control(
+				$wp_customize,
+				'footer_logo',
+				array(
+					'label'       => __( 'Footer logo (light, for the navy footer)', 'customimpulse' ),
+					'description' => __( 'Leave empty to use the built-in light ResellStreet logo.', 'customimpulse' ),
+					'section'     => 'ci_footer',
+					'mime_type'   => 'image',
+				)
+			)
+		);
 		$add(
 			'footer_logo_height',
 			'ci_footer',

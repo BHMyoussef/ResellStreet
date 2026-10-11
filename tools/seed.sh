@@ -158,10 +158,9 @@ done
 "$WP" theme mod set home_story_text "<p>Designed for the streets, engineered for the bold.<br/>Every pair blends clean design with undeniable presence.<br/><strong>Street-luxury lives here.</strong></p>"
 "$WP" theme mod set home_story_focal "bottom center"
 
-# ---------- Logo (once) ----------
-if [ -z "$("$WP" theme mod get custom_logo --field=value 2>/dev/null)" ]; then
-  LOGO=$("$WP" media import "https://novarende.com/cdn/shop/files/high-resolution-color-logo_1_600x.png" --title="Logo" --porcelain)
-  "$WP" theme mod set custom_logo "$LOGO"
-fi
+# ---------- Logo ----------
+# The ResellStreet logo ships with the theme (assets/brand, header + light footer version): no upload needed.
+# An old uploaded logo would override it, so clear it.
+"$WP" theme mod remove custom_logo >/dev/null 2>&1 || true
 
 echo "Seed complete."

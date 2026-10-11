@@ -131,9 +131,9 @@
 
   /* Header */
   --header-pad-y: 7px;
-  --logo-w-mobile: 110px;      /* both overridden inline from the Customizer */
-  --logo-w-desktop: 150px;
-  --footer-logo-h: 40px;
+  --logo-w-mobile: 170px;      /* all three overridden inline from the Customizer */
+  --logo-w-desktop: 220px;
+  --footer-logo-h: 24px;
   --icon-size: 30px;
   --icon-weight: 2px;          /* stroke in a 64-unit viewBox */
 

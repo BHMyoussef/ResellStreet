@@ -81,6 +81,7 @@
 .footer__bottom { margin-top: 30px; text-align: center; }
 .payment-icons { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .payment-icons svg { width: 38px; height: 24px; }
+.site-footer .payment-icons svg { border-radius: 3px; outline: 1px solid var(--color-footer-border); } /* dark cards (Mastercard) on navy */
 .footer__copyright { padding-top: 15px; font-size: var(--fs-xsmall); }
 
 @media (min-width: 769px) {
