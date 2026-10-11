@@ -149,3 +149,15 @@ add_action(
 	},
 	100 // after wp_site_icon (99)
 );
+
+/* WPForms in the store's look: only on pages that contain a form. */
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		$post = get_post();
+		if ( is_singular() && $post && ( has_shortcode( $post->post_content, 'wpforms' ) || has_block( 'wpforms/form-selector', $post ) ) ) {
+			ci_enqueue_style( 'forms' );
+		}
+	},
+	20
+);

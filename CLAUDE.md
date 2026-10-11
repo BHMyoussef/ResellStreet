@@ -194,6 +194,9 @@ Local site: http://resellstreet.local
   Headings Montserrat 800 uppercase 0.04em (self-hosted). Logo + favicon are bundled (assets/brand, regenerate with
   tools/brand-logo.py / brand-favicon.py); an uploaded logo/site icon overrides them. novarende.com stays only as the
   Shopify design reference (tools, reference captures).
+- Contact Us = WPForms form (Name, Email, Message, "Send", like the live store) created by `tools/contact-form.php`
+  (seed.sh runs it; idempotent, form id in option `ci_contact_form_id`). WPForms styling = "Base styles only";
+  the look is `assets/css/forms.css` (only on pages with a form) + theme `.btn` on the submit button.
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.

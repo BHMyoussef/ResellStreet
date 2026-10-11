@@ -1,0 +1,65 @@
+/* WPForms in the store's look (WPForms → Settings → "Base styles only": layout from WPForms, everything else here).
+   Loaded only on pages that contain a form (inc/enqueue.php). The submit button gets the theme's .btn class. */
+
+.wpforms-container { max-width: 640px; margin: 10px auto 0; }
+.wpforms-container .wpforms-form .wpforms-field { padding: 0 0 20px; }
+.wpforms-container .wpforms-form .wpforms-field-label {
+  margin: 0 0 8px;
+  font-family: var(--font-body);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-body);
+  letter-spacing: var(--ls-wider);
+  line-height: var(--lh-base);
+  text-transform: uppercase;
+}
+.wpforms-container .wpforms-form .wpforms-required-label { color: inherit; font-weight: inherit; }
+.wpforms-container .wpforms-form :is(input[type="text"], input[type="email"], textarea) {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: max(16px, var(--fs-small)); /* no iOS zoom */
+  box-shadow: none;
+}
+.wpforms-container .wpforms-form .wpforms-field textarea { height: 180px; min-height: 120px; resize: vertical; } /* beats the shared field rule above */
+.wpforms-container .wpforms-form :is(input, textarea):focus-visible { outline: 1px solid var(--color-text); outline-offset: 0; border-color: var(--color-text); }
+
+/* Send: the theme's angled button, full width on phones */
+.wpforms-container .wpforms-form .wpforms-submit-container { display: flex; padding: 6px 0 0; }
+.wpforms-container .wpforms-form .wpforms-submit.btn { width: calc(100% - 12px); min-height: 48px; }
+
+/* Errors (under the field) */
+.wpforms-container .wpforms-form :is(input, textarea).wpforms-error { border-color: var(--checkout-error); }
+.wpforms-container .wpforms-form em.wpforms-error,
+.wpforms-container .wpforms-form label.wpforms-error {
+  display: block;
+  margin-top: 6px;
+  color: var(--checkout-error-text);
+  font-size: 13px;
+  font-style: normal;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.wpforms-container .wpforms-error-container { margin-bottom: 16px; color: var(--checkout-error-text); }
+
+/* After sending */
+.wpforms-confirmation-container, .wpforms-confirmation-container-full {
+  max-width: 640px;
+  margin: 10px auto 0;
+  padding: 18px 20px;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+:is(.wpforms-confirmation-container, .wpforms-confirmation-container-full) p:last-child { margin-bottom: 0; }
+
+@media (min-width: 769px) {
+  .wpforms-container .wpforms-form .wpforms-submit.btn { width: auto; min-width: 220px; }
+}
