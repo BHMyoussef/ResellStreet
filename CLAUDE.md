@@ -181,6 +181,19 @@ Local site: http://resellstreet.local
   selectWoo/select2 and wc-add-to-cart are dequeued everywhere (native selects; country→state still works).
 - MutationObserver callbacks must only write to the DOM when the value changed (writing textContent inside an
   observed subtree re-triggers the observer → infinite loop; this froze the checkout once).
+- My account (user choice 2026-10-11): same Shopify-account look as the checkout (`--checkout-*` tokens, system
+  font, cards, flat buttons) inside the normal site header/footer. `inc/account.php`, `template-parts/account/*`,
+  `account.css/js` (account pages don't load wc-pages.css/js). Menu: Overview, Orders, Addresses, Account details,
+  Log out (Payment methods only if the customer has a saved card; Downloads dropped). Overview replaces the dashboard
+  template; Orders = cards (own renderer, still fires `woocommerce_before/after_account_orders` and uses
+  `wc_get_account_orders_actions`). Wording via `gettext_woocommerce` on account pages only.
+- Brand (rebrand 2026-10-11, user rules): ResellStreet. Navy #1C253B (text, buttons, header icons, footer bg),
+  sand #C1A584 (announcement bar with navy text, sale badges, cart dot, selected variation, button hover, footer links
+  on navy), background #FAFAFA (cards/fields: `--color-surface` white). Red only for sale prices / "Save X%".
+  Never sand text on a light background (2.3:1). Muted text = `--color-text-muted` (#606676), not see-through navy.
+  Headings Montserrat 800 uppercase 0.04em (self-hosted). Logo + favicon are bundled (assets/brand, regenerate with
+  tools/brand-logo.py / brand-favicon.py); an uploaded logo/site icon overrides them. novarende.com stays only as the
+  Shopify design reference (tools, reference captures).
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
