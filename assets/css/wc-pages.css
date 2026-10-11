@@ -283,12 +283,14 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .wc_payment_method { border-top: 1px solid var(--checkout-border); }
 .wc_payment_method:first-child { border-top: 0; }
 .wc_payment_method > label { display: inline-flex; align-items: center; gap: 10px; margin: 0; padding: 15px 0; font-weight: 500; cursor: pointer; }
-.wc_payment_method > input { margin: 0 0 0 15px; vertical-align: middle; }
+.ci-checkout-page .wc_payment_method > input { margin: 0 0 0 15px; vertical-align: middle; } /* beats the generic radio reset */
 .wc_payment_method > label img { max-height: 22px; width: auto; display: inline; }
 /* relative: gateways put absolutely positioned helpers in here (Stripe's invisible full-width style probe
    input would otherwise be sized against the viewport and make the page scroll sideways). */
 .wc_payment_method .payment_box { position: relative; padding: 15px; background: var(--checkout-sidebar); border-top: 1px solid var(--checkout-border); color: var(--checkout-muted); }
 .wc_payment_method .payment_box p:last-child { margin-bottom: 0; }
+/* Gateways wrap their fields in a <fieldset> (Stripe: #wc-stripe-upe-form): no browser groove border around the card form */
+.wc_payment_method .payment_box fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 .woocommerce-checkout-payment .woocommerce-info { margin: 0 0 20px; }
 .woocommerce-privacy-policy-text, .woocommerce-terms-and-conditions-wrapper { margin-bottom: 16px; color: var(--checkout-muted); font-size: 13px; }
 .woocommerce-privacy-policy-text a { text-decoration: underline; }
