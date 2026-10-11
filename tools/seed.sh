@@ -56,7 +56,8 @@ done
 "$WP" theme mod set newsletter_text "<p>Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.</p>"
 
 "$WP" theme mod set contact_title "contact informations"
-"$WP" theme mod set contact_text '<p><strong>ResellStreet</strong></p><p>71-75 Shelton Street, Covent Garden, London, WC2H 9JQ, United Kingdom.</p><p><strong>E-mail</strong>: support@novarende.com</p><p><strong>Customer service hours:</strong><br/>Monday to Saturday: 09:00 am to 5:00 pm</p><p><strong>Shop hours:</strong></p><p>Monday to Friday: 10:00 am to 3:00 pm</p>'
+# Footer contact details: theme defaults are placeholders; enter ResellStreet's real details in Customizer →
+# Footer (not seeded, so re-running this script never overwrites them).
 
 # Collection page promo banner (templates/collection.json → promo-grid "banner" block)
 "$WP" theme mod set banner_heading "Don’t Miss Out! 🔥"
@@ -71,8 +72,7 @@ done
 "$WP" theme mod set product_tab_1_content "<p>We offer FREE shipping across the UK!</p><p>The team carefully packs each order on the same day and ships it straight to your door. You’ll receive a tracking number as soon as your order has been dispatched. Delivery typically takes 4 to 10 business</p>"
 "$WP" theme mod set product_tab_2_title "SATISFACTION GUARANTEE"
 "$WP" theme mod set product_tab_2_content "<p>We stand by our quality and your satisfaction is our priority. If you're not completely happy with your purchase, let us know, and we’ll make it right!</p>"
-"$WP" theme mod set product_tab_3_title "24/7 Customer Service"
-"$WP" theme mod set product_tab_3_content "<p><strong>We’re Here for You — 24/7</strong></p><p>At <strong>ResellStreet</strong>, we’re always ready to help. Our customer service team is available <strong>24 hours a day, 7 days a week</strong> to assist you with any questions or support you need.</p><p>Feel free to reach out anytime via our <strong>contact form</strong> or email us at <a href=\"/contact-us/\" title=\"Contact Us\"><strong>support@novareve.com</strong></a>.</p>"
+# Tab 3 (customer service: hours + email) comes from the theme defaults (placeholders) / Customizer.
 
 # ---------- WooCommerce catalog settings ----------
 # Grid: 3 columns × 7 rows (main-collection per_row / rows_per_page). Card images are 4:3 (landscape grid).

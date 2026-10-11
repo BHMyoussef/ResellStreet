@@ -74,8 +74,13 @@ function ci_defaults() {
 		'newsletter_shortcode'  => '',
 		'newsletter_action'     => '',
 		'newsletter_field'      => 'email',
-		'contact_title'         => '',
-		'contact_text'          => '',
+		// Placeholders until the owner enters ResellStreet's real details (Customizer → Footer).
+		'contact_title'         => __( 'Contact information', 'customimpulse' ),
+		'contact_text'          => '<p><strong>ResellStreet</strong></p>'
+			. '<p>[Business address — set in Customizer → Footer]</p>'
+			. '<p><strong>Email:</strong> [support email]</p>'
+			. '<p><strong>Customer service hours:</strong><br>[days and hours]</p>'
+			. '<p><strong>Shop hours:</strong><br>[days and hours]</p>',
 		'footer_logo'           => 0, // empty = bundled light logo (assets/brand/logo-light-*)
 		'footer_logo_height'    => 24,
 		'payment_icons_enable'  => true,
@@ -114,6 +119,11 @@ function ci_defaults() {
 		$defaults[ "product_tab_{$i}_title" ]   = '';
 		$defaults[ "product_tab_{$i}_content" ] = '';
 	}
+	// Tab 3: customer service (placeholders until the owner enters real details).
+	$defaults['product_tab_3_title']   = __( 'Customer service', 'customimpulse' );
+	$defaults['product_tab_3_content'] = '<p>Questions about your order or sizing? Our team is here to help.</p>'
+		. '<p><strong>Hours:</strong> [days and hours]<br><strong>Email:</strong> [support email]</p>'
+		. '<p>You can also use our <a href="/contact-us/">contact form</a>.</p>';
 	for ( $i = 1; $i <= CI_ANNOUNCEMENT_SLOTS; $i++ ) {
 		$defaults[ "announcement_{$i}_text" ] = '';
 		$defaults[ "announcement_{$i}_link" ] = '';
