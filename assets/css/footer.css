@@ -65,63 +65,19 @@
 .footer-newsletter__submit {
   position: absolute;
   right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
   display: inline-flex;
-  padding: 5px 0 5px 10px;
+  align-items: center;
+  height: 46px; /* the input line: stays put when a message appears under it */
+  padding: 0 0 0 10px;
   border: 0;
   background: none;
 }
 .footer-newsletter__submit .icon { width: 24px; height: 24px; }
-/* Same look when the form comes from WPForms (Customizer → Footer → Newsletter form shortcode; tools/newsletter-form.php) */
-.footer-newsletter__plugin { max-width: 300px; margin-inline: auto; }
-.footer-newsletter__plugin .wpforms-container { margin: 0; }
-.footer-newsletter__plugin .wpforms-form { position: relative; }
-.footer-newsletter__plugin .wpforms-form .wpforms-field-container, .footer-newsletter__plugin .wpforms-form .wpforms-field { margin: 0; padding: 0; } /* button sits on the input line */
-.footer-newsletter__plugin .wpforms-form input[type="email"] {
-  width: 100%;
-  max-width: none;
-  height: auto;
-  padding: 10px 45px 10px 0;
-  border: 0;
-  border-bottom: 2px solid var(--color-footer-text);
-  border-radius: 0;
-  background: transparent;
-  color: var(--color-footer-text);
-  font-size: max(16px, var(--fs-small));
-  box-shadow: none;
-}
-.footer-newsletter__plugin .wpforms-form input[type="email"]::placeholder { color: var(--color-footer-text); opacity: 0.75; }
-.footer-newsletter__plugin .wpforms-form input[type="email"]:focus-visible { outline: 0; box-shadow: 0 1px 0 0 var(--color-footer-text); }
-.footer-newsletter__plugin .wpforms-form .wpforms-submit-container { position: absolute; top: 4px; right: 0; margin: 0; padding: 0; }
-.footer-newsletter__plugin .wpforms-form .footer-newsletter__submit {
-  position: static;
-  transform: none;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--color-footer-text);
-  font-size: 0; /* the text stays the accessible name ("Subscribe"); the icon below is what shows */
-  cursor: pointer;
-}
-.footer-newsletter__plugin .footer-newsletter__submit::before {
-  content: "";
-  display: block;
-  width: 24px;
-  height: 24px;
-  margin: 0 0 0 auto;
-  background: currentColor;
-  -webkit-mask: var(--icon-email) center / contain no-repeat;
-  mask: var(--icon-email) center / contain no-repeat;
-}
-.footer-newsletter__plugin .footer-newsletter__submit:focus-visible { outline: 2px solid var(--color-footer-link); outline-offset: 2px; }
-/* Errors in sand (WPForms' red is unreadable on navy): underline + message, no red box */
-.footer-newsletter__plugin .wpforms-form input[type="email"].wpforms-error { border: 0; border-bottom: 2px solid var(--color-footer-link); }
-.footer-newsletter__plugin .wpforms-form .wpforms-field :is(em, label).wpforms-error { display: block; margin-top: 8px; color: var(--color-footer-link); font-size: 13px; font-style: normal; }
-.footer-newsletter__plugin .wpforms-confirmation-container { color: var(--color-footer-text); }
-.site-footer { --icon-email: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='%23000' stroke-width='2'%3E%3Cpath d='M7 15h50v34H7z'/%3E%3Cpath d='M7 15l25 20 25-20'/%3E%3C/svg%3E"); }
+.footer-newsletter__form.is-busy { opacity: 0.6; pointer-events: none; }
+.footer-newsletter__trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; } /* honeypot */
+.footer-newsletter__message { margin: 10px 0 0; color: var(--color-footer-text); font-size: var(--fs-small); }
+.footer-newsletter__message.is-error { color: var(--color-footer-link); } /* sand: red is unreadable on navy */
 
 .footer__logo { display: flex; justify-content: center; margin-top: 40px; }
 .footer__logo img { height: var(--footer-logo-h); width: auto; }
@@ -147,7 +103,7 @@
   .footer__toggle .icon { display: none; }
   .footer__panel { padding: 0; text-align: left; }
   .js .footer__block--collapsible:not(.is-open) .footer__panel { display: block; }
-  .footer-newsletter__form, .footer-newsletter__plugin { margin-inline: 0; }
+  .footer-newsletter__form { margin-inline: 0; }
   .footer__logo { justify-content: flex-start; margin-top: 30px; }
   .footer__bottom { margin-top: 50px; }
 }

@@ -168,11 +168,11 @@ done
 # An old uploaded logo would override it, so clear it.
 "$WP" theme mod remove custom_logo >/dev/null 2>&1 || true
 
-# ---------- WPForms: Contact Us + footer newsletter ----------
+# ---------- WPForms: Contact Us ----------
 if "$WP" plugin is-active wpforms-lite >/dev/null 2>&1 || "$WP" plugin is-active wpforms >/dev/null 2>&1; then
-  ADMIN_ID=$("$WP" user list --role=administrator --field=ID --number=1)
-  "$WP" eval-file "$(dirname "$0")/contact-form.php" --user="$ADMIN_ID"
-  "$WP" eval-file "$(dirname "$0")/newsletter-form.php" --user="$ADMIN_ID" # footer "Sign up and save"
+  "$WP" eval-file "$(dirname "$0")/contact-form.php" --user="$("$WP" user list --role=administrator --field=ID --number=1)"
 fi
+# Footer "Sign up and save" is the theme's built-in form (inc/subscribers.php): no shortcode.
+"$WP" theme mod remove newsletter_shortcode >/dev/null 2>&1 || true
 
 echo "Seed complete."

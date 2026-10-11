@@ -1,8 +1,8 @@
 <?php
 /**
- * Newsletter subscribers: emails from the footer "Sign up and save" form (WPForms, tools/newsletter-form.php) are
- * saved in their own table ({prefix}ci_subscribers). WPForms Lite keeps no entries, and the store doesn't want an
- * email per sign-up. Admin: Users → Subscribers (search, delete, CSV export). Personal-data export/erase included.
+ * Newsletter subscribers: the footer "Sign up and save" form (template-parts/footer/newsletter.php, no plugin) posts to
+ * admin-post.php?action=ci_subscribe; emails are saved in their own table ({prefix}ci_subscribers), no email per
+ * sign-up. Admin: Users → Subscribers (search, delete, CSV export). Personal-data export/erase included.
  *
  * The table stays in the database if the theme is switched.
  *
@@ -67,23 +67,35 @@ function ci_add_subscriber( $email, $source = '' ) {
 	return false !== $wpdb->query( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery
 }
 
-/* Footer newsletter form → table. */
-add_action(
-	'wpforms_process_complete',
-	function ( $fields, $entry, $form_data ) {
-		if ( (int) ( $form_data['id'] ?? 0 ) !== (int) get_option( 'ci_newsletter_form_id' ) ) {
-			return;
-		}
-		foreach ( (array) $fields as $field ) {
-			if ( 'email' === ( $field['type'] ?? '' ) && ! empty( $field['value'] ) ) {
-				ci_add_subscriber( $field['value'], wp_get_referer() ?: (string) ( $_POST['page_url'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification -- WPForms verified the submission.
-				return;
-			}
-		}
-	},
-	10,
-	3
-);
+/*
+ * Footer sign-up → table. No nonce on purpose: the footer is on cached pages, and a nonce would expire there.
+ * Spam: a hidden honeypot field + a minimum fill time; bots get the same "success" answer as people.
+ * global.js posts with Accept: application/json (JSON answer); without JS the form posts and comes back
+ * to the same page with ?subscribed=yes|error#footer-panel-newsletter.
+ */
+function ci_handle_subscribe() {
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- public sign-up, see above.
+	$email   = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+	$is_bot  = ! empty( $_POST['ci_website'] ) || ( time() - absint( $_POST['ci_ts'] ?? 0 ) ) < 2;
+	$is_json = str_contains( (string) ( $_SERVER['HTTP_ACCEPT'] ?? '' ), 'application/json' );
+	// phpcs:enable
+	$source  = wp_get_referer() ?: home_url( '/' );
+	$ok      = $is_bot || ( is_email( $email ) && ci_add_subscriber( $email, $source ) );
+
+	if ( $is_json ) {
+		wp_send_json(
+			array(
+				'ok'      => $ok,
+				'message' => $ok ? __( 'Thanks for subscribing!', 'customimpulse' ) : __( 'Please enter a valid email address.', 'customimpulse' ),
+			),
+			$ok ? 200 : 400
+		);
+	}
+	wp_safe_redirect( add_query_arg( 'subscribed', $ok ? 'yes' : 'error', remove_query_arg( 'subscribed', $source ) ) . '#footer-panel-newsletter' );
+	exit;
+}
+add_action( 'admin_post_nopriv_ci_subscribe', 'ci_handle_subscribe' );
+add_action( 'admin_post_ci_subscribe', 'ci_handle_subscribe' );
 
 /* ---------------------------------------------------------------------------
  * Admin: Users → Subscribers

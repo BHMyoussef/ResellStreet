@@ -193,6 +193,44 @@
   syncCollapsibles();
   desktop.addEventListener('change', syncCollapsibles);
 
+  /* ---------- Footer sign-up (built-in, inc/subscribers.php): submit in place ---------- */
+
+  document.querySelectorAll('form[data-newsletter]').forEach((form) => {
+    const message = form.querySelector('[data-newsletter-message]');
+    const email = form.querySelector('input[type="email"]');
+    const show = (text, error) => {
+      message.textContent = text;
+      message.classList.toggle('is-error', error);
+      message.hidden = false;
+    };
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (form.classList.contains('is-busy')) return;
+      form.classList.add('is-busy');
+      try {
+        // getAttribute: the form has an input named "action" (admin-post), which shadows form.action.
+        const res = await fetch(form.getAttribute('action'), {
+          method: 'POST',
+          body: new FormData(form),
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
+        });
+        const data = await res.json();
+        show(data.message, !data.ok);
+        if (data.ok) {
+          email.value = '';
+          email.blur();
+        } else {
+          email.focus();
+        }
+      } catch {
+        form.submit(); // network/JSON problem: fall back to the normal post (comes back with the result)
+      } finally {
+        form.classList.remove('is-busy');
+      }
+    });
+  });
+
   /* Public API for other modules (cart drawer, search, quick shop) */
   window.CustomImpulse = Object.assign(window.CustomImpulse || {}, { openDrawer, closeDrawer });
 })();

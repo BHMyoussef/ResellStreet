@@ -243,7 +243,7 @@ add_action(
 			__( 'Newsletter form shortcode', 'customimpulse' ),
 			'text',
 			'sanitize_text_field',
-			array( 'description' => __( 'e.g. a Klaviyo, Mailchimp or MailPoet form shortcode. Takes priority over the fields below.', 'customimpulse' ) )
+			array( 'description' => __( 'Optional, e.g. a Klaviyo, Mailchimp or MailPoet form shortcode. Replaces the built-in sign-up.', 'customimpulse' ) )
 		);
 		$add(
 			'newsletter_action',
@@ -251,7 +251,7 @@ add_action(
 			__( 'Newsletter form action URL', 'customimpulse' ),
 			'url',
 			'esc_url_raw',
-			array( 'description' => __( 'Used only without a shortcode. Leave both empty to hide the form.', 'customimpulse' ) )
+			array( 'description' => __( 'Optional external form URL (used only without a shortcode). Leave both empty to use the built-in sign-up: emails are saved under Users → Subscribers.', 'customimpulse' ) )
 		);
 		$add( 'newsletter_field', 'ci_footer', __( 'Email field name', 'customimpulse' ), 'text', 'sanitize_key' );
 		$add( 'contact_title', 'ci_footer', __( 'Contact column title', 'customimpulse' ) );
