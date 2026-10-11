@@ -9,10 +9,14 @@ WP="$(cd "$(dirname "$0")" && pwd)/wp"
 
 # ---------- Pages ----------
 page_id() { # slug title [content]
+  # Any status: WordPress ships a *draft* "privacy-policy"; looking for published pages only created a new
+  # privacy-policy-2, -3, … on every run. A draft found here is published instead.
   local id
-  id=$("$WP" post list --post_type=page --name="$1" --post_status=publish --field=ID --posts_per_page=1)
+  id=$("$WP" post list --post_type=page --name="$1" --post_status=publish,draft,pending,private --field=ID --posts_per_page=1)
   if [ -z "$id" ]; then
     id=$("$WP" post create --post_type=page --post_status=publish --post_name="$1" --post_title="$2" --post_content="${3:-}" --porcelain)
+  else
+    "$WP" post update "$id" --post_status=publish >/dev/null
   fi
   echo "$id"
 }
@@ -24,6 +28,7 @@ SHIPPING=$(page_id shipping-policy "Shipping Policy")
 REFUND=$(page_id refund-policy "Refund Policy")
 PAYMENT=$(page_id payment-policy "Payment Policy")
 PRIVACY=$(page_id privacy-policy "Privacy Policy")
+"$WP" option update wp_page_for_privacy_policy "$PRIVACY" >/dev/null # checkout/account privacy links
 TERMS=$(page_id terms-of-service "Terms of Service")
 SHOP=$("$WP" option get woocommerce_shop_page_id)
 
