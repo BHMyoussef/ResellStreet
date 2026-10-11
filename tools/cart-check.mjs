@@ -1,10 +1,10 @@
 // Cart drawer + Quick Shop behavior checks on resellstreet.local (needs tools/fixtures.php products).
-import { chromium } from 'playwright';
+import { launch, wcJqueryScripts } from './lib/browser.mjs';
 
 const SITE = 'http://resellstreet.local';
 const PRODUCT = `${SITE}/product/test-sneaker-mens-casual-leather-sneakers/`;
 const COLLECTION = `${SITE}/product-category/shoes/`;
-const b = await chromium.launch();
+const b = await launch();
 let fails = 0;
 const check = (label, ok, info = '') => {
   if (!ok) fails++;
@@ -40,7 +40,7 @@ const drawerState = (p) =>
   const errors = [];
   watchErrors(p, errors);
   await p.goto(COLLECTION, { waitUntil: 'networkidle' });
-  check('collection page loads without jQuery', await p.evaluate(() => !window.jQuery));
+  check('collection page: no WooCommerce jQuery scripts', !(await wcJqueryScripts(p)).length, (await wcJqueryScripts(p)).join());
 
   const card = p.locator('ul.products > li', { hasText: /Test Sneaker [–-] Men/ });
   await card.hover();

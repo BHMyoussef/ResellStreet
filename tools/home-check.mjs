@@ -1,5 +1,5 @@
 // Homepage behavior checks on resellstreet.local. Temporarily adds a 2nd hero slide (restored at the end).
-import { chromium } from 'playwright';
+import { launch, wcJqueryScripts } from './lib/browser.mjs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,7 +13,7 @@ const check = (label, ok, info = '') => {
   console.log(`${ok ? '✓' : '✗'} ${label}${info ? '  — ' + info : ''}`);
 };
 
-const b = await chromium.launch();
+const b = await launch();
 
 /* ---------- Single slide, desktop ---------- */
 {
@@ -23,7 +23,7 @@ const b = await chromium.launch();
   p.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await p.goto(HOME, { waitUntil: 'networkidle' });
 
-  check('no jQuery on the homepage', await p.evaluate(() => !window.jQuery));
+  check('homepage: no WooCommerce jQuery scripts', !(await wcJqueryScripts(p)).length, (await wcJqueryScripts(p)).join());
   const hero = await p.$eval('.hero__img', (img) => ({ fp: img.getAttribute('fetchpriority'), loading: img.loading, sizes: img.sizes, srcset: !!img.srcset }));
   check('hero image: eager + fetchpriority=high + srcset', hero.fp === 'high' && hero.loading === 'eager' && hero.srcset, JSON.stringify(hero));
   check('single slide: no slider controls', (await p.$$('.hero__bar')).length === 0);

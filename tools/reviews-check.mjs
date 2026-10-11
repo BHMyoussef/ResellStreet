@@ -1,6 +1,6 @@
 // Review display checks on resellstreet.local (needs tools/fixtures.php test reviews + CusRev active).
 // Submits one real review with a photo (deleted at the end) and temporarily forces 2 reviews per page via a mu-plugin.
-import { chromium } from 'playwright';
+import { launch } from './lib/browser.mjs';
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, rmSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
@@ -18,7 +18,7 @@ const check = (label, ok, info = '') => {
   if (!ok) fails++;
   console.log(`${ok ? '✓' : '✗'} ${label}${info ? '  — ' + info : ''}`);
 };
-const b = await chromium.launch();
+const b = await launch();
 
 /* ---------- Display (desktop) ---------- */
 {

@@ -1,5 +1,5 @@
 // Checkout error UX checks: field errors under the field (no top banner), general errors as a top banner.
-import { chromium } from 'playwright';
+import { launch } from './lib/browser.mjs';
 
 const SITE = 'http://resellstreet.local';
 let fails = 0;
@@ -7,7 +7,7 @@ const check = (label, ok, info = '') => {
   if (!ok) fails++;
   console.log(`${ok ? '✓' : '✗'} ${label}${info ? '  — ' + info : ''}`);
 };
-const b = await chromium.launch();
+const b = await launch();
 
 for (const [w, h] of [[1440, 900], [390, 844]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, isMobile: w < 769, hasTouch: w < 769 });
@@ -33,7 +33,9 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   const fn = await inline('billing_first_name');
   check('empty submit: first name highlighted + message under it', fn.invalid && /First name/i.test(fn.msg), fn.msg);
   check('empty submit: no field errors in a top banner', (await banner()) === '' && !(await p.$('form.checkout > .woocommerce-NoticeGroup')));
-  check('focus moved to the first invalid field', await p.evaluate(() => document.activeElement?.id === 'billing_first_name'));
+  // First invalid row in DOM order (plugins can reorder fields: Stripe Link moves the email to the top).
+  const focus = await p.evaluate(() => ({ active: document.activeElement?.id, first: document.querySelector('.form-row.woocommerce-invalid')?.querySelector('input, select, textarea')?.id }));
+  check('focus moved to the first invalid field', !!focus.first && focus.active === focus.first, JSON.stringify(focus));
   if (w === 1440) await p.screenshot({ path: 'screens-local/checkout-field-errors-1440.png' });
 
   // 2. Fixing a field clears its error on blur

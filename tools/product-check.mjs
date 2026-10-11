@@ -1,7 +1,7 @@
 // Product page behavior checks on resellstreet.local (needs tools/fixtures.php products).
-import { chromium } from 'playwright';
+import { launch } from './lib/browser.mjs';
 const BASE = 'http://resellstreet.local/product/';
-const b = await chromium.launch();
+const b = await launch();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
 const errors = []; p.on('pageerror', (e) => errors.push(e.message)); p.on('console', (m) => m.type() === 'error' && errors.push(m.text()));

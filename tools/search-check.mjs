@@ -1,5 +1,5 @@
 // Search overlay + results page checks on resellstreet.local (needs tools/fixtures.php products).
-import { chromium } from 'playwright';
+import { launch } from './lib/browser.mjs';
 
 const SITE = 'http://resellstreet.local';
 let fails = 0;
@@ -7,7 +7,7 @@ const check = (label, ok, info = '') => {
   if (!ok) fails++;
   console.log(`${ok ? '✓' : '✗'} ${label}${info ? '  — ' + info : ''}`);
 };
-const b = await chromium.launch();
+const b = await launch();
 
 for (const [w, h] of [[1440, 900], [390, 844]]) {
   const p = await b.newPage({ viewport: { width: w, height: h }, isMobile: w < 769, hasTouch: w < 769 });

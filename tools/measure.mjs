@@ -1,7 +1,7 @@
 // Geometry of key elements, live vs local, at 1440 and 390.
 //   node tools/measure.mjs [profile]     profiles: global (default), collection
 // Each profile maps a label to [live selector, local selector]. Add a profile per section.
-import { chromium } from 'playwright';
+import { launch } from './lib/browser.mjs';
 
 const PROFILES = {
   global: {
@@ -80,7 +80,7 @@ const P = PROFILES[name];
 if (!P) throw new Error(`Unknown profile "${name}". Known: ${Object.keys(PROFILES).join(', ')}`);
 
 // LIVE_IP=23.227.38.65 pins novarende.com if local DNS fails for Chromium.
-const b = await chromium.launch(process.env.LIVE_IP ? { args: [`--host-resolver-rules=MAP novarende.com ${process.env.LIVE_IP}`] } : {});
+const b = await launch(process.env.LIVE_IP ? { args: [`--host-resolver-rules=MAP novarende.com ${process.env.LIVE_IP}`] } : {});
 for (const w of [1440, 390]) {
   for (const [site, idx] of [['live', 0], ['local', 1]]) {
     const p = await b.newPage({ viewport: { width: w, height: 900 } });

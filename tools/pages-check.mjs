@@ -1,5 +1,5 @@
 // Cart page, checkout and account checks on resellstreet.local (needs tools/fixtures.php: products, COD, TEST10, customer).
-import { chromium } from 'playwright';
+import { launch } from './lib/browser.mjs';
 
 const SITE = 'http://resellstreet.local';
 const PRODUCT = `${SITE}/product/test-sneaker-mens-casual-leather-sneakers/`;
@@ -11,7 +11,12 @@ const check = (label, ok, info = '') => {
 const watch = (p) => {
   const errors = [];
   p.on('pageerror', (e) => errors.push(e.message));
-  p.on('console', (m) => m.type() === 'error' && !/status of 4\d\d/.test(m.text()) && errors.push(m.text()));
+  p.on('console', (m) => {
+    const where = m.location()?.url || '';
+    // Third-party payment widgets (Stripe express checkout: Amazon Pay sandbox, …) log their own failures.
+    if (m.type() !== 'error' || /status of 4\d\d/.test(m.text()) || (where && !where.startsWith(SITE))) return;
+    errors.push(`${m.text()} ${where}`.trim());
+  });
   return errors;
 };
 const addSneaker = async (p) => {
@@ -28,7 +33,7 @@ const emptyCart = (p) =>
     for (const item of c.items) await api('cart/remove-item', { method: 'POST', body: { key: item.key } });
   });
 
-const b = await chromium.launch();
+const b = await launch();
 
 /* ---------- Cart page ---------- */
 {
@@ -49,8 +54,9 @@ const b = await chromium.launch();
   check('stepper "+" updates the cart (qty 2, £91.50)', (await p.inputValue('input.qty')) === '2' && (await p.textContent('.cart-subtotal td')).includes('91.50'), await p.textContent('.cart-subtotal td'));
   check('steppers re-added after WooCommerce re-renders the form', (await p.$$('.qty-stepper')).length === 1);
   check('only the subtotal row is shown', await p.evaluate(() => getComputedStyle(document.querySelector('.cart_totals .order-total')).display === 'none'));
-  await Promise.all([p.waitForLoadState('networkidle'), p.click('.cart-item-remove')]);
-  await p.waitForTimeout(800);
+  // Wait for the result, not a load state: the cart page (Stripe express checkout) may never go idle before the reload.
+  await p.click('.cart-item-remove');
+  await p.waitForFunction(() => /empty/i.test(document.querySelector('.page-content')?.textContent || ''), null, { timeout: 30000 }).catch(() => {});
   check('"Remove" empties the cart', (await p.textContent('.page-content')).includes('empty'));
   check('no console errors (cart page)', errors.length === 0, errors.join(' | '));
   await ctx.close();
@@ -113,7 +119,9 @@ const b = await chromium.launch();
   await p.goto(`${SITE}/my-account/`, { waitUntil: 'networkidle' });
   await p.fill('#username', 'ci-test-customer');
   await p.fill('#password', 'ci-test-Passw0rd!');
-  await Promise.all([p.waitForLoadState('networkidle'), p.click('.woocommerce-form-login__submit')]);
+  await p.click('.woocommerce-form-login__submit');
+  // Same URL after login: wait for the account page itself (a load-state wait can resolve on the login page).
+  await p.waitForSelector('.woocommerce-MyAccount-navigation', { timeout: 30000 }).catch(() => {});
   check('customer logs in → account navigation', (await p.$$('.woocommerce-MyAccount-navigation')).length === 1);
   await p.screenshot({ path: 'screens-local/account-1440.png', fullPage: true });
 

@@ -2,7 +2,7 @@
 //   node tools/screens.mjs ref    -> reference/screens   (novarende.com)
 //   node tools/screens.mjs local  -> screens-local       (resellstreet.local)
 //   optional 2nd arg: comma list of shot names to limit the run, e.g. "home,cart"
-import { chromium } from 'playwright';
+import { launch } from './lib/browser.mjs';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -84,7 +84,7 @@ async function trigger(page, action) {
 }
 
 // LIVE_IP=23.227.38.65 pins novarende.com if local DNS fails for Chromium.
-const browser = await chromium.launch(process.env.LIVE_IP ? { args: [`--host-resolver-rules=MAP novarende.com ${process.env.LIVE_IP}`] } : {});
+const browser = await launch(process.env.LIVE_IP ? { args: [`--host-resolver-rules=MAP novarende.com ${process.env.LIVE_IP}`] } : {});
 
 for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
   const context = await browser.newContext({

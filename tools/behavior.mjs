@@ -1,6 +1,6 @@
 // Behavior checks on resellstreet.local (drawers, announcement, footer, sticky header, console errors).
-import { chromium } from 'playwright';
-const b = await chromium.launch();
+import { launch } from './lib/browser.mjs';
+const b = await launch();
 const p = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 const errors = []; p.on('pageerror', e => errors.push(e.message)); p.on('console', m => m.type() === 'error' && errors.push(m.text()));
 await p.goto('http://resellstreet.local/', { waitUntil: 'networkidle' });
