@@ -114,3 +114,38 @@ remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
 remove_action( 'wp_print_styles', 'print_emoji_styles' );
 remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
 remove_action( 'admin_print_styles', 'print_emoji_styles' );
+
+/* ---------------------------------------------------------------------------
+ * Default site icon: the ResellStreet "RS" monogram (assets/brand), until one is set in Site Identity.
+ * WordPress prints the icon tags (32, 180 apple-touch, 192, 270) and serves /favicon.ico from this URL.
+ * ------------------------------------------------------------------------ */
+
+add_filter(
+	'get_site_icon_url',
+	function ( $url, $size ) {
+		if ( get_option( 'site_icon' ) ) { // Not has_site_icon(): it calls this filter.
+			return $url;
+		}
+		if ( $size <= 32 ) {
+			$file = 'favicon-32.png';
+		} elseif ( $size <= 180 ) {
+			$file = 'apple-touch-icon.png';
+		} else {
+			$file = 'site-icon-512.png';
+		}
+		return get_theme_file_uri( "assets/brand/{$file}" );
+	},
+	10,
+	2
+);
+
+/* Sharp at any size in browsers that take SVG icons (the PNG tags above stay for the rest). */
+add_action(
+	'wp_head',
+	function () {
+		if ( ! get_option( 'site_icon' ) ) {
+			printf( '<link rel="icon" href="%s" type="image/svg+xml">' . "\n", esc_url( get_theme_file_uri( 'assets/brand/favicon.svg' ) ) );
+		}
+	},
+	100 // after wp_site_icon (99)
+);
