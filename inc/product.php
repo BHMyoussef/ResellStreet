@@ -663,3 +663,10 @@ add_filter(
 		return $options;
 	}
 );
+
+/*
+ * Product pages have only our Add to Cart: Stripe's express buttons (Apple/Google Pay, Link, Amazon Pay) are turned
+ * off for the product page in Stripe's settings (Express checkout → locations: cart + checkout). Stripe still prints
+ * stripe.js there by default; nothing uses it without the buttons, so don't load it (≈270 KB + iframes on phones).
+ */
+add_filter( 'wc_stripe_load_scripts_on_product_page_when_prbs_disabled', '__return_false' );
