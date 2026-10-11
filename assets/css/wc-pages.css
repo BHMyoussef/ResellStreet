@@ -142,7 +142,9 @@ form.checkout { display: flex; flex-direction: column; }
 form.checkout > * { min-width: 0; }
 form.checkout #order_review_heading { order: -2; margin: 0; }
 form.checkout #order_review { order: -1; }
-form.checkout #customer_details, form.checkout .woocommerce-checkout-payment, form.checkout > .woocommerce-NoticeGroup { padding-inline: 17px; }
+/* Every other child (ours or a plugin's, e.g. Stripe's express checkout buttons) sits in the padded form column */
+form.checkout > :not(#order_review, #order_review_heading) { padding-inline: 17px; }
+form.checkout > :not(#order_review, #order_review_heading):first-child { padding-top: 24px; }
 
 .summary-toggle {
   display: flex;
@@ -358,22 +360,25 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
   body.ci-checkout-page:not(.ci-checkout-page--single) {
     background: linear-gradient(to right, var(--color-bg) 50%, var(--checkout-border) 50%, var(--checkout-border) calc(50% + 1px), var(--checkout-sidebar) calc(50% + 1px));
   }
+  /* Everything but the summary stacks in the left column, including plugin output we don't know about
+     (e.g. Stripe's express checkout buttons + "— OR —" before the customer details). The auto rows collapse
+     when unused; the last 1fr row takes the extra height when the sticky summary is the taller column. */
   form.checkout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: repeat(12, auto) 1fr;
     max-width: 1100px;
     margin: 0 auto;
   }
-  form.checkout > .woocommerce-NoticeGroup, form.checkout #customer_details, form.checkout .woocommerce-checkout-payment {
+  form.checkout > :not(#order_review, #order_review_heading) {
     grid-column: 1;
     justify-self: end;
     width: 100%;
     max-width: 540px;
     padding: 0 40px 0 20px;
   }
-  form.checkout > .woocommerce-NoticeGroup { padding-top: 30px; }
-  form.checkout #customer_details { padding-top: 40px; }
+  form.checkout > :not(#order_review, #order_review_heading):first-child { padding-top: 40px; }
+  form.checkout #customer_details:not(:first-child) { padding-top: 24px; }
   form.checkout #order_review_heading { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   form.checkout #order_review,
   .js form.checkout #order_review:not(.is-open) {
