@@ -256,6 +256,25 @@
       );
     }).observe(checkoutForm, { childList: true }); // direct children only
 
+    // Some gateways handle the checkout response themselves (Stripe's Payment Element) and prepend a bare
+    // <ul class="woocommerce-error"> (same li[data-id] items) to the notices wrapper above the form instead.
+    // Wrap it like WooCommerce's notice group and handle it the same way.
+    const noticesObserver = new MutationObserver((mutations) => {
+      mutations.forEach((m) =>
+        m.addedNodes.forEach((node) => {
+          if (node.nodeType !== 1 || !node.matches('ul.woocommerce-error')) return;
+          const group = document.createElement('div');
+          group.className = 'woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout';
+          node.replaceWith(group);
+          group.append(node);
+          handleGroup(group);
+        })
+      );
+    });
+    document.querySelectorAll('.woocommerce-notices-wrapper').forEach((wrapper) => {
+      if (!checkoutForm.contains(wrapper)) noticesObserver.observe(wrapper, { childList: true });
+    });
+
     // A new attempt clears the previous banner (WooCommerce removes its own groups by class).
     document.addEventListener('submit', (e) => {
       if (e.target === checkoutForm) document.querySelector('.checkout-errors')?.replaceChildren();
