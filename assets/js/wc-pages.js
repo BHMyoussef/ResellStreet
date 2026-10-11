@@ -128,9 +128,11 @@
         const doc = new DOMParser().parseFromString(html, 'text/html');
         lastMessage = { text: doc.body.textContent.trim(), error: !!doc.querySelector('.woocommerce-error, [role="alert"].is-error') };
         showMessage();
-        if (window.jQuery) {
+        // A rejected code changes nothing: no checkout update. It would block the summary (WooCommerce's overlay)
+        // for the length of an update_order_review round trip, swallowing a click on Apply for the next code.
+        if (!lastMessage.error && window.jQuery) {
           const body = window.jQuery(document.body);
-          if (!lastMessage.error) body.trigger('applied_coupon_in_checkout', [code]);
+          body.trigger('applied_coupon_in_checkout', [code]);
           body.trigger('update_checkout', { update_shipping_method: false });
         }
       } finally {
