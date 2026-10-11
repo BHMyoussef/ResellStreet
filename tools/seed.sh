@@ -168,9 +168,11 @@ done
 # An old uploaded logo would override it, so clear it.
 "$WP" theme mod remove custom_logo >/dev/null 2>&1 || true
 
-# ---------- Contact Us form (WPForms) ----------
+# ---------- WPForms: Contact Us + footer newsletter ----------
 if "$WP" plugin is-active wpforms-lite >/dev/null 2>&1 || "$WP" plugin is-active wpforms >/dev/null 2>&1; then
-  "$WP" eval-file "$(dirname "$0")/contact-form.php" --user="$("$WP" user list --role=administrator --field=ID --number=1)"
+  ADMIN_ID=$("$WP" user list --role=administrator --field=ID --number=1)
+  "$WP" eval-file "$(dirname "$0")/contact-form.php" --user="$ADMIN_ID"
+  "$WP" eval-file "$(dirname "$0")/newsletter-form.php" --user="$ADMIN_ID" # footer "Sign up and save"
 fi
 
 echo "Seed complete."

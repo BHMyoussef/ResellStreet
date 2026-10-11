@@ -197,6 +197,9 @@ Local site: http://resellstreet.local
 - Contact Us = WPForms form (Name, Email, Message, "Send", like the live store) created by `tools/contact-form.php`
   (seed.sh runs it; idempotent, form id in option `ci_contact_form_id`). WPForms styling = "Base styles only";
   the look is `assets/css/forms.css` (only on pages with a form) + theme `.btn` on the submit button.
+- Footer "Sign up and save" = WPForms email form (`tools/newsletter-form.php`, theme mod `newsletter_shortcode`), styled
+  in footer.css like the theme form. No email per sign-up (user choice): `inc/subscribers.php` saves emails to
+  `{prefix}ci_subscribers` (Users → Subscribers: search, delete, CSV; privacy export/erase hooks).
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
