@@ -82,7 +82,7 @@ add_action(
 add_action(
 	'wp_head',
 	function () {
-		foreach ( array( 'outfit-latin-var.woff2', 'tenor-sans-400-latin.woff2' ) as $font ) {
+		foreach ( array( 'outfit-latin-var.woff2', 'montserrat-800-latin.woff2' ) as $font ) {
 			printf(
 				'<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
 				esc_url( get_theme_file_uri( "assets/fonts/{$font}" ) )

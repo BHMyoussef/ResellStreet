@@ -17,7 +17,7 @@ Local site: http://resellstreet.local
   (WooCommerce core may still load jQuery on its own pages. Our code must not depend on it.)
 - Fonts: same as the Shopify store when it is a Google Font, otherwise the closest Google equivalent.
   Always self-hosted as woff2 in `/assets/fonts`, never loaded from Google's CDN.
-  - Headings: Tenor Sans 400 (same as live store)
+  - Headings: Montserrat 800, uppercase, 0.04em tracking (ResellStreet brand; matches the logo)
   - Body: Outfit 300, bold 600 (same as live store; one variable woff2 file covers 300–600).
     NOTE: the export's settings_data.json says "Twentieth Century", but the live theme renders Outfit.
     The live store wins: match what customers see.
