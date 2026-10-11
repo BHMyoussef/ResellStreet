@@ -84,6 +84,7 @@
   /* Customer account (same Shopify-account look as the checkout) */
   --account-bg: var(--checkout-sidebar);
   --account-card-radius: 8px;
+  --radius-sheet: 12px;           /* size guide sheet / modal */
   /* Order status pills: text ≥ 4.5:1 on their tint */
   --status-success: #1a7f43;
   --status-success-bg: #e3f4e9;

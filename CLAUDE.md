@@ -70,22 +70,17 @@ Local site: http://resellstreet.local
   script is loaded on demand when "Write a review" is hovered/opened; a file picked before it's ready is replayed via a
   jQuery ready callback (CusRev binds in one, and jQuery 3 runs those async). CusRev's email review form is a
   standalone page with its own assets (unaffected).
-- Shopify import (`tools/import-shopify.php`, `npm run import:products -- [handle ...]`; CSV = reference/products_export_1.csv).
-  Kept simple (user rule): plain CSV columns only; metafield columns, "Option Linked To" and collections/categories are
-  NOT imported (categories are assigned by hand). Default = first 5 products (`CI_LIMIT`, 0 = all), `CI_DRY_RUN=1`
-  writes nothing. Two store attributes: Color, Size (any "*size*" option). Values normalized ("7-5" → 7.5, xxl → 2XL,
-  slug colours → words). Duplicate combinations after normalizing are skipped; single-value options become plain
-  attributes; no real choice → simple product. Size fix (user-approved): in mixed UK/US size lists the metafield
-  handles 37/38/39/40 → 4/5/6/7 and 6.6 → 6.5 (verified by position across the catalogue; 39/40 confirmed on the live
-  store); skipped if the target size already exists. Other EU-like values (36, 42 on 4 products) kept + warned.
-  Unused Color/Size terms are deleted after each run. Price → sale, Compare At → regular; no stock quantities → instock.
-  Idempotent via meta `_shopify_handle`; images once via `_shopify_image_src`.
-  Two steps (user rule: the product import loads nothing from Shopify):
-  1. `CI_LIMIT=0 npm run import:products` → products + variations; image list saved as `_shopify_images` (product)
-     and `_shopify_variant_image` (variation). Products show the placeholder until step 2.
-  2. `npm run import:images` (tools/import-shopify-images.php) → media library: featured, gallery, variation images and
-     description <img> rewritten to local copies. Downloads, or `CI_IMAGES_DIR=/folder` to use local files (matched
-     by file name). Resumable (`_shopify_images_done`), `CI_LIMIT` batches, `CI_DRY_RUN=1`.
+- Shopify CSV → WooCommerce CSV (`tools/shopify-to-woo.mjs`, `npm run convert:shopify -- "X.csv"
+  [-o out.csv] [--category "A > B"]`; no WP needed). Input: Shopify exports in `reference/Shopify Export/` (a bare file
+  name is looked up there). Output = exactly the columns of WooCommerce's sample_products.csv (weight/dimension headers
+  in store units kg/cm, so the importer auto-maps them), written to `reference/WooCommerce Import/<name> - WooCommerce.csv`;
+  import via Products → Import (downloads the images). User rules: Shopify
+  metafields ignored; colours simple ("light-blue-1" → Light Blue, gray → Grey); sizes "-" → "." (nothing else changed,
+  e.g. 39/40 stay). Options with one value (the product's only colour) = plain attribute; variations only on the
+  varying options (variation rows only carry those). Price → sale, Compare At → regular (decimal comma → dot). Optional hand-added columns `brand` → WC "Brands" column
+  (product_brand) and category = `--category` > brand > `collection` (user choice: Shoes > Adidas > Adidas Samba). SKUs generated from the handle
+  link variations to parents (re-import with "update existing"). Verified with WC's importer in a rolled-back
+  transaction (HK Collection: 10 products, 160 variations, 0 failed).
 - `npm run cleanup:local` (tools/cleanup-local.php): wipes products, test/sample images, orders, test user/coupon,
   old size attributes, empty sample categories. Back up first (`tools/wp db export file.sql`; the wrapper puts Local's
   mysqldump on PATH).
@@ -132,7 +127,7 @@ Local site: http://resellstreet.local
 | 3b | Reviews on the product page (CusRev data, theme display): stars under title, review section, test reviews | ✅ done |
 | 5b | Homepage testimonials from real reviews (Customizer: count, min rating, photos) | ✅ done |
 | 7 | Search overlay (header icon already links to product search) + results page | ✅ done |
-| 9 | WP-CLI script: import 5 products from Shopify CSV in `/reference` as variable (Size/Color) | ✅ done |
+| 9 | Product import from the Shopify CSV in `/reference` (restarting from scratch; old import tools removed) | ⏭ next |
 
 ### Decisions made so far
 - Body font is Outfit (live store), not Twentieth Century (export). Desktop/mobile sizes measured from live computed styles.
@@ -147,7 +142,9 @@ Local site: http://resellstreet.local
 - Sticky ATC clicks the main `.single_add_to_cart_button` (so step 4's AJAX handler only needs to hook the main form).
 - Gallery = WC flexslider/zoom/photoswipe; first image shown before JS (opacity override) for LCP.
   Mobile "partial" peek = 75%-wide flex-viewport with overflow visible.
-- Modals: `<dialog data-modal="name">` + `[data-modal-open]` (global.js). Size guide = `ci_size_guide` term meta on product_cat.
+- Modals: `<dialog data-modal="name">` + `[data-modal-open]` (global.js, fires `ci:modal:open` with the opener). Size guide =
+  `ci_size_guide` term meta on product_cat (Shoes content: `tools/size-guide.php`, UK/EU/foot cm, run by seed.sh; user:
+  no US columns), rendered by `ci_size_guide_modal()`: bottom sheet on phones, the selected size's row highlighted.
 - Full-page Playwright captures of the product page on mobile show flexslider/sticky-bar artifacts; trust viewport shots + `npm run check:product`.
 - Cart (`inc/cart.php`, `assets/js/cart.js`): drawer rendered client-side from Store API JSON (cache-safe).
   `Nonce` header on writes, refreshed from every response; invalid/missing nonce → GET /cart + one retry.
@@ -179,6 +176,10 @@ Local site: http://resellstreet.local
   `.checkout-errors` banner above the form, page scrolls to top and focuses it. Field-only errors: no banner,
   focus + scroll to the first invalid field. Error text uses `--checkout-error-text` (darkened #ff6d6d for contrast).
   selectWoo/select2 and wc-add-to-cart are dequeued everywhere (native selects; country→state still works).
+- Full-width images on phones: add a `<source media="(max-width: 768px)">` with `ci_mobile_srcset()` (files ≤ 1024px),
+  otherwise 3x phones pick the 1600px+ original. Gallery thumb srcset capped at 300px (flexslider sets srcset before sizes).
+- Add to Cart clicked before WC resolves the default variation (variation_id 0) is held in cart.js until it resolves.
+- Global CSS stays as separate cached files: inlining it was measured (Lighthouse) and gave no LCP gain. Both font preloads stay.
 - MutationObserver callbacks must only write to the DOM when the value changed (writing textContent inside an
   observed subtree re-triggers the observer → infinite loop; this froze the checkout once).
 - My account (user choice 2026-10-11): same Shopify-account look as the checkout (`--checkout-*` tokens, system
@@ -206,9 +207,10 @@ Local site: http://resellstreet.local
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
 - Seeded pages, menus (Main menu, Footer), Customizer content, logo, catalog 3×7, 4:3 thumbnails,
   homepage content + media, categories Shoes / Sets / Bags (Accessories existed) with thumbnails.
-- Catalogue = full Shopify CSV import (313 products, Color/Size). Sample data, fixtures, test orders/customer/coupon
-  were removed with cleanup:local (2026-10-10). Categories left: Shoes, Accessories (under Clothing), Sets, Bags,
-  Uncategorized; products are not assigned to collections yet (done by hand).
+- Catalogue = test fixtures only (2026-10-10): the 313 imported Shopify products were dropped (backup of the imported
+  state: `resellstreet/backup-before-drop-import-2026-10-10.sql`) and `npm run fixtures` re-run. WooCommerce sample
+  data is gone (removed by cleanup:local), so the 2 fixture reviews on "Hoodie" are skipped. Categories: Shoes,
+  Accessories (under Clothing), Sets, Bags, Uncategorized.
 - The test suites (`npm run check:*`) depend on `npm run fixtures` (test products/reviews/customer); re-running it
   re-adds those test items to the store.
 - Dev test products from `npm run fixtures` (tools/fixtures.php): "Test Sneaker" (21 variations, inline mode) and
@@ -220,9 +222,11 @@ Local site: http://resellstreet.local
 
 ### Resume checklist
 1. `npm run shots:local` / `npm run measure -- <profile>` (global|collection|product|home) / `npm run check:all`.
-   Product profile/screens now point at the imported Flaireve product (1:1 with the live reference).
+   Product profile/screens point at the imported Flaireve product: re-import it (step 9) to use them.
    Tests select fixture products by exact title and don't assume catalogue size.
 2. Compare with `reference/screens/*`, then continue with the next ⏭ row above.
 
 ## WooCommerce template overrides
 _(none yet. Add every file in `/woocommerce` here with the reason)_
+
+Use the Grep/Glob/Read/Edit tools for searching and editing files, never grep/find/cat/python heredocs in Bash.

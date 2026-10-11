@@ -82,3 +82,31 @@ add_filter(
 	10,
 	3
 );
+
+/* ---------------------------------------------------------------------------
+ * Images: lighter files for mobile (paid traffic)
+ * ------------------------------------------------------------------------ */
+
+/* Originals are capped at 2048px (plenty for product zoom; WordPress default is 2560). */
+add_filter( 'big_image_size_threshold', fn() => 2048 );
+
+/* Generated sizes (and the capped original) of JPEG/PNG uploads are saved as WebP. */
+add_filter(
+	'image_editor_output_format',
+	function ( $formats ) {
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$formats['image/jpeg'] = 'image/webp';
+			$formats['image/png']  = 'image/webp';
+		}
+		return $formats;
+	}
+);
+
+/* The theme never uses WordPress's 1536px / 2048px sizes: don't generate them. */
+add_filter(
+	'intermediate_image_sizes_advanced',
+	function ( $sizes ) {
+		unset( $sizes['1536x1536'], $sizes['2048x2048'] );
+		return $sizes;
+	}
+);

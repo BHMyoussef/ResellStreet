@@ -168,6 +168,9 @@ done
 # An old uploaded logo would override it, so clear it.
 "$WP" theme mod remove custom_logo >/dev/null 2>&1 || true
 
+# ---------- Shoe size guide (Shoes category) ----------
+"$WP" eval-file "$(dirname "$0")/size-guide.php"
+
 # ---------- WPForms: Contact Us ----------
 if "$WP" plugin is-active wpforms-lite >/dev/null 2>&1 || "$WP" plugin is-active wpforms >/dev/null 2>&1; then
   "$WP" eval-file "$(dirname "$0")/contact-form.php" --user="$("$WP" user list --role=administrator --field=ID --number=1)"

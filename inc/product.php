@@ -229,7 +229,8 @@ add_filter(
 
 		$select = str_replace( '<select ', '<select tabindex="-1" aria-hidden="true" ', $html );
 		$out    = '<div class="variant-select visually-hidden">' . $select . '</div>';
-		$out   .= sprintf( '<fieldset class="variant-buttons" data-variant-group="%s">', esc_attr( $name ) );
+		$is_size = ci_is_size_attribute( $attribute, $label );
+		$out    .= sprintf( '<fieldset class="variant-buttons" data-variant-group="%s"%s>', esc_attr( $name ), $is_size ? ' data-size-group' : '' );
 		$out   .= '<legend class="visually-hidden">' . esc_html( $label ) . '</legend>';
 		foreach ( $options as $value => $text ) {
 			$id   = wp_unique_id( 'variant-' );
@@ -244,7 +245,7 @@ add_filter(
 		}
 		$out .= '</fieldset>';
 
-		if ( ci_is_size_attribute( $attribute, $label ) && ci_product_size_guide( $product ) ) {
+		if ( $is_size && ci_product_size_guide( $product ) ) {
 			$out .= ci_size_guide_button();
 		}
 		return $out;
@@ -504,20 +505,37 @@ add_action(
 		if ( ! $guide ) {
 			return;
 		}
-		?>
-		<dialog class="modal" data-modal="size-guide" aria-labelledby="size-guide-title">
-			<div class="modal__inner">
-				<button type="button" class="modal__close" data-modal-close>
-					<?php echo ci_icon( 'close' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-					<span class="visually-hidden"><?php esc_html_e( 'Close', 'customimpulse' ); ?></span>
-				</button>
-				<h2 class="modal__title h3" id="size-guide-title"><?php esc_html_e( 'Size guide', 'customimpulse' ); ?></h2>
-				<div class="modal__content rte"><?php echo wp_kses_post( $guide ); ?></div>
-			</div>
-		</dialog>
-		<?php
+		echo ci_size_guide_modal( $guide, 'size-guide-title' ); // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 );
+
+/**
+ * Size guide modal. The guide is the category's HTML (Products → Categories); the theme styles its table and
+ * highlights the row of the selected size when it opens (product.js).
+ *
+ * @param string $guide    Guide HTML.
+ * @param string $title_id Unique id for the title.
+ */
+function ci_size_guide_modal( $guide, $title_id ) {
+	ob_start();
+	?>
+	<dialog class="modal modal--size-guide" data-modal="size-guide" aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
+		<div class="modal__inner">
+			<button type="button" class="modal__close" data-modal-close>
+				<?php echo ci_icon( 'close' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				<span class="visually-hidden"><?php esc_html_e( 'Close', 'customimpulse' ); ?></span>
+			</button>
+			<div class="size-guide__head">
+				<?php echo ci_icon( 'ruler' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				<h2 class="modal__title h3" id="<?php echo esc_attr( $title_id ); ?>"><?php esc_html_e( 'Size guide', 'customimpulse' ); ?></h2>
+			</div>
+			<p class="size-guide__current" data-size-guide-current hidden><?php esc_html_e( 'Your selected size:', 'customimpulse' ); ?> <strong></strong></p>
+			<div class="modal__content size-guide rte"><?php echo wp_kses_post( $guide ); ?></div>
+		</div>
+	</dialog>
+	<?php
+	return ob_get_clean();
+}
 
 /* Admin: size guide field on product categories. */
 add_action(

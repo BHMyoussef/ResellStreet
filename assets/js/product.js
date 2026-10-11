@@ -310,8 +310,33 @@
     });
   }
 
+  /* Size guide: highlight the row of the selected size (first column = the size the buttons show). */
+  function initSizeGuide() {
+    document.addEventListener('ci:modal:open', (e) => {
+      const modal = e.target;
+      if (modal.dataset.modal !== 'size-guide') return;
+      const scope = e.detail?.opener?.closest('[data-product-scope], form') || document;
+      const checked = scope.querySelector('[data-size-group] input:checked') ||
+        document.querySelector('[data-size-group] input:checked');
+      const size = (checked?.labels[0]?.textContent || '').trim().toLowerCase();
+      let match = null;
+      modal.querySelectorAll('tbody tr').forEach((row) => {
+        const first = (row.cells[0]?.textContent || '').trim().toLowerCase();
+        const on = size !== '' && first === size && !match;
+        if (on) match = row;
+        row.classList.toggle('is-selected', on);
+      });
+      const note = modal.querySelector('[data-size-guide-current]');
+      if (note) {
+        note.hidden = !match;
+        if (match) note.querySelector('strong').textContent = checked.labels[0].textContent.trim();
+      }
+    });
+  }
+
   ns.initVariantForm = initVariantForm;
   document.querySelectorAll('form.variations_form').forEach(initVariantForm);
   initSticky();
   initReviews();
+  initSizeGuide();
 })();

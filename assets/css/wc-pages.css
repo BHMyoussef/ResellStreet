@@ -360,7 +360,7 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .ci-checkout-page .blockUI.blockOverlay { background: var(--color-surface) !important; opacity: 0.6 !important; }
 
 @media (min-width: 769px) {
-  .checkout-header__inner { padding: 20px 40px; }
+  .checkout-header__inner { padding: 20px 0px; }
   .checkout-header__logo img { width: var(--logo-w-desktop); }
   .checkout-errors { margin-top: 30px; padding-inline: 20px; }
   /* Two columns; the sidebar colour runs to the right edge of the screen */

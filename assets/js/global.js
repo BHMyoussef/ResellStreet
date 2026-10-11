@@ -92,6 +92,7 @@
       const modal = document.querySelector(`dialog[data-modal="${modalOpener.dataset.modalOpen}"]`);
       if (modal) {
         e.preventDefault();
+        modal.dispatchEvent(new CustomEvent('ci:modal:open', { bubbles: true, detail: { opener: modalOpener } }));
         modal.showModal();
         root.classList.add('has-drawer');
       }

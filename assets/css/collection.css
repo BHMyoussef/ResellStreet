@@ -11,7 +11,6 @@
 .woocommerce-products-header__title { margin: 40px 0 0; }
 .term-description, .page-description {
   max-width: 800px;
-  margin: 25px auto 0;
   text-align: center;
 }
 .term-description p, .page-description p { margin-bottom: 15px; }
@@ -153,7 +152,7 @@ ul.products > li.product-category mark { background: none; color: inherit; }
 .woocommerce-no-products-found, .wc-page .woocommerce-info { margin: 40px 0; text-align: center; }
 
 @media (min-width: 769px) {
-  .collection-banner { flex-direction: row; flex-wrap: wrap; margin-top: 75px; }
+  .collection-banner { flex-direction: row; flex-wrap: wrap;  }
   .collection-toolbar { justify-content: space-between; margin: 46px 0 0; min-height: 40px; }
   ul.products { column-gap: 22px; row-gap: 30px; }
   ul.products.columns-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }

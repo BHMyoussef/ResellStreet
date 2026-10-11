@@ -17,9 +17,8 @@
     "check:checkout-errors": "node tools/checkout-errors-check.mjs",
     "check:reviews": "node tools/reviews-check.mjs",
     "check:search": "node tools/search-check.mjs",
-    "import:products": "tools/wp eval-file tools/import-shopify.php",
-    "import:images": "tools/wp eval-file tools/import-shopify-images.php",
-    "cleanup:local": "tools/wp eval-file tools/cleanup-local.php"
+    "cleanup:local": "tools/wp eval-file tools/cleanup-local.php",
+    "convert:shopify": "node tools/shopify-to-woo.mjs"
   },
   "devDependencies": {
     "playwright": "^1.64.0"

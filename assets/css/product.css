@@ -159,6 +159,82 @@
 }
 .size-guide-link .icon { width: 20px; height: 20px; }
 
+/* Size guide: bottom sheet on phones, centred card from 769px */
+.modal--size-guide {
+  width: 100%;
+  max-height: 88dvh;
+  margin: auto 0 0;
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+}
+.modal--size-guide[open] { animation: ci-sheet-up 0.3s var(--ease-drawer); }
+@keyframes ci-sheet-up { from { transform: translateY(40px); opacity: 0; } }
+.modal--size-guide .modal__inner { padding: 30px 16px calc(24px + env(safe-area-inset-bottom)); }
+.size-guide__head { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+.size-guide__head .icon { width: 26px; height: 26px; }
+.size-guide__head .modal__title { margin: 0; }
+.size-guide__current {
+  width: fit-content;
+  margin: 10px auto 0;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--color-variant-selected);
+  color: var(--color-variant-selected-text);
+  font-size: var(--fs-small);
+}
+.size-guide { margin-top: 16px; }
+.size-guide > p:first-child { margin-bottom: 16px; color: var(--color-text-muted); font-size: var(--fs-small); text-align: center; }
+.size-guide > p:last-child { margin: 18px 0 0; color: var(--color-text-muted); font-size: var(--fs-xsmall); text-align: center; }
+.size-guide table {
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--account-card-radius);
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  font-variant-numeric: tabular-nums;
+  table-layout: fixed;
+}
+.size-guide th, .size-guide td { padding: 9px 4px; border: 0; }
+.size-guide th {
+  background: var(--color-button);
+  color: var(--color-button-text);
+  font-size: var(--fs-xsmall);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-base);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.size-guide td { border-top: 1px solid var(--color-border); }
+.size-guide tbody tr:first-child td { border-top: 0; }
+.size-guide tbody tr:nth-child(even) td { background: var(--color-bg); }
+.size-guide td:first-child { font-weight: var(--fw-bold); }
+.size-guide tbody tr.is-selected td { background: var(--color-variant-selected); color: var(--color-variant-selected-text); font-weight: var(--fw-bold); }
+.size-guide h3 { margin: 26px 0 12px; font-size: var(--fs-base); }
+.size-guide ol { margin: 0; padding: 0; list-style: none; counter-reset: size-step; }
+.size-guide ol li { position: relative; margin-bottom: 10px; padding-left: 36px; counter-increment: size-step; }
+.size-guide ol li::before {
+  content: counter(size-step);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-button);
+  color: var(--color-button-text);
+  font-size: var(--fs-xsmall);
+  font-weight: var(--fw-bold);
+}
+@media (min-width: 769px) {
+  .modal--size-guide { width: min(620px, calc(100% - 34px)); margin: auto; border-radius: var(--radius-sheet); }
+  .modal--size-guide .modal__inner { padding: 40px 40px 34px; }
+  .size-guide th, .size-guide td { padding: 10px 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .modal--size-guide[open] { animation: none; } }
+
 /* WC's own variation price/stock are replaced by ours (kept in DOM for plugins) */
 .woocommerce-variation-price, .woocommerce-variation-availability { display: none; }
 .woocommerce-variation-description { margin-bottom: 15px; }

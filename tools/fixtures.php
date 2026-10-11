@@ -149,7 +149,10 @@ foreach ( $rows as $r ) {
 	$table .= '<tr><td>' . implode( '</td><td>', $r ) . '</td></tr>';
 }
 $table .= '</tbody></table><p>Measure your foot from heel to toe and pick the closest size. Between sizes? Go half a size up.</p>';
-update_term_meta( $shoes->term_id, 'ci_size_guide', $table );
+// Keep the real guide (tools/size-guide.php) when there is one.
+if ( '' === trim( (string) get_term_meta( $shoes->term_id, 'ci_size_guide', true ) ) ) {
+	update_term_meta( $shoes->term_id, 'ci_size_guide', $table );
+}
 
 $color  = ci_fx_attribute( 'Color', 'color', array( 'Black', 'Khaki', 'White' ) );
 $sizes  = ci_fx_attribute( 'Size (USA)', 'size-usa', array( '5', '5.5', '6', '6.5', '7', '7.5', '8', '8.5', '9', '9.5', '10', '10.5' ) );

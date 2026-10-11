@@ -50,15 +50,7 @@ $ci_guide   = ci_product_size_guide( $ci_product );
 		<p class="quick-shop__details"><a class="text-link" href="<?php echo esc_url( $ci_product->get_permalink() ); ?>"><?php esc_html_e( 'View full details', 'customimpulse' ); ?></a></p>
 	</div>
 </div>
-<?php if ( $ci_guide ) : ?>
-	<dialog class="modal" data-modal="size-guide" aria-labelledby="qs-size-guide-title">
-		<div class="modal__inner">
-			<button type="button" class="modal__close" data-modal-close>
-				<?php echo ci_icon( 'close' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-				<span class="visually-hidden"><?php esc_html_e( 'Close', 'customimpulse' ); ?></span>
-			</button>
-			<h2 class="modal__title h3" id="qs-size-guide-title"><?php esc_html_e( 'Size guide', 'customimpulse' ); ?></h2>
-			<div class="modal__content rte"><?php echo wp_kses_post( $ci_guide ); ?></div>
-		</div>
-	</dialog>
-<?php endif; ?>
+<?php
+if ( $ci_guide ) {
+	echo ci_size_guide_modal( $ci_guide, 'qs-size-guide-title' ); // phpcs:ignore WordPress.Security.EscapeOutput
+}
