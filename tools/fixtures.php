@@ -305,6 +305,9 @@ function ci_fx_simple( $sku, $name, $category_id, $image_id, $in_stock ) {
 	$product->set_image_id( $image_id );
 	$product->set_stock_status( $in_stock ? 'instock' : 'outofstock' );
 	$product_id = $product->save();
+	if ( taxonomy_exists( 'product_brand' ) ) {
+		wp_set_object_terms( $product_id, 'nike', 'product_brand' );
+	}
 	WP_CLI::success( "{$name} (#{$product_id})" );
 	return $product_id;
 }
