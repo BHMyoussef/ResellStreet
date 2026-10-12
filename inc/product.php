@@ -174,7 +174,7 @@ add_action(
 
 /**
  * Up to 4 products: upsells first, then WooCommerce related products; other colourways of the same model go last
- * (the colour swatches already show them). "View all" = the product's model category.
+ * when they are grouped (the colour swatches already show them). "View all" = the product's model category.
  */
 function ci_product_also_like() {
 	global $product;
@@ -183,7 +183,7 @@ function ci_product_also_like() {
 	}
 	$model = ci_product_model_category( $product );
 	$ids   = array_unique( array_merge( $product->get_upsell_ids(), wc_get_related_products( $product->get_id(), 12 ) ) );
-	if ( $model ) {
+	if ( $model && ci_product_colourway_group( $product ) ) {
 		$same = array_filter( $ids, fn( $id ) => has_term( $model->term_id, 'product_cat', $id ) );
 		$ids  = array_merge( array_diff( $ids, $same ), $same );
 	}
@@ -232,6 +232,18 @@ function ci_product_model_category( WC_Product $product ) {
 		}
 	}
 	return $model && $depth > 0 ? $model : null;
+}
+
+/**
+ * The product's model category when its colourways are grouped on one product page ("Group colourways" box on the
+ * category, term meta `ci_group_colourways`). Not grouped = every product of the model renders on its own.
+ *
+ * @param WC_Product $product Product.
+ * @return WP_Term|null
+ */
+function ci_product_colourway_group( WC_Product $product ) {
+	$model = ci_product_model_category( $product );
+	return $model && get_term_meta( $model->term_id, 'ci_group_colourways', true ) ? $model : null;
 }
 
 /* No quantity box unless enabled (reference store has none). The input stays in the form with value 1. */
@@ -509,8 +521,9 @@ function ci_product_authenticity() {
 
 /**
  * Colour row: this product's colour (pa_color, non-variation) + the other colourways of the same model
- * (products in the same deepest category with a colour), as swatch links. Colour variations use the
- * variation buttons instead.
+ * (products in the same deepest category with a colour, when that category groups its colourways), as swatch links.
+ * Every colourway page lists them in the same order (menu order, then title), so a picked colour stays in its place.
+ * Colour variations use the variation buttons instead.
  */
 function ci_product_colourways() {
 	global $product;
@@ -525,24 +538,33 @@ function ci_product_colourways() {
 	if ( ! $own ) {
 		return;
 	}
-	$model = ci_product_model_category( $product );
+	$model = ci_product_colourway_group( $product );
 	$items = array( $product->get_id() => $own );
 	if ( $model ) {
+		$items = array();
 		foreach ( wc_get_products(
 			array(
 				'status'   => 'publish',
-				'limit'    => 12,
+				'limit'    => 24,
 				'category' => array( $model->slug ),
-				'orderby'  => 'title',
-				'order'    => 'ASC',
-				'exclude'  => array( $product->get_id() ),
+				'orderby'  => array(
+					'menu_order' => 'ASC',
+					'title'      => 'ASC',
+				),
 			)
 		) as $sibling ) {
+			if ( $sibling->get_id() === $product->get_id() ) {
+				$items[ $sibling->get_id() ] = $own;
+				continue;
+			}
 			$a = $sibling->get_attributes()[ CI_COLOUR_TAXONOMY ] ?? null;
 			$t = $a && ! $a->get_variation() ? ( $a->get_terms()[0] ?? null ) : null;
 			if ( $t && ci_swatch_css( $t->term_id ) ) {
 				$items[ $sibling->get_id() ] = $t;
 			}
+		}
+		if ( ! isset( $items[ $product->get_id() ] ) ) { // more colourways than the limit
+			$items[ $product->get_id() ] = $own;
 		}
 	}
 	echo '<div class="product-colours"><div class="variant-head"><p class="variant-head__label">' . esc_html( wc_attribute_label( CI_COLOUR_TAXONOMY, $product ) ) . ': <span class="variant-head__value">' . esc_html( $own->name ) . '</span></p></div><ul class="colour-swatches">';
@@ -967,6 +989,54 @@ $ci_save_size_guide = function ( $term_id ) {
 };
 add_action( 'created_product_cat', $ci_save_size_guide );
 add_action( 'edited_product_cat', $ci_save_size_guide );
+
+/* Admin: "Group colourways" box on product categories (see ci_product_colourway_group()). */
+add_action(
+	'product_cat_add_form_fields',
+	function () {
+		?>
+		<div class="form-field">
+			<input type="hidden" name="ci_group_colourways_field" value="1">
+			<label for="ci-group-colourways">
+				<input type="checkbox" name="ci_group_colourways" id="ci-group-colourways" value="1">
+				<?php esc_html_e( 'Group colourways on one product page', 'customimpulse' ); ?>
+			</label>
+			<p class="description"><?php esc_html_e( 'Products in this category show each other as colour swatches. Unticked: each product is shown on its own.', 'customimpulse' ); ?></p>
+		</div>
+		<?php
+	}
+);
+add_action(
+	'product_cat_edit_form_fields',
+	function ( $term ) {
+		?>
+		<tr class="form-field">
+			<th scope="row"><?php esc_html_e( 'Colourways', 'customimpulse' ); ?></th>
+			<td>
+				<input type="hidden" name="ci_group_colourways_field" value="1">
+				<label for="ci-group-colourways">
+					<input type="checkbox" name="ci_group_colourways" id="ci-group-colourways" value="1" <?php checked( (bool) get_term_meta( $term->term_id, 'ci_group_colourways', true ) ); ?>>
+					<?php esc_html_e( 'Group colourways on one product page', 'customimpulse' ); ?>
+				</label>
+				<p class="description"><?php esc_html_e( 'Products in this category show each other as colour swatches (same order on every colourway). Unticked: each product is shown on its own.', 'customimpulse' ); ?></p>
+			</td>
+		</tr>
+		<?php
+	}
+);
+$ci_save_group_colourways = function ( $term_id ) {
+	// Only from the category form (the hidden field), so Quick Edit never clears it. Core verified the nonce.
+	if ( ! isset( $_POST['ci_group_colourways_field'] ) || ! current_user_can( 'manage_product_terms' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		return;
+	}
+	if ( empty( $_POST['ci_group_colourways'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		delete_term_meta( $term_id, 'ci_group_colourways' );
+	} else {
+		update_term_meta( $term_id, 'ci_group_colourways', 1 );
+	}
+};
+add_action( 'created_product_cat', $ci_save_group_colourways );
+add_action( 'edited_product_cat', $ci_save_group_colourways );
 
 /* ---------------------------------------------------------------------------
  * Sticky add to cart bar (mobile)

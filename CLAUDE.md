@@ -151,7 +151,9 @@ Local site: http://resellstreet.local
   state, desktop; compare an area with `node tools/product-compare.mjs <area>`): 1200px page, gallery 686 + 64 + 450.
   Info column (all hooks): brand eyebrow (product_brand), rating "★ 4.8 128 reviews" (.product-rating), price row,
   colour row = this product + its other colourways (`ci_product_colourways()`, same deepest category =
-  `ci_product_model_category()`), option heads "SIZE (UK): 8" (`.variant-head`, value synced by product.js;
+  `ci_product_model_category()`; only when that category's "Group colourways" box is ticked, term meta
+  `ci_group_colourways`, `ci_product_colourway_group()`; user rules: opt-in per collection, and every colourway page
+  lists the swatches in the same order (menu order, then title) so the picked colour keeps its place), option heads "SIZE (UK): 8" (`.variant-head`, value synced by product.js;
   `ci_size_system()` = Customizer size_system_label unless the attribute names a system, e.g. "Size (USA)"),
   size grid 5/6 cols, stock line ("– select your size" before a choice), qty stepper (product.js), express
   checkout slot (`ci_product_express_checkout` action; divider hidden when empty), trust lines (selling point

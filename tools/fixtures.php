@@ -249,9 +249,15 @@ if ( ! $ci_fx_model ) {
 	$res         = wp_insert_term( 'Test Runner', 'product_cat', array( 'slug' => 'test-runner', 'parent' => $shoes->term_id ) );
 	$ci_fx_model = get_term( $res['term_id'], 'product_cat' );
 }
-ci_fx_runner( 'CI-TEST-RUNNER', 'Mint Blue', '#a8dccf', $ci_fx_model->term_id, 'nike', $images, array( '4.5', '9.5', '11' ), array( '8' => 2 ) );
-ci_fx_runner( 'CI-TEST-RUNNER-BLACK', 'Black', '#23262d', $ci_fx_model->term_id, 'nike', array_reverse( $images ) );
-ci_fx_runner( 'CI-TEST-RUNNER-CREAM', 'Cream', '#ece8df', $ci_fx_model->term_id, 'nike', array_slice( $images, 2 ) );
+// Colourways grouped on one product page, in menu order (Products → Sorting): Mint Blue, Black, Cream.
+update_term_meta( $ci_fx_model->term_id, 'ci_group_colourways', 1 );
+foreach ( array(
+	ci_fx_runner( 'CI-TEST-RUNNER', 'Mint Blue', '#a8dccf', $ci_fx_model->term_id, 'nike', $images, array( '4.5', '9.5', '11' ), array( '8' => 2 ) ),
+	ci_fx_runner( 'CI-TEST-RUNNER-BLACK', 'Black', '#23262d', $ci_fx_model->term_id, 'nike', array_reverse( $images ) ),
+	ci_fx_runner( 'CI-TEST-RUNNER-CREAM', 'Cream', '#ece8df', $ci_fx_model->term_id, 'nike', array_slice( $images, 2 ) ),
+) as $ci_fx_order => $ci_fx_runner_id ) {
+	wp_update_post( array( 'ID' => $ci_fx_runner_id, 'menu_order' => $ci_fx_order ) );
+}
 
 // ---------------------------------------------------------------------------
 // Image ratios (main image must never be cropped, tools/product-check.mjs), simple + out-of-stock products.

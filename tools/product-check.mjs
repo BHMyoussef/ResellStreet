@@ -1,4 +1,5 @@
 // Product page behavior checks on resellstreet.local (needs tools/fixtures.php products).
+import { execFileSync } from 'node:child_process';
 import { launch } from './lib/browser.mjs';
 const BASE = 'http://resellstreet.local/product/';
 const b = await launch();
@@ -125,6 +126,23 @@ check('"You may also like" shows products', v2.related > 0, String(v2.related));
 await p.locator('.product-recent').scrollIntoViewIfNeeded();
 await p.waitForTimeout(1200);
 check('recently viewed: earlier products from localStorage', (await p.$$('.product-recent li.product')).length > 0);
+
+// Colourways: picking a colour keeps it in its place (same order on every colourway page)
+const swatches = () => p.$$eval('.colour-swatch', (l) => l.map((a) => (a.classList.contains('is-current') ? '*' : '') + a.title).join(','));
+await p.evaluate(() => scrollTo(0, 0));
+await Promise.all([p.waitForURL(/test-runner-black/), p.locator('.colour-swatch[title="Black"]').click()]);
+await p.waitForLoadState('networkidle');
+check('picked colour stays in its place (Black page)', (await swatches()) === 'Mint Blue,*Black,Cream', await swatches());
+// "Group colourways" off on the category → each product on its own
+const wp = (...args) => execFileSync(import.meta.dirname + '/wp', args, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+const modelId = wp('term', 'get', 'product_cat', 'test-runner', '--by=slug', '--field=term_id');
+wp('term', 'meta', 'delete', modelId, 'ci_group_colourways');
+try {
+  await p.reload({ waitUntil: 'networkidle' });
+  check('colourways not grouped: only the own colour', (await swatches()) === '*Black', await swatches());
+} finally {
+  wp('term', 'meta', 'update', modelId, 'ci_group_colourways', '1');
+}
 
 // ---- Main image is never cropped (Test Gallery Ratios: 4:5 main, square / 3:2 / 3:4 / 200×150 gallery,
 //      UK 7 = 3:2 and UK 8 = 3:4 variation images; Test Cap: one 200×150 image) ----
