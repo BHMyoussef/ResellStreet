@@ -127,6 +127,7 @@ Local site: http://resellstreet.local
 | 7 | Search overlay (header icon already links to product search) + results page | ✅ done |
 | 9 | Product import from the Shopify CSV in `/reference` (converter done: brand, collection, decimal prices; 215 products imported) | ✅ done |
 | 10 | Homepage v2 (`reference/homepage-v2`), branch `homepage-v2`: hero, new arrivals, image with text, brands, banner, trending, video reviews, trust row | ✅ built, awaiting approval to merge |
+| 11 | Product page v2 (`reference/product-v2`), branch `product-v2` (from homepage-v2): gallery, info column, accordions, reviews, video reviews, you may also like, recently viewed, sticky ATC, cart drawer | ✅ built, awaiting approval |
 
 ### Decisions made so far
 - Body font is Outfit (live store), not Twentieth Century (export). Desktop/mobile sizes measured from live computed styles.
@@ -141,7 +142,37 @@ Local site: http://resellstreet.local
   later attributes auto-switch to their first available option. WC's variation JS (jQuery) still runs.
 - Sticky ATC clicks the main `.single_add_to_cart_button` (so step 4's AJAX handler only needs to hook the main form).
 - Gallery = WC flexslider/zoom/photoswipe; first image shown before JS (opacity override) for LCP.
-  Mobile "partial" peek = 75%-wide flex-viewport with overflow visible.
+  Design v2: full-width square slides on phones (no peek), bar dots, "1 / N" counter + Sale/Sold out badge
+  (printed after the gallery, moved in by product.js), zoom button = "Hover to zoom" label on desktop.
+  Main image sizes "(min-width: 769px) 590px, 87vw" (87vw caps 3× phones at the 1024px file).
+- Product page v2 (design `reference/product-v2/*.html` = canvas of 4 frames: mobile page, sticky state, drawer
+  state, desktop; compare an area with `node tools/product-compare.mjs <area>`): 1200px page, gallery 686 + 64 + 450.
+  Info column (all hooks): brand eyebrow (product_brand), rating "★ 4.8 128 reviews" (.product-rating), price row,
+  colour row = this product + its other colourways (`ci_product_colourways()`, same deepest category =
+  `ci_product_model_category()`), option heads "SIZE (UK): 8" (`.variant-head`, value synced by product.js;
+  `ci_size_system()` = Customizer size_system_label unless the attribute names a system, e.g. "Size (USA)"),
+  size grid 5/6 cols, stock line ("– select your size" before a choice), qty stepper (product.js), express
+  checkout slot (`ci_product_express_checkout` action; divider hidden when empty), trust lines (selling point
+  slots), authenticity box (Customizer product_auth_*; link hidden until a URL is set).
+  Accordions under the product (`ci_product_accordions()`): Description (open), Product details (short desc,
+  else `ci_product_details_list()`), Shipping & returns / Authenticity guarantee (Customizer product_shipping_*,
+  product_authenticity_*, per-product override meta `_ci_shipping_text` / `_ci_authenticity_text`), plugin tabs.
+  The 3 old Customizer tabs and "description inline" are gone (seed migrated the text).
+  Then: reviews (even 3-col cards, all photos as 72px thumbs, masonry JS removed), video reviews (shared
+  component `template-parts/components/video-reviews.php` + video-reviews.css/js, also on the homepage),
+  "You may also like" (upsells + related, same-model last; ci_badge 'recent' = New ≤ 30 days), recently viewed
+  (localStorage `ci_recent`, REST `ci/v1/cards?ids=`, compact cards). Full-bleed lines/bands inside the
+  1200px column use `border-image` outsets (no horizontal scroll).
+- Colour swatches: pa_color (label "Colour") term per colourway from the product title; hex measured from the
+  product photo, guided by colour words in the name (`tools/product-colours.mjs` + `.php`, run by seed.sh;
+  term meta `ci_swatch` "#hex" or "#hex1,#hex2"; admin field in inc/swatches.php). 33 products without a colour
+  in their title have none.
+- Cart drawer v2: Store API cart-item extension `ci` (brand / title / variant, inc/cart.php
+  `ci_cart_item_display_data()`), "Added to cart" banner + "UK shipping: Free" from the Free shipping method's
+  minimum (`ci_free_shipping_threshold()`), Remove link. Writes/nonce/queue/pixel events unchanged.
+  Verified: PixelYourSite sends one AddToCart (variation ID) from the main and the sticky add to cart.
+- Fixture "Test Runner" (Mint Blue/Black/Cream; UK 3–13, 4.5/9.5/11 sold out, UK 8 = 2 left, sale) for the
+  product page states. Fixture review photos are their own attachments (CusRev deletes a review's photos).
 - Modals: `<dialog data-modal="name">` + `[data-modal-open]` (global.js, fires `ci:modal:open` with the opener). Size guide =
   `ci_size_guide` term meta on product_cat (Shoes content: `tools/size-guide.php`, UK/EU/foot cm, run by seed.sh; user:
   no US columns), rendered by `ci_size_guide_modal()`: bottom sheet on phones, the selected size's row highlighted.
