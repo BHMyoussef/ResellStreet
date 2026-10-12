@@ -40,7 +40,7 @@ const b = await launch();
     bars: [...document.querySelectorAll('.reviews__bar-count [aria-hidden]')].map((n) => n.textContent).join(','),
   }));
   check('summary: 4.3 average, breakdown 2/1/1/0/0', head.average === '4.3' && head.bars === '2,1,1,0,0', JSON.stringify(head));
-  const cards = await p.$$eval('.review-card', (els) => els.map((c) => `${c.querySelector('.review-card__name').textContent}${c.querySelector('.review-card__verified') ? '✓' : ''}${c.querySelector('.review-card__media') ? '📷' : ''}`));
+  const cards = await p.$$eval('.review-card', (els) => els.map((c) => `${c.querySelector('.review-card__name').textContent}${c.querySelector('.review-card__verified') ? '✓' : ''}${c.querySelector('.review-card__thumbs img') ? '📷' : ''}`));
   check('4 cards, newest first, verified badges + photos', cards.join(' ') === 'Liam P.✓📷 James R.✓📷 Oliver M.✓ Sam T.', cards.join(' '));
   check('customer photo strip has 3 photos', (await p.$$('.reviews__photo')).length === 3);
 

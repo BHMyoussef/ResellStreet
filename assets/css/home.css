@@ -34,14 +34,7 @@
 }
 .home-heading__link:hover { color: var(--color-text-muted); }
 
-/* Buttons: the theme's slanted .btn, design size; --light = white on images */
-.btn.btn--home {
-  min-height: 48px;
-  padding: 0 28px;
-  font-size: var(--fs-eyebrow);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.25em;
-}
+/* Buttons: .btn--home (design size) is in base.css; --light = white on images */
 .btn.btn--light { --btn-bg: var(--color-surface); --btn-fg: var(--color-text); --btn-border: var(--color-surface); }
 .home-buttons { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 28px; }
 .home-heading--center + * .home-buttons, .home-buttons--center { align-items: center; }

@@ -283,27 +283,6 @@
       }
     });
 
-    // Masonry: each card spans as many 4px grid rows as it is tall (CSS grid fallback without JS).
-    if (list) {
-      const layout = () => {
-        list.classList.add('is-masonry');
-        const gap = parseFloat(getComputedStyle(list).getPropertyValue('--review-gap')) || 12;
-        list.querySelectorAll('.review-card').forEach((card) => {
-          card.style.gridRowEnd = '';
-          card.style.gridRowEnd = `span ${Math.ceil((card.getBoundingClientRect().height + gap) / 4)}`;
-        });
-      };
-      let frame;
-      const schedule = () => {
-        cancelAnimationFrame(frame);
-        frame = requestAnimationFrame(layout);
-      };
-      layout();
-      list.addEventListener('load', schedule, true); // images inside cards
-      window.addEventListener('resize', schedule, { passive: true });
-      new MutationObserver(schedule).observe(list, { childList: true }); // "Load more"
-    }
-
     // Arriving from a review request link (#review_form / #respond) opens the form.
     if (['#review-form', '#review_form', '#respond'].includes(window.location.hash)) {
       setFormOpen(true, false);

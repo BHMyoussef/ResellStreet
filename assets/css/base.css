@@ -163,6 +163,14 @@ input[type="submit"].button {
 .btn--secondary:hover::before { --btn-bg: var(--color-text); }
 .btn--secondary:hover { color: var(--color-bg); }
 .btn--full { display: flex; width: calc(100% - 12px); }
+/* Design v2 size (homepage, product page): 48px, small spaced caps */
+.btn.btn--home {
+  min-height: 48px;
+  padding: 0 28px;
+  font-size: var(--fs-eyebrow);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.25em;
+}
 .btn[disabled], .btn.is-disabled, .button.disabled, .button:disabled { cursor: default; opacity: 0.5; }
 .btn.is-loading, .button.is-loading { color: transparent; }
 .btn.is-loading::after, .button.is-loading::after {

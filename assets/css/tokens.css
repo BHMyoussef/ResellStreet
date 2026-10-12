@@ -131,6 +131,8 @@
   --option-h: 48px;              /* size buttons */
   --atc-h: 52px;                 /* quantity stepper + add to cart */
   --accordion-width: 800px;
+  --product-section-gap: 56px;   /* accordions → reviews */
+  --color-bar-track: #edebe7;    /* rating bars */
   --color-option-disabled: #a3a6ae; /* sold-out size text (crossed out) */
 
   /* Product card (homepage v2 design) */
@@ -190,6 +192,7 @@
     --section-space: 60px;
     --home-section-space: 75px;
     --fs-product-title: 32px;
+    --product-section-gap: 101px;
     --fs-display: 80px;
     --fs-banner: 68px;
     --fs-split-title: 52px;

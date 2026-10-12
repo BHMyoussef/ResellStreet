@@ -1,6 +1,7 @@
 <?php
 /**
- * Product page review section (Loox-style): summary, customer photos, review cards, "Load more", review form.
+ * Product page review section (design v2): title, summary (average, stars, bars, "Write a review") beside the
+ * customer photos (8 + "+N"), review cards in even rows, "Load more reviews" (REST), review form, photo lightbox.
  *
  * @package CustomImpulse
  */
@@ -13,29 +14,34 @@ $ci_id      = $ci_product->get_id();
 $ci_count   = (int) $ci_product->get_review_count();
 $ci_average = (float) $ci_product->get_average_rating();
 $ci_ratings = (array) $ci_product->get_rating_counts();
-$ci_photos  = $ci_count ? ci_product_review_photos( $ci_id, 12 ) : array();
+$ci_photos  = $ci_count ? ci_product_review_photos( $ci_id, 40 ) : array();
+$ci_shown   = array_slice( $ci_photos, 0, 8 );
+$ci_more    = count( $ci_photos ) - count( $ci_shown ); // "+N" on the last photo shown
 $ci_reviews = $ci_count ? ci_get_reviews( $ci_id, 1 ) : array();
 // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
 $ci_pending = isset( $_GET['unapproved'] );
+$ci_write   = '<button type="button" class="btn btn--secondary btn--home" data-review-form-toggle aria-expanded="false" aria-controls="review-form">' . esc_html__( 'Write a review', 'customimpulse' ) . '</button>';
 ?>
 <div class="reviews" data-reviews data-product="<?php echo esc_attr( $ci_id ); ?>" data-page="1">
+	<h2 class="reviews__title"><?php esc_html_e( 'Customer Reviews', 'customimpulse' ); ?></h2>
+
+	<?php if ( $ci_pending ) : ?>
+		<p class="reviews__notice" role="status"><?php esc_html_e( 'Thank you! Your review is awaiting approval.', 'customimpulse' ); ?></p>
+	<?php endif; ?>
+
 	<div class="reviews__head">
-		<h2 class="reviews__title"><?php esc_html_e( 'Customer Reviews', 'customimpulse' ); ?></h2>
-
-		<?php if ( $ci_pending ) : ?>
-			<p class="reviews__notice" role="status"><?php esc_html_e( 'Thank you! Your review is awaiting approval.', 'customimpulse' ); ?></p>
-		<?php endif; ?>
-
 		<?php if ( $ci_count ) : ?>
 			<div class="reviews__summary">
 				<div class="reviews__score">
 					<span class="reviews__average"><?php echo esc_html( wc_format_decimal( $ci_average, 1 ) ); ?></span>
-					<?php echo ci_stars( $ci_average, 'ci-stars--lg' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-					<span class="reviews__based">
-						<?php
-						/* translators: %s: number of reviews */
-						echo esc_html( sprintf( _n( 'Based on %s review', 'Based on %s reviews', $ci_count, 'customimpulse' ), number_format_i18n( $ci_count ) ) );
-						?>
+					<span class="reviews__score-meta">
+						<?php echo ci_stars( $ci_average, 'ci-stars--lg' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+						<span class="reviews__based">
+							<?php
+							/* translators: %s: number of reviews */
+							echo esc_html( sprintf( _n( 'Based on %s review', 'Based on %s reviews', $ci_count, 'customimpulse' ), number_format_i18n( $ci_count ) ) );
+							?>
+						</span>
 					</span>
 				</div>
 				<ul class="reviews__bars" aria-label="<?php esc_attr_e( 'Rating breakdown', 'customimpulse' ); ?>">
@@ -59,15 +65,32 @@ $ci_pending = isset( $_GET['unapproved'] );
 						</li>
 					<?php endfor; ?>
 				</ul>
-				<div class="reviews__actions">
-					<button type="button" class="btn btn--secondary" data-review-form-toggle aria-expanded="false" aria-controls="review-form"><?php esc_html_e( 'Write a review', 'customimpulse' ); ?></button>
-				</div>
+				<div class="reviews__actions"><?php echo $ci_write; // phpcs:ignore WordPress.Security.EscapeOutput -- built above. ?></div>
 			</div>
 		<?php else : ?>
 			<div class="reviews__empty">
 				<?php echo ci_stars( 0, 'ci-stars--lg' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				<p><?php esc_html_e( 'Be the first to write a review', 'customimpulse' ); ?></p>
-				<button type="button" class="btn btn--secondary" data-review-form-toggle aria-expanded="false" aria-controls="review-form"><?php esc_html_e( 'Write a review', 'customimpulse' ); ?></button>
+				<?php echo $ci_write; // phpcs:ignore WordPress.Security.EscapeOutput -- built above. ?>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( $ci_shown ) : ?>
+			<div class="reviews__photos">
+				<h3 class="reviews__photos-title"><?php esc_html_e( 'Customer photos', 'customimpulse' ); ?></h3>
+				<ul class="reviews__photo-strip">
+					<?php foreach ( $ci_shown as $ci_i => $ci_photo ) : ?>
+						<li>
+							<button type="button" class="reviews__photo" data-review-photo="<?php echo esc_url( $ci_photo['full'] ); ?>" data-review-id="<?php echo esc_attr( $ci_photo['review'] ); ?>">
+								<img src="<?php echo esc_url( $ci_photo['thumb'] ); ?>" alt="" width="72" height="72" loading="lazy" decoding="async">
+								<?php if ( $ci_more > 0 && count( $ci_shown ) - 1 === $ci_i ) : ?>
+									<span class="reviews__photo-more" aria-hidden="true">+<?php echo esc_html( $ci_more ); ?></span>
+								<?php endif; ?>
+								<span class="visually-hidden"><?php esc_html_e( 'View customer photo', 'customimpulse' ); ?></span>
+							</button>
+						</li>
+					<?php endforeach; ?>
+				</ul>
 			</div>
 		<?php endif; ?>
 	</div>
@@ -76,29 +99,13 @@ $ci_pending = isset( $_GET['unapproved'] );
 		<?php ci_review_form( $ci_product ); ?>
 	</div>
 
-	<?php if ( $ci_photos ) : ?>
-		<div class="reviews__photos">
-			<h3 class="reviews__photos-title"><?php esc_html_e( 'Customer photos', 'customimpulse' ); ?></h3>
-			<ul class="reviews__photo-strip">
-				<?php foreach ( $ci_photos as $ci_photo ) : ?>
-					<li>
-						<button type="button" class="reviews__photo" data-review-photo="<?php echo esc_url( $ci_photo['full'] ); ?>" data-review-id="<?php echo esc_attr( $ci_photo['review'] ); ?>">
-							<img src="<?php echo esc_url( $ci_photo['thumb'] ); ?>" alt="" width="96" height="96" loading="lazy" decoding="async">
-							<span class="visually-hidden"><?php esc_html_e( 'View customer photo', 'customimpulse' ); ?></span>
-						</button>
-					</li>
-				<?php endforeach; ?>
-			</ul>
-		</div>
-	<?php endif; ?>
-
 	<?php if ( $ci_reviews ) : ?>
 		<ul class="reviews__grid" data-reviews-list>
 			<?php echo ci_review_cards_html( $ci_reviews ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the card template. ?>
 		</ul>
 		<?php if ( $ci_count > ci_reviews_per_page() ) : ?>
 			<div class="reviews__more">
-				<button type="button" class="btn btn--secondary" data-reviews-more><?php esc_html_e( 'Load more', 'customimpulse' ); ?></button>
+				<button type="button" class="btn btn--secondary btn--home" data-reviews-more><?php esc_html_e( 'Load more reviews', 'customimpulse' ); ?></button>
 			</div>
 		<?php endif; ?>
 	<?php endif; ?>
