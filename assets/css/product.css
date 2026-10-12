@@ -564,7 +564,7 @@ form.cart:not(.variations_form) { margin-bottom: 0; }
   cursor: pointer;
 }
 .cr-upload-images-delete > * { display: none; } /* CusRev's icon-font span; its font isn't loaded */
-.cr-upload-images-delete::before { content: "✕"; }
+.cr-upload-images-delete::before { content: "\2715"; } /* ✕ (escaped: the CSS is served without a charset) */
 .cr-upload-images-delete-spinner, .cr-upload-images-ids { display: none; }
 .review-form .cr-upload-images-status-error { border-color: var(--color-savings); color: var(--color-savings); }
 
@@ -586,9 +586,9 @@ form.cart:not(.variations_form) { margin-bottom: 0; }
 
 /* Star picker on the review form (WooCommerce turns the rating <select> into p.stars links) */
 p.stars a { display: inline-block; width: 1.2em; overflow: hidden; font-size: 20px; white-space: nowrap; color: var(--color-text); text-indent: 1.2em; position: relative; }
-p.stars a::before { content: "☆"; position: absolute; left: 0; top: 0; text-indent: 0; }
-p.stars:hover a::before, p.stars.selected a::before { content: "★"; }
-p.stars a:hover ~ a::before, p.stars.selected a.active ~ a::before { content: "☆"; }
+p.stars a::before { content: "\2606"; /* ☆ — escaped: served without a charset, a literal glyph can turn into "â˜†" */ position: absolute; left: 0; top: 0; text-indent: 0; }
+p.stars:hover a::before, p.stars.selected a::before { content: "\2605"; } /* ★ */
+p.stars a:hover ~ a::before, p.stars.selected a.active ~ a::before { content: "\2606"; }
 
 /* ---------- Sticky add to cart (mobile) ---------- */
 .sticky-atc {
