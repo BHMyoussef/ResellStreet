@@ -77,6 +77,7 @@ done
 "$WP" theme mod set sales_point_3_icon return
 "$WP" theme mod set sales_point_3_text "Easy 30-day returns"
 "$WP" theme mod set product_qty_enable 1
+"$WP" theme mod set related_enable 1
 "$WP" theme mod set trust_badges_enable 0
 "$WP" theme mod set product_auth_badge "100%"
 "$WP" theme mod set product_auth_title "100% authentic"

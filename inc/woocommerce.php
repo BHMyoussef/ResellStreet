@@ -165,12 +165,13 @@ function ci_loop_media() {
 		}
 	}
 
-	// Loop prop ci_badge: 'new' (homepage New Arrivals) shows "New" instead of "Sale"; 'none' only "Sold out".
+	// Loop prop ci_badge: 'new' (homepage New Arrivals) shows "New" instead of "Sale"; 'recent' = "New" only for products
+	// published in the last 30 days (ci_new_badge_days), else nothing; 'none' only "Sold out".
 	if ( ! $product->is_in_stock() ) {
 		echo '<span class="product-card__tag product-card__tag--sold-out">' . esc_html__( 'Sold out', 'customimpulse' ) . '</span>';
-	} elseif ( 'new' === wc_get_loop_prop( 'ci_badge' ) ) {
+	} elseif ( 'new' === wc_get_loop_prop( 'ci_badge' ) || ( 'recent' === wc_get_loop_prop( 'ci_badge' ) && ci_product_is_recent( $product ) ) ) {
 		echo '<span class="product-card__tag product-card__tag--new">' . esc_html__( 'New', 'customimpulse' ) . '</span>';
-	} elseif ( $product->is_on_sale() && 'none' !== wc_get_loop_prop( 'ci_badge' ) ) {
+	} elseif ( $product->is_on_sale() && ! in_array( wc_get_loop_prop( 'ci_badge' ), array( 'none', 'recent' ), true ) ) {
 		echo '<span class="product-card__tag">' . esc_html__( 'Sale', 'customimpulse' ) . '</span>';
 	}
 	echo '</div>';
@@ -182,6 +183,16 @@ function ci_loop_meta_open() {
 
 function ci_loop_meta_close() {
 	echo '</div>';
+}
+
+/**
+ * Published recently enough for a "New" badge (ci_new_badge_days filter, default 30).
+ *
+ * @param WC_Product $product Product.
+ */
+function ci_product_is_recent( WC_Product $product ) {
+	$created = $product->get_date_created();
+	return $created && $created->getTimestamp() > time() - DAY_IN_SECONDS * (int) apply_filters( 'ci_new_badge_days', 30 );
 }
 
 /**

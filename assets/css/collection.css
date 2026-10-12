@@ -210,3 +210,55 @@ ul.products > li.product-category mark { background: none; color: inherit; }
 .search-form__submit .icon { width: 22px; height: 22px; }
 .search-page__empty { margin: 40px 0; text-align: center; }
 .search-page__empty .btn { margin-top: 15px; }
+
+/* ---------- Design v2 card grids (homepage sections, product page "You may also like") ---------- */
+.home-products.products { gap: 32px 12px; }
+.home-products .product-card__meta { padding: 14px 0 0; text-align: left; }
+.home-products .product-card__brand { margin-bottom: 5px; }
+.home-products .product-card__title {
+  font-size: 16px;
+  font-weight: var(--fw-regular);
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.home-products .product-card__price { display: flex; flex-wrap: wrap; column-gap: 8px; margin-top: 6px; font-size: 15px; font-weight: var(--fw-regular); letter-spacing: normal; }
+.home-products .price__compare, .home-products .price__savings { margin: 0; } /* "Save X%" wraps flush left */
+
+/* Swipe row on phones (scroll-snap, no JS) */
+.home-products--carousel.products {
+  grid-auto-flow: column;
+  grid-template-columns: none;
+  grid-auto-columns: 61vw;
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding-inline: var(--page-gutter);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--page-gutter);
+  scrollbar-width: none;
+}
+.home-products--carousel::-webkit-scrollbar { display: none; }
+.home-products--carousel > li { scroll-snap-align: start; }
+
+/* ---------- Image with text ---------- */
+.home-split { display: grid; }
+.home-split__media { position: relative; aspect-ratio: 9 / 10; overflow: hidden; background: var(--brand-navy); }
+.home-split__body { display: flex; align-items: center; padding: 56px 23px 48px; }
+.home-split .home-eyebrow { margin-bottom: 20px; }
+.home-split__text { max-width: 480px; }
+.home-split__title { margin: 0; font-size: var(--fs-split-title); line-height: 1.02; letter-spacing: 0.03em; }
+.home-split__copy { max-width: 455px; margin-top: 20px; font-size: 17px; line-height: 1.6; letter-spacing: normal; }
+.home-split__copy p { margin: 0; }
+.home-split__copy strong { font-weight: var(--fw-bold); }
+
+@media (min-width: 769px) {
+  .home-products.products { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px 24px; }
+  .home-products--carousel.products {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    margin-inline: 0;
+    padding-inline: 0;
+    overflow: visible;
+  }
+}

@@ -714,3 +714,7 @@ body.has-sticky-atc .site-footer { padding-bottom: 110px; }
   border-image: linear-gradient(var(--color-section-alt), var(--color-section-alt)) fill 0 / 0 / 0 100vmax;
 }
 .product-videos .home-width { max-width: none; padding-inline: 0; }
+
+/* ---------- You may also like / Recently viewed (homepage card + grid, design v2) ---------- */
+.single-product div.product > .product-related, .single-product div.product > .product-recent { grid-column: 1 / -1; }
+.product-related { padding-top: var(--home-section-pad); }

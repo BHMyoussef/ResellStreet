@@ -113,15 +113,72 @@ add_action(
 	13
 );
 
-/* Related products are off on the reference store. */
-add_action(
-	'wp',
-	function () {
-		if ( ! ci_mod( 'related_enable' ) ) {
-			remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
+/* "You may also like" (design v2) replaces WooCommerce's upsells + related products blocks. */
+remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_upsell_display', 15 );
+remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
+add_action( 'woocommerce_after_single_product_summary', 'ci_product_also_like', 14 );
+
+/**
+ * Up to 4 products: upsells first, then WooCommerce related products; other colourways of the same model go last
+ * (the colour swatches already show them). "View all" = the product's model category.
+ */
+function ci_product_also_like() {
+	global $product;
+	if ( ! $product instanceof WC_Product || ! ci_mod( 'related_enable' ) || ! function_exists( 'ci_home_products' ) ) {
+		return;
+	}
+	$model = ci_product_model_category( $product );
+	$ids   = array_unique( array_merge( $product->get_upsell_ids(), wc_get_related_products( $product->get_id(), 12 ) ) );
+	if ( $model ) {
+		$same = array_filter( $ids, fn( $id ) => has_term( $model->term_id, 'product_cat', $id ) );
+		$ids  = array_merge( array_diff( $ids, $same ), $same );
+	}
+	$ids = array_slice( array_values( $ids ), 0, 4 );
+	if ( ! $ids ) {
+		return;
+	}
+	$html = ci_home_products(
+		array(
+			'post__in'       => $ids,
+			'orderby'        => 'post__in',
+			'posts_per_page' => 4,
+		),
+		'home-products--carousel',
+		array( 'ci_badge' => 'recent' )
+	);
+	if ( '' === $html ) {
+		return;
+	}
+	$link = $model ? get_term_link( $model ) : wc_get_page_permalink( 'shop' );
+	?>
+	<section class="product-related" aria-labelledby="product-related-title">
+		<div class="home-heading">
+			<h2 class="home-heading__title" id="product-related-title"><?php esc_html_e( 'You may also like', 'customimpulse' ); ?></h2>
+			<a class="home-heading__link" href="<?php echo esc_url( is_wp_error( $link ) ? wc_get_page_permalink( 'shop' ) : $link ); ?>"><?php esc_html_e( 'View all', 'customimpulse' ); ?></a>
+		</div>
+		<?php echo $html; // phpcs:ignore WordPress.Security.EscapeOutput -- WooCommerce card templates. ?>
+	</section>
+	<?php
+}
+
+/**
+ * The product's model = its deepest category (Shoes > New Balance > New Balance 530).
+ *
+ * @param WC_Product $product Product.
+ * @return WP_Term|null
+ */
+function ci_product_model_category( WC_Product $product ) {
+	$model = null;
+	$depth = -1;
+	foreach ( wc_get_product_terms( $product->get_id(), 'product_cat', array( 'fields' => 'all' ) ) as $cat ) {
+		$d = count( get_ancestors( $cat->term_id, 'product_cat', 'taxonomy' ) );
+		if ( $d > $depth ) {
+			$depth = $d;
+			$model = $cat;
 		}
 	}
-);
+	return $model && $depth > 0 ? $model : null;
+}
 
 /* No quantity box unless enabled (reference store has none). The input stays in the form with value 1. */
 add_filter(
@@ -413,18 +470,9 @@ function ci_product_colourways() {
 	if ( ! $own ) {
 		return;
 	}
-	// The model = the deepest category of the product (e.g. Shoes > New Balance > New Balance 530).
-	$model = null;
-	$depth = -1;
-	foreach ( wc_get_product_terms( $product->get_id(), 'product_cat', array( 'fields' => 'all' ) ) as $cat ) {
-		$d = count( get_ancestors( $cat->term_id, 'product_cat', 'taxonomy' ) );
-		if ( $d > $depth ) {
-			$depth = $d;
-			$model = $cat;
-		}
-	}
+	$model = ci_product_model_category( $product );
 	$items = array( $product->get_id() => $own );
-	if ( $model && $depth > 0 ) {
+	if ( $model ) {
 		foreach ( wc_get_products(
 			array(
 				'status'   => 'publish',

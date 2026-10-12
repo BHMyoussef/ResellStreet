@@ -76,9 +76,7 @@ add_action(
 			ci_enqueue_script( 'product' );
 			ci_enqueue_style( 'video-reviews' );
 			ci_enqueue_script( 'video-reviews' );
-			if ( ci_mod( 'related_enable' ) ) {
-				ci_enqueue_style( 'collection' ); // Product cards in related/upsells.
-			}
+			ci_enqueue_style( 'collection' ); // Product cards: "You may also like", recently viewed.
 		}
 
 		ci_enqueue_script( 'global' );
