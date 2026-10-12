@@ -64,7 +64,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 20%, var(--color-hero-overlay) 100%), var(--color-hero-overlay);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-hero-overlay) 60%, transparent) 0%, var(--color-hero-overlay) 85%);
   opacity: var(--overlay);
 }
 .home-hero__content { position: relative; z-index: 1; padding-block: 40px; }
@@ -77,6 +77,24 @@
   letter-spacing: 0.02em;
 }
 .home-hero__text { max-width: 440px; margin: 18px 0 0; font-size: var(--fs-home-text); line-height: 1.5; letter-spacing: normal; }
+
+/* ---------- Full-width banner ---------- */
+.home-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 520px;
+  overflow: hidden;
+  background: var(--brand-navy);
+  color: var(--color-on-image);
+  text-align: center;
+}
+.home-banner::after { content: ""; position: absolute; inset: 0; background: var(--color-hero-overlay); opacity: var(--overlay); }
+.home-banner__content { position: relative; z-index: 1; padding-block: 64px; }
+.home-banner__title { max-width: 720px; margin: 0 auto; color: inherit; font-size: var(--fs-banner); line-height: 1; letter-spacing: 0.03em; }
+.home-banner .home-eyebrow { margin-bottom: 20px; }
+.home-banner__text { max-width: 500px; margin: 20px auto 0; font-size: 17px; line-height: 1.55; letter-spacing: normal; }
+.home-banner .home-buttons { align-items: center; justify-content: center; }
 
 /* ---------- Product cards on the homepage (design card: left-aligned, brand line, sentence case) ---------- */
 .home-products.products { gap: 32px 12px; }
@@ -131,6 +149,7 @@
 }
 
 @media (min-width: 769px) {
+  .home-banner { min-height: var(--banner-h); }
   .home-split { grid-template-columns: 54.17% 1fr; min-height: 662px; }
   .home-split--right .home-split__media { order: 2; }
   .home-split__media { aspect-ratio: auto; }

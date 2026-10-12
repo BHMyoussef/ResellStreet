@@ -146,7 +146,7 @@ for i in 1 2 3 4 5 6 7 8; do for k in cat title image; do "$WP" theme mod remove
 # Hero
 mod home_hero_image "$(media_id hero-1.jpg 'Hero - Step into the drip')"
 mod home_hero_focal "top center"
-mod home_hero_overlay 70
+mod home_hero_overlay 75
 mod home_hero_eyebrow "New season drop"
 mod home_hero_title "Step into the drip."
 mod home_hero_text "Authentic sneakers, apparel and accessories from the brands that run the street. Shipped free across the UK."
@@ -185,6 +185,7 @@ done
 # Banner
 mod home_banner_image "$(media_id banner-1.jpg 'Street-luxury')"
 mod home_banner_focal "center center"
+mod home_banner_overlay 80
 mod home_banner_eyebrow "Authenticated. Every pair."
 mod home_banner_title "Wear what moves the street."
 mod home_banner_text "The most-wanted silhouettes, sourced and checked so you don't have to."

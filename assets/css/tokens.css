@@ -138,7 +138,7 @@
   --fs-home-text: 16px;        /* hero/banner body text */
   --home-width: 1200px;
   --home-section-pad: 56px;
-  --color-hero-overlay: color-mix(in srgb, var(--brand-navy) 55%, transparent);
+  --color-hero-overlay: var(--brand-navy); /* image overlays; strength = Customizer % (opacity) */
 
   /* Layout */
   --page-width: 1500px;
