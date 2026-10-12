@@ -5,3 +5,8 @@ screens-local/
 test-results/
 tools/bin/
 .claude/settings.local.json
+# Never commit local data or secrets (the repo is deployed by WP Pusher and may be public)
+*.sql
+*.log
+*.wpress
+.env*

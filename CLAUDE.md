@@ -278,6 +278,16 @@ Local site: http://resellstreet.local
    default payment: tests pick Cash on delivery and skip the US country check.
 2. Compare with `reference/screens/*`, then continue with the next ⏭ row above.
 
+## Deployment (WP Pusher)
+- WP Pusher installs the theme from the GitHub repo (`main`) and copies the WHOLE repo into the theme folder.
+  Only theme files + dev files that must stay (CLAUDE.md, tools/ tests and scripts, package*.json) are tracked;
+  local data never is (`.gitignore`: reference/, node_modules/, *.sql, *.log, *.wpress, .env*).
+- `.htaccess` (theme root) blocks public access to tools/, tests/, node_modules/, reference/, dotfiles and
+  *.md / *.json / *.lock / *.yml / *.mjs / *.sh / *.py (403; verified with Apache; Hostinger = LiteSpeed reads it).
+  Every tools/*.php starts with `defined( 'ABSPATH' ) || exit;`.
+- The database/content is managed on each site (All-in-One WP Migration export without themes). Never run
+  `npm run fixtures` on a live site.
+
 ## WooCommerce template overrides
 _(none yet. Add every file in `/woocommerce` here with the reason)_
 

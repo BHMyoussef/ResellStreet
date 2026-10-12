@@ -1,0 +1,24 @@
+# Theme folder: block public access to development files (WP Pusher deploys the whole repo).
+# Theme assets (CSS, JS, fonts, images) and WordPress's own PHP loading are unaffected.
+
+# Dev folders: tests and tooling, dependencies, design references, test output.
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteRule ^(tools|tests|node_modules|reference|screens-local|test-results)(/|$) - [F,L,NC]
+	# Dotfiles and dot-folders (.git, .gitignore, .claude …).
+	RewriteRule (^|/)\. - [F,L]
+</IfModule>
+
+# Dev file types, plus dotfiles (also covered here if mod_rewrite is off).
+<FilesMatch "(\.(md|json|lock|ya?ml|mjs|sh|py|sql|log|dist)$|^\.|^(wp|Makefile)$)">
+	<IfModule mod_authz_core.c>
+		Require all denied
+	</IfModule>
+	<IfModule !mod_authz_core.c>
+		Order allow,deny
+		Deny from all
+	</IfModule>
+</FilesMatch>
+
+# No directory listings.
+Options -Indexes
