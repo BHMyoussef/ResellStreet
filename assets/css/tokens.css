@@ -1,6 +1,6 @@
 /*
  * Design tokens: the only place raw colors, fonts and sizes live.
- * Source: reference config/settings_data.json, cross-checked with computed styles on the design reference (novarende.com).
+ * Source: reference config/settings_data.json, cross-checked with computed styles on the Shopify design reference.
  * Mobile values first; desktop overrides at 769px (same breakpoint as the reference).
  */
 :root {
