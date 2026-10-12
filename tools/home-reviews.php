@@ -20,14 +20,16 @@ require_once ABSPATH . 'wp-admin/includes/image.php';
 $ci_dir = dirname( __DIR__ ) . '/reference/media/home-v2/reviews';
 
 // Display order: [media file, product SKU ('' = none)]. Videos alternate with photos.
+// Unlinked = not sold here: LV Trainer (2, 8), Gucci Gazelle pink velvet (4), Jordan 4 Metallic Gold (5),
+// Gazelle Indoor Collegiate Green/Lucid Pink (6).
 $ci_reviews = array(
-	array( '6bcb0472-de72-4d53-b0c7-8af050b7d339.mp4', '' ),
+	array( '6bcb0472-de72-4d53-b0c7-8af050b7d339.mp4', 'gg-green-stripe-sneaker' ), // Adidas x Gucci Gazelle - Green/Pink
 	array( '0147bf0329d373cd2b0752250e91dbd0.jpg', '' ),
-	array( 'fd6c689d668223212bd8a5153a0b7330.jpg', 'ads-gazlle-x-gcci-gg-monogram-beige-edition' ),
+	array( 'fd6c689d668223212bd8a5153a0b7330.jpg', 'ads-gazlle-x-gcci-gg-monogram-beige-edition' ), // Adidas x Gucci Gazelle - Beige
 	array( '718af4c2-f18e-4f11-8eed-5cbbda009c8f.mp4', '' ),
 	array( 'ras_1721505704_3416559935508077171_64159681757.jpg', '' ),
 	array( '1ea9cc6ebc2910e3f57319d72cb68346.jpg', '' ),
-	array( '6499bbaecff6bca4edec7b2601ffb2a8.jpg', '' ),
+	array( '6499bbaecff6bca4edec7b2601ffb2a8.jpg', 'nb-9060-quartz-grey' ), // New Balance 9060 - Quartz Grey
 	array( '55b0aa5424fd816677255eebbe7ced27.jpg', '' ),
 );
 
