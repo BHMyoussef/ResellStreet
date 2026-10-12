@@ -220,6 +220,10 @@ mod home_trust_4_icon shield; mod home_trust_4_title "Authentic guaranteed"; mod
 # An old uploaded logo would override it, so clear it.
 "$WP" theme mod remove custom_logo >/dev/null 2>&1 || true
 
+# ---------- Colour swatches (product page): colour per product from its title, hex from its photo ----------
+# Needs the site running (Playwright reads the photos); only products without a colour are touched.
+node "$(dirname "$0")/product-colours.mjs" || echo "Colour swatches skipped (run: node tools/product-colours.mjs)"
+
 # ---------- Shoe size guide (Shoes category) ----------
 "$WP" eval-file "$(dirname "$0")/size-guide.php"
 

@@ -180,6 +180,76 @@ ci_fx_product(
 	array_reverse( $images )
 );
 
+/*
+ * "Test Runner" (product page v2 states): real-store shape = one colourway per product, colour as a plain pa_color
+ * attribute, sizes UK 3–13 in halves as the only variation attribute. Mint Blue: 4.5 / 9.5 / 11 sold out, UK 8 low
+ * stock (2), on sale. Black and Cream are its sibling colourways (same model category → colour swatches).
+ */
+function ci_fx_runner( $sku, $colour, $hex, $model_id, $brand, array $images, array $sold_out = array(), array $low = array() ) {
+	$size_names = array();
+	for ( $s = 3; $s <= 13; $s += 0.5 ) {
+		$size_names[] = (string) $s;
+	}
+	list( $size_tax, $sizes ) = ci_fx_attribute( 'Size', 'size', $size_names );
+	list( $color_tax, $colors ) = ci_fx_attribute( 'Color', 'color', array( $colour ) );
+	update_term_meta( $colors[ $colour ]->term_id, 'ci_swatch', $hex );
+
+	$id      = wc_get_product_id_by_sku( $sku );
+	$product = new WC_Product_Variable( $id ? $id : 0 );
+	foreach ( $id ? $product->get_children() : array() as $child ) {
+		wp_delete_post( $child, true );
+	}
+	$product->set_name( "Test Runner - {$colour}" );
+	$product->set_sku( $sku );
+	$product->set_status( 'publish' );
+	$product->set_category_ids( array( $model_id ) );
+	$product->set_description( '<p>Built for runners chasing their fastest training days: speed, cushioning and precision in one lightweight package.</p><p>An updated foam midsole gives a responsive ride, while the grippy rubber outsole keeps you planted from tempo runs to marathon blocks.</p>' );
+	$product->set_image_id( $images[0] );
+	$product->set_gallery_image_ids( array_slice( $images, 1 ) );
+	$attributes = array();
+	foreach ( array( array( $color_tax, $colors, false ), array( $size_tax, $sizes, true ) ) as $position => list( $taxonomy, $terms, $variation ) ) {
+		$a = new WC_Product_Attribute();
+		$a->set_id( wc_attribute_taxonomy_id_by_name( $taxonomy ) );
+		$a->set_name( $taxonomy );
+		$a->set_options( array_map( fn( $t ) => $t->term_id, array_values( $terms ) ) );
+		$a->set_position( $position );
+		$a->set_visible( true );
+		$a->set_variation( $variation );
+		$attributes[] = $a;
+	}
+	$product->set_attributes( $attributes );
+	$product_id = $product->save();
+	if ( taxonomy_exists( 'product_brand' ) ) {
+		wp_set_object_terms( $product_id, $brand, 'product_brand' );
+	}
+	foreach ( $sizes as $name => $term ) {
+		$v = new WC_Product_Variation();
+		$v->set_parent_id( $product_id );
+		$v->set_attributes( array( $size_tax => $term->slug ) );
+		$v->set_regular_price( '139.99' );
+		$v->set_sale_price( '59.99' );
+		if ( in_array( $name, $sold_out, true ) ) {
+			$v->set_stock_status( 'outofstock' );
+		} elseif ( isset( $low[ $name ] ) ) {
+			$v->set_manage_stock( true );
+			$v->set_stock_quantity( $low[ $name ] );
+		}
+		$v->save();
+	}
+	WC_Product_Variable::sync( $product_id );
+	wc_delete_product_transients( $product_id );
+	WP_CLI::success( "Test Runner - {$colour} (#{$product_id}): " . count( $sizes ) . ' sizes' );
+	return $product_id;
+}
+$ci_fx_model = get_term_by( 'slug', 'test-runner', 'product_cat' );
+if ( ! $ci_fx_model ) {
+	$res         = wp_insert_term( 'Test Runner', 'product_cat', array( 'slug' => 'test-runner', 'parent' => $shoes->term_id ) );
+	$ci_fx_model = get_term( $res['term_id'], 'product_cat' );
+}
+ci_fx_runner( 'CI-TEST-RUNNER', 'Mint Blue', '#a8dccf', $ci_fx_model->term_id, 'nike', $images, array( '4.5', '9.5', '11' ), array( '8' => 2 ) );
+ci_fx_runner( 'CI-TEST-RUNNER-BLACK', 'Black', '#23262d', $ci_fx_model->term_id, 'nike', array_reverse( $images ) );
+ci_fx_runner( 'CI-TEST-RUNNER-CREAM', 'Cream', '#ece8df', $ci_fx_model->term_id, 'nike', array_slice( $images, 2 ) );
+
 // ---------------------------------------------------------------------------
 // Checkout / account testing (DEV ONLY)
 // ---------------------------------------------------------------------------

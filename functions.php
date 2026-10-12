@@ -20,6 +20,7 @@ if ( class_exists( 'WooCommerce' ) ) {
 	require_once get_theme_file_path( 'inc/woocommerce.php' );
 	require_once get_theme_file_path( 'inc/home.php' );
 	require_once get_theme_file_path( 'inc/product.php' );
+	require_once get_theme_file_path( 'inc/swatches.php' );
 	require_once get_theme_file_path( 'inc/reviews.php' );
 	require_once get_theme_file_path( 'inc/cart.php' );
 	require_once get_theme_file_path( 'inc/wc-pages.php' );
