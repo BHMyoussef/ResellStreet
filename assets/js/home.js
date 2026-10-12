@@ -2,7 +2,7 @@
  * Homepage (reference/homepage-v2). Vanilla JS, deferred.
  * - Trending tabs: other categories load from REST ci/v1/trending/<cat> (cached per tab, prefetched on hover).
  * - Carousels ([data-carousel]): CSS scroll-snap; arrows scroll by one page and disable at the ends.
- * - Video reviews: poster only until tapped; then a <video> is created (the file loads now, not before).
+ * - Video reviews: poster only until tapped; then a muted <video> is created (the file loads now, not before).
  */
 (() => {
   /* ---------- Trending tabs ---------- */
@@ -96,6 +96,13 @@
     video.src = button.dataset.videoSrc;
     video.controls = true;
     video.playsInline = true;
+    // No sound (store choice): muted, and kept muted if the visitor uses the volume control.
+    video.muted = true;
+    video.defaultMuted = true;
+    video.setAttribute('muted', '');
+    video.addEventListener('volumechange', () => {
+      if (!video.muted) video.muted = true;
+    });
     video.preload = 'auto';
     video.setAttribute('aria-label', button.textContent.trim());
     const poster = media.querySelector('.video-card__poster');

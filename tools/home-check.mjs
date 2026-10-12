@@ -60,8 +60,11 @@ const b = await launch();
   await p.waitForTimeout(700);
   await p.locator('.video-card__play').first().click();
   await p.waitForTimeout(1200);
-  const v = await p.$eval('.video-card video', (x) => ({ paused: x.paused, controls: x.controls, inline: x.playsInline }));
+  const v = await p.$eval('.video-card video', (x) => ({ paused: x.paused, controls: x.controls, inline: x.playsInline, muted: x.muted }));
   check('tap plays the video inline with controls (file requested now)', !v.paused && v.controls && v.inline && media.length === 1, JSON.stringify(v));
+  await p.$eval('.video-card video', (x) => { x.muted = false; x.volume = 1; });
+  await p.waitForTimeout(100);
+  check('video has no sound (muted, stays muted)', v.muted && (await p.$eval('.video-card video', (x) => x.muted)));
   check('no console errors (desktop)', errors.length === 0, errors.join(' | '));
   await p.close();
 }
