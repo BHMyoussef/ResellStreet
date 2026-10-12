@@ -49,6 +49,7 @@ add_action(
 			'productCss'   => esc_url_raw( add_query_arg( 'ver', ci_asset_version( 'assets/css/product.css' ), get_theme_file_uri( 'assets/css/product.css' ) ) ),
 			'productJs'    => esc_url_raw( add_query_arg( 'ver', ci_asset_version( 'assets/js/product.js' ), get_theme_file_uri( 'assets/js/product.js' ) ) ),
 			'taxIncl'      => $tax_incl,
+			'freeShipping' => ci_free_shipping_threshold(), // null = no free shipping method; 0 = always free
 			'i18n'         => array(
 				'remove'        => __( 'Remove', 'customimpulse' ),
 				'decrease'      => __( 'Reduce quantity', 'customimpulse' ),
@@ -58,11 +59,115 @@ add_action(
 				'selectOptions' => __( 'Please select your options.', 'customimpulse' ),
 				'unavailable'   => __( 'Sorry, this combination is unavailable. Please choose another.', 'customimpulse' ),
 				'cartCount'     => __( 'Cart (%d)', 'customimpulse' ),
+				'added'         => __( 'Added to cart.', 'customimpulse' ),
+				'unlocked'      => __( 'You’ve unlocked free UK shipping.', 'customimpulse' ),
+				/* translators: %s: amount left to spend */
+				'spendMore'     => __( 'Spend %s more for free UK shipping.', 'customimpulse' ),
+				'free'          => __( 'Free', 'customimpulse' ),
+				'atCheckout'    => __( 'Calculated at checkout', 'customimpulse' ),
 			),
 		);
 		wp_add_inline_script( 'ci-cart', 'window.ciCart=' . wp_json_encode( $config ) . ';', 'before' );
 	}
 );
+
+/**
+ * Minimum order for WooCommerce's "Free shipping" method (first enabled one, UK zone first): 0 when it needs no
+ * minimum, null when there is none (or it only works with a coupon). Drives the drawer's free-shipping message.
+ *
+ * @return float|null
+ */
+function ci_free_shipping_threshold() {
+	if ( ! class_exists( 'WC_Shipping_Zones' ) ) {
+		return null;
+	}
+	$zones = WC_Shipping_Zones::get_zones();
+	usort( $zones, fn( $a, $b ) => (int) ! in_array( 'GB', wp_list_pluck( $a['zone_locations'], 'code' ), true ) <=> (int) ! in_array( 'GB', wp_list_pluck( $b['zone_locations'], 'code' ), true ) );
+	foreach ( $zones as $zone ) {
+		foreach ( $zone['shipping_methods'] as $method ) {
+			if ( 'free_shipping' !== $method->id || 'yes' !== $method->enabled ) {
+				continue;
+			}
+			$requires = (string) $method->get_option( 'requires' );
+			if ( in_array( $requires, array( 'coupon', 'both' ), true ) ) {
+				continue;
+			}
+			return in_array( $requires, array( 'min_amount', 'either' ), true ) ? (float) $method->get_option( 'min_amount' ) : 0.0;
+		}
+	}
+	return null;
+}
+
+/*
+ * Store API cart items get extensions.ci = { brand, title, variant } for the drawer (design v2):
+ * "BRAND" / "Boston Runner 13" / "Mint Blue / UK 8". Title drops a trailing " – <colour>" when the colour is in the
+ * variant line.
+ */
+add_action(
+	'init', // woocommerce_blocks_loaded fires before the theme loads
+	function () {
+		if ( ! function_exists( 'woocommerce_store_api_register_endpoint_data' ) ) {
+			return;
+		}
+		woocommerce_store_api_register_endpoint_data(
+			array(
+				'endpoint'        => \Automattic\WooCommerce\StoreApi\Schemas\V1\CartItemSchema::IDENTIFIER,
+				'namespace'       => 'ci',
+				'data_callback'   => 'ci_cart_item_display_data',
+				'schema_callback' => fn() => array(
+					'brand'   => array( 'type' => 'string', 'readonly' => true ),
+					'title'   => array( 'type' => 'string', 'readonly' => true ),
+					'variant' => array( 'type' => 'string', 'readonly' => true ),
+				),
+				'schema_type'     => ARRAY_A,
+			)
+		);
+	}
+);
+
+/**
+ * Brand, short title and variant line of a cart item.
+ *
+ * @param array $cart_item WooCommerce cart item.
+ */
+function ci_cart_item_display_data( $cart_item ) {
+	$product = $cart_item['data'] ?? null;
+	if ( ! $product instanceof WC_Product ) {
+		return array( 'brand' => '', 'title' => '', 'variant' => '' );
+	}
+	$parent = $product->get_parent_id() ? wc_get_product( $product->get_parent_id() ) : $product;
+	$brand  = function_exists( 'ci_product_brand' ) ? ci_product_brand( $parent->get_id() ) : null;
+	$parts  = array();
+	$colour = '';
+	$attr   = $parent->get_attributes()['pa_color'] ?? null;
+	if ( $attr && ! $attr->get_variation() && $attr->get_terms() ) {
+		$colour  = $attr->get_terms()[0]->name;
+		$parts[] = $colour;
+	}
+	foreach ( (array) ( $cart_item['variation'] ?? array() ) as $key => $value ) {
+		$taxonomy = substr( (string) $key, 10 ); // attribute_pa_size → pa_size
+		$term     = taxonomy_exists( $taxonomy ) ? get_term_by( 'slug', $value, $taxonomy ) : null;
+		$label    = $term ? $term->name : (string) $value;
+		if ( '' === $label ) {
+			continue;
+		}
+		if ( 'pa_color' === $taxonomy && '' === $colour ) {
+			$colour = $label;
+		}
+		$attr_label = wc_attribute_label( $taxonomy );
+		$system     = function_exists( 'ci_is_size_attribute' ) && ci_is_size_attribute( $taxonomy, $attr_label ) ? ci_size_system( $attr_label ) : '';
+		$parts[]    = '' !== $system ? "{$system} {$label}" : $label;
+	}
+	$title = $parent->get_name();
+	if ( '' !== $colour ) {
+		$title = preg_replace( '/\s[–-]\s' . preg_quote( $colour, '/' ) . '$/u', '', $title );
+	}
+	return array(
+		'brand'   => $brand ? $brand->name : '',
+		'title'   => html_entity_decode( wp_strip_all_tags( $title ), ENT_QUOTES ),
+		'variant' => implode( ' / ', $parts ),
+	);
+}
 
 /* WooCommerce's jQuery scripts are only needed where its own JS still runs (product, cart, checkout, account). */
 add_action(

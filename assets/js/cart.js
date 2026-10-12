@@ -145,7 +145,19 @@
     subtotal: $('[data-cart-subtotal]', drawer),
     error: $('[data-cart-error]', drawer),
     status: $('[data-cart-status]', drawer),
+    titleCount: $('[data-cart-title-count]', drawer),
+    shipping: $('[data-cart-shipping]', drawer),
+    shippingValue: $('[data-cart-shipping-value]', drawer),
+    notice: $('[data-cart-notice]', drawer),
+    noticeTitle: $('[data-cart-notice-title]', drawer),
+    noticeText: $('[data-cart-notice-text]', drawer),
   };
+  // "Added to cart" banner: shown after an add until the drawer closes.
+  let justAdded = false;
+  drawer?.addEventListener('close', () => {
+    justAdded = false;
+    if (parts) parts.notice.hidden = true;
+  });
 
   function itemNode(item) {
     const p = item.prices;
@@ -154,17 +166,22 @@
     const qty = item.quantity;
     const limits = item.quantity_limits || {};
     const name = text(item.name);
+    const ci = item.extensions?.ci || {}; // brand, short title, "Mint Blue / UK 8" (inc/cart.php)
 
+    // Variant line from our extension; plugin item data (add-ons) stays as label: value rows.
     const meta = el('dl', { class: 'cart-item__meta' });
-    [...(item.variation || []).map((v) => [v.attribute, v.value]), ...(item.item_data || []).map((d) => [d.name || d.key, d.display || d.value])]
+    const rows = ci.variant
+      ? (item.item_data || []).map((d) => [d.name || d.key, d.display || d.value])
+      : [...(item.variation || []).map((v) => [v.attribute, v.value]), ...(item.item_data || []).map((d) => [d.name || d.key, d.display || d.value])];
+    rows
       .filter(([k, v]) => k && v)
       .forEach(([k, v]) => meta.append(el('div', {}, el('dt', { text: `${text(k)}:` }), el('dd', { text: text(v) }))));
 
     const price = el('div', { class: 'cart-item__price' });
     if (Number(p.regular_price) > Number(p.price)) {
-      price.append(el('s', { class: 'price__compare', text: money(Number(p.regular_price) * qty, p) }), ' ');
+      price.append(el('s', { class: 'price__compare', text: money(Number(p.regular_price) * qty, p) }));
     }
-    price.append(el('span', { text: money(Number(p.price) * qty, p) }));
+    price.append(el('span', { class: 'cart-item__amount', text: money(Number(p.price) * qty, p) }));
 
     let quantity;
     if (limits.editable === false) {
@@ -208,9 +225,12 @@
       el(
         'div',
         { class: 'cart-item__details' },
-        el('a', { class: 'cart-item__name', href, text: name }),
+        ci.brand ? el('p', { class: 'cart-item__brand', text: text(ci.brand) }) : null,
+        el('a', { class: 'cart-item__name', href, text: text(ci.title) || name }),
+        ci.variant ? el('p', { class: 'cart-item__variant', text: text(ci.variant) }) : null,
         meta.children.length ? meta : null,
-        el('div', { class: 'cart-item__row' }, quantity, price)
+        el('div', { class: 'cart-item__row' }, quantity, price),
+        limits.editable === false ? null : el('button', { type: 'button', class: 'cart-item__remove', 'data-qty-remove': '', 'aria-label': `${cfg.i18n.remove} ${name}`, text: cfg.i18n.remove })
       )
     );
   }
@@ -223,7 +243,21 @@
     parts.empty.hidden = items.length > 0;
     parts.footer.hidden = items.length === 0;
     const t = next.totals || {};
-    parts.subtotal.textContent = money(Number(t.total_items || 0) + (cfg.taxIncl ? Number(t.total_items_tax || 0) : 0), t);
+    const subtotal = Number(t.total_items || 0) + (cfg.taxIncl ? Number(t.total_items_tax || 0) : 0);
+    parts.subtotal.textContent = money(subtotal, t);
+    parts.titleCount.textContent = items.length ? `(${next.items_count})` : '';
+
+    // Free shipping (WooCommerce "Free shipping" minimum): "UK shipping: Free" row + the banner message.
+    const minor = 10 ** (t.currency_minor_unit ?? 2);
+    const threshold = cfg.freeShipping;
+    const left = threshold === null || threshold === undefined ? null : Math.max(0, threshold * minor - subtotal);
+    parts.shipping.hidden = left === null;
+    if (left !== null) parts.shippingValue.textContent = left === 0 ? cfg.i18n.free : cfg.i18n.atCheckout;
+    parts.notice.hidden = !justAdded;
+    if (justAdded) {
+      parts.noticeTitle.textContent = cfg.i18n.added;
+      parts.noticeText.textContent = left === null ? '' : left === 0 ? cfg.i18n.unlocked : cfg.i18n.spendMore.replace('%s', money(left, t));
+    }
     parts.loading.hidden = true;
     parts.body.setAttribute('aria-busy', 'false');
     setCount(next.items_count || 0);
@@ -275,6 +309,11 @@
     });
 
     drawer.addEventListener('click', (e) => {
+      const remove = e.target.closest('[data-qty-remove]');
+      if (remove) {
+        setQuantity(remove.closest('[data-key]').dataset.key, 0, remove); // same path as "−" down to 0
+        return;
+      }
       const btn = e.target.closest('[data-qty-step]');
       if (!btn) return;
       const row = btn.closest('[data-key]');
@@ -317,6 +356,7 @@
     if (button) button.disabled = true;
     try {
       const next = await enqueue(() => api('cart/add-item', { method: 'POST', body: payload }));
+      justAdded = true;
       render(next);
       showError('');
       const modal = form.closest('dialog[data-modal]');

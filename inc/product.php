@@ -385,8 +385,8 @@ add_filter(
 		$is_size = ci_is_size_attribute( $attribute, $label );
 		$swatch  = CI_COLOUR_TAXONOMY === $attribute;
 		$heading = $label;
-		$system  = trim( (string) ci_mod( 'size_system_label' ) );
-		if ( $is_size && '' !== $system && false === stripos( $label, $system ) ) {
+		$system  = $is_size ? ci_size_system( $label ) : '';
+		if ( '' !== $system ) {
 			$heading .= " ({$system})";
 		}
 
@@ -704,8 +704,7 @@ function ci_product_details_list( WC_Product $product ) {
 		if ( ci_is_size_attribute( $attribute->get_name(), $label ) && count( $values ) > 2 ) {
 			$nums = array_map( fn( $v ) => (float) str_replace( ',', '.', $v ), $values );
 			if ( count( array_filter( $nums ) ) === count( $nums ) ) {
-				$system = trim( (string) ci_mod( 'size_system_label' ) );
-				$values = array( trim( $system . ' ' . wc_format_localized_decimal( min( $nums ) ) . '–' . wc_format_localized_decimal( max( $nums ) ) ) );
+				$values = array( trim( ci_size_system( $label ) . ' ' . wc_format_localized_decimal( min( $nums ) ) . '–' . wc_format_localized_decimal( max( $nums ) ) ) );
 			}
 		}
 		$rows[ $label ] = implode( ', ', $values );
@@ -795,6 +794,20 @@ add_action(
 /* ---------------------------------------------------------------------------
  * Size guide: HTML per product category (term meta), shown in a modal
  * ------------------------------------------------------------------------ */
+
+/**
+ * Size system shown with a size attribute ("UK"): the Customizer value, unless the attribute's own name already
+ * says which system it is ("Size (USA)", "EU size").
+ *
+ * @param string $label Attribute label.
+ */
+function ci_size_system( $label ) {
+	$system = trim( (string) ci_mod( 'size_system_label' ) );
+	if ( '' === $system || false !== strpos( $label, '(' ) || preg_match( '/\b(uk|us|usa|eu|fr|it|jp|cm)\b/i', $label ) ) {
+		return '';
+	}
+	return $system;
+}
 
 /**
  * Whether an attribute is the "size" attribute the size guide link attaches to.

@@ -24,6 +24,7 @@ const drawerState = (p) =>
       items: [...d.querySelectorAll('.cart-item')].map((li) => ({
         name: li.querySelector('.cart-item__name').textContent,
         meta: li.querySelector('.cart-item__meta')?.textContent.replace(/\s+/g, ' ').trim(),
+        variant: li.querySelector('.cart-item__variant')?.textContent.trim() || '',
         qty: li.querySelector('.qty__input')?.value,
         price: li.querySelector('.cart-item__price').textContent.replace(/\s+/g, ' ').trim(),
       })),
@@ -65,7 +66,7 @@ const drawerState = (p) =>
   await p.waitForTimeout(600);
   let s = await drawerState(p);
   check('Quick Shop closed, drawer opened', !(await qs.evaluate((d) => d.open)) && s.open);
-  check('drawer shows the item with options', s.items.length === 1 && /Colour:\s?Khaki/.test(s.items[0].meta) && /Size \(USA\):\s?8/.test(s.items[0].meta), JSON.stringify(s.items[0]));
+  check('drawer shows the item with its variant', s.items.length === 1 && /Khaki/.test(s.items[0].variant) && /\b8\b/.test(s.items[0].variant) && !/UK/.test(s.items[0].variant), JSON.stringify(s.items[0]));
   check('line price with compare-at', /£92\.99.*£45\.75/.test(s.items[0]?.price || ''), s.items[0]?.price);
   check('subtotal', s.subtotal === '£45.75', s.subtotal);
   check('cart dot on', s.dot);
