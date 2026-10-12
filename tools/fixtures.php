@@ -314,3 +314,37 @@ foreach ( array_keys( $touched ) as $product_id ) {
 	WP_CLI::log( sprintf( '  %s: %s★ from %d reviews', $p->get_name(), $p->get_average_rating(), $p->get_review_count() ) );
 }
 WP_CLI::success( count( $reviews ) . ' test reviews created.' );
+
+// Test video reviews (homepage "Hear from our customers"): poster = a product photo, video = MDN's CC0 sample clip.
+// Names say "Test" so they can't pass for real customers. Re-running replaces them.
+foreach ( get_posts( array( 'post_type' => 'ci_video_review', 'post_status' => 'any', 'numberposts' => -1, 'meta_key' => '_ci_fixture' ) ) as $old ) { // phpcs:ignore WordPress.DB.SlowDBQuery
+	wp_delete_post( $old->ID, true );
+}
+$ci_fx_video_products = wc_get_products(
+	array(
+		'status'  => 'publish',
+		'limit'   => 6,
+		'orderby' => 'date',
+		'order'   => 'DESC',
+		'tag'     => array( 'trending' ),
+	)
+);
+foreach ( $ci_fx_video_products as $i => $p ) {
+	if ( ! $p->get_image_id() ) {
+		continue;
+	}
+	$id = wp_insert_post(
+		array(
+			'post_type'   => 'ci_video_review',
+			'post_status' => 'publish',
+			'post_title'  => 'Test reviewer ' . ( $i + 1 ),
+			'menu_order'  => $i,
+		)
+	);
+	set_post_thumbnail( $id, $p->get_image_id() );
+	update_post_meta( $id, '_ci_video_url', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' );
+	update_post_meta( $id, '_ci_rating', 5 );
+	update_post_meta( $id, '_ci_product', $p->get_id() );
+	update_post_meta( $id, '_ci_fixture', 1 );
+}
+WP_CLI::success( count( $ci_fx_video_products ) . ' test video reviews created.' );
