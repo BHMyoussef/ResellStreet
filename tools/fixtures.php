@@ -316,11 +316,13 @@ foreach ( array_keys( $touched ) as $product_id ) {
 WP_CLI::success( count( $reviews ) . ' test reviews created.' );
 
 // Test video reviews (homepage "Hear from our customers"): poster = a product photo, video = MDN's CC0 sample clip.
-// Names say "Test" so they can't pass for real customers. Re-running replaces them.
+// Names say "Test" so they can't pass for real customers. Re-running replaces them. Only created when the store has no
+// video reviews of its own (seed.sh imports the owner's: tools/home-reviews.php).
 foreach ( get_posts( array( 'post_type' => 'ci_video_review', 'post_status' => 'any', 'numberposts' => -1, 'meta_key' => '_ci_fixture' ) ) as $old ) { // phpcs:ignore WordPress.DB.SlowDBQuery
 	wp_delete_post( $old->ID, true );
 }
-$ci_fx_video_products = wc_get_products(
+$ci_fx_has_real = (bool) get_posts( array( 'post_type' => 'ci_video_review', 'post_status' => 'publish', 'numberposts' => 1, 'fields' => 'ids' ) );
+$ci_fx_video_products = $ci_fx_has_real ? array() : wc_get_products(
 	array(
 		'status'  => 'publish',
 		'limit'   => 6,
@@ -338,7 +340,7 @@ foreach ( $ci_fx_video_products as $i => $p ) {
 			'post_type'   => 'ci_video_review',
 			'post_status' => 'publish',
 			'post_title'  => 'Test reviewer ' . ( $i + 1 ),
-			'menu_order'  => $i,
+			'menu_order'  => 100 + $i, // after the store's own reviews
 		)
 	);
 	set_post_thumbnail( $id, $p->get_image_id() );
@@ -347,4 +349,4 @@ foreach ( $ci_fx_video_products as $i => $p ) {
 	update_post_meta( $id, '_ci_product', $p->get_id() );
 	update_post_meta( $id, '_ci_fixture', 1 );
 }
-WP_CLI::success( count( $ci_fx_video_products ) . ' test video reviews created.' );
+WP_CLI::success( $ci_fx_has_real ? 'Video reviews: the store has its own, no test ones created.' : count( $ci_fx_video_products ) . ' test video reviews created.' );

@@ -270,11 +270,12 @@ foreach ( array( 'wp_insert_comment', 'edit_comment', 'deleted_comment', 'transi
  * @param int    $mobile Phone attachment ID (0 = same image).
  * @param string $focal  object-position.
  * @param bool   $lcp    Above the fold: eager + fetchpriority=high (else lazy).
+ * @param string $sizes  sizes for the desktop image.
  */
-function ci_home_picture( $image, $mobile, $focal, $lcp = false ) {
+function ci_home_picture( $image, $mobile, $focal, $lcp = false, $sizes = '100vw' ) {
 	$attrs = array(
 		'class'   => 'home-media__img',
-		'sizes'   => '100vw',
+		'sizes'   => $sizes,
 		'loading' => $lcp ? 'eager' : 'lazy',
 		'alt'     => '',
 		'style'   => 'object-position:' . ci_sanitize_focal( $focal ),

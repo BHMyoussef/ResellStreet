@@ -143,10 +143,12 @@ for i in 1 2 3 4 5 6 7 8; do for k in cat title image; do "$WP" theme mod remove
 # Brands (logos), Sneakers category, "trending" tag
 "$WP" eval-file "$(dirname "$0")/home-data.php" --user="$("$WP" user list --role=administrator --field=ID --number=1)"
 
-# Hero
-mod home_hero_image "$(media_id hero-1.jpg 'Hero - Step into the drip')"
-mod home_hero_focal "top center"
-mod home_hero_overlay 75
+# Hero (homepage media prepared by the owner: reference/homepage-v2/assets → reference/media/home-v2)
+mod home_hero_image "$(media_id home-v2/hero-desktop.jpg 'Hero - Step into the drip')"
+mod home_hero_image_mobile "$(media_id home-v2/hero-mobile.jpg 'Hero - Step into the drip (mobile)')"
+mod home_hero_focal "center center"
+mod home_hero_overlay 35
+mod home_hero_overlay_mobile 70
 mod home_hero_eyebrow "New season drop"
 mod home_hero_title "Step into the drip."
 mod home_hero_text "Authentic sneakers, apparel and accessories from the brands that run the street. Shipped free across the UK."
@@ -162,8 +164,9 @@ mod home_new_link_label "View all"
 mod home_new_link_url "$NEW_URL"
 
 # Image with text
-mod home_split_image "$(media_id banner-1.jpg 'Street-luxury')"
-mod home_split_focal "bottom center"
+mod home_split_image "$(media_id home-v2/split-desktop.jpg "It's a mindset")"
+mod home_split_image_mobile "$(media_id home-v2/split-mobile.jpg "It's a mindset (mobile)")"
+mod home_split_focal "top center"
 mod home_split_eyebrow "Resell Street is not just a shoe"
 mod home_split_title "It's a mindset."
 mod home_split_text "Designed for the streets, engineered for the bold. Every piece we stock blends clean design with undeniable presence — checked, authenticated and ready to wear. <strong>Street-luxury lives here.</strong>"
@@ -183,9 +186,11 @@ i=1; for b in nike adidas new-balance asics hoka on jordan puma brooks ugg reebo
 done
 
 # Banner
-mod home_banner_image "$(media_id banner-1.jpg 'Street-luxury')"
+# The prepared "Drip banner mobile.png" has visible seams (stitched panels): phones use the desktop image, centred.
+mod home_banner_image "$(media_id home-v2/banner-desktop.jpg 'Wear what moves the street')"
+mod home_banner_image_mobile 0
 mod home_banner_focal "center center"
-mod home_banner_overlay 80
+mod home_banner_overlay 45
 mod home_banner_eyebrow "Authenticated. Every pair."
 mod home_banner_title "Wear what moves the street."
 mod home_banner_text "The most-wanted silhouettes, sourced and checked so you don't have to."
@@ -199,7 +204,8 @@ mod home_trending_1_label "Sneakers"
 mod home_trending_1_cat "$(cat_id sneakers "Sneakers")"
 mod home_trending_btn_label "Shop trending"
 
-# Video reviews (videos themselves: Products → Video reviews)
+# Video reviews: the owner's customer photos/clips (names, ratings, products: Products → Video reviews)
+"$WP" eval-file "$(dirname "$0")/home-reviews.php" --user="$("$WP" user list --role=administrator --field=ID --number=1)"
 mod home_videos_eyebrow "Real customers, real fits"
 mod home_videos_title "Hear from our customers"
 

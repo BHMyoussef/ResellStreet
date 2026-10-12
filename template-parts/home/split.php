@@ -17,20 +17,7 @@ if ( ! ci_mod( 'home_split_enable' ) || ( ! $ci_image && '' === $ci_title && '' 
 <section class="home-split home-split--<?php echo esc_attr( ci_sanitize_side( ci_mod( 'home_split_side' ) ) ); ?> home-section--alt"<?php echo $ci_title ? ' aria-labelledby="home-split-title"' : ''; ?>>
 	<?php if ( $ci_image ) : ?>
 		<div class="home-split__media">
-			<?php
-			echo wp_get_attachment_image(
-				$ci_image,
-				'full',
-				false,
-				array(
-					'class'   => 'home-split__img',
-					'sizes'   => '(min-width: 769px) 54vw, 100vw',
-					'loading' => 'lazy',
-					'alt'     => '',
-					'style'   => 'object-position:' . ci_sanitize_focal( ci_mod( 'home_split_focal' ) ),
-				)
-			);
-			?>
+			<?php echo ci_home_picture( $ci_image, absint( ci_mod( 'home_split_image_mobile' ) ), (string) ci_mod( 'home_split_focal' ), false, '54vw' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		</div>
 	<?php endif; ?>
 	<div class="home-split__body">

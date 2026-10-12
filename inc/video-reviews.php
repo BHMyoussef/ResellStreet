@@ -39,7 +39,7 @@ add_action(
  * Published video reviews that have a poster, in display order.
  *
  * @param int $count Maximum number.
- * @return array<int,array{name:string,poster:int,video:string,rating:int,product:?WC_Product}>
+ * @return array<int,array{name:string,poster:int,video:string,rating:int,product:?WC_Product}> name '' / rating 0 = not shown.
  */
 function ci_video_reviews( $count ) {
 	$items = array();
@@ -59,10 +59,10 @@ function ci_video_reviews( $count ) {
 		$video    = $video_id ? (string) wp_get_attachment_url( $video_id ) : (string) get_post_meta( $post->ID, '_ci_video_url', true );
 		$product  = function_exists( 'wc_get_product' ) ? wc_get_product( (int) get_post_meta( $post->ID, '_ci_product', true ) ) : null;
 		$items[]  = array(
-			'name'    => get_the_title( $post ),
+			'name'    => trim( $post->post_title ),
 			'poster'  => $poster,
 			'video'   => $video,
-			'rating'  => min( 5, max( 1, (int) get_post_meta( $post->ID, '_ci_rating', true ) ) ),
+			'rating'  => min( 5, max( 0, (int) get_post_meta( $post->ID, '_ci_rating', true ) ) ), // 0 = no stars
 			'product' => $product && 'publish' === $product->get_status() ? $product : null,
 		);
 	}
@@ -102,7 +102,7 @@ function ci_video_review_box( $post ) {
 		)
 	);
 	?>
-	<p><?php esc_html_e( 'Title = customer name (e.g. "Liam P."). Poster image = the featured image (portrait 9:16), shown until the visitor taps play.', 'customimpulse' ); ?></p>
+	<p><?php esc_html_e( 'Title = customer name (e.g. "Liam P."), optional. Poster image = the featured image (portrait 9:16), shown until the visitor taps play. Without a video the card is a photo review.', 'customimpulse' ); ?></p>
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><?php esc_html_e( 'Video file', 'customimpulse' ); ?></th>
@@ -122,8 +122,9 @@ function ci_video_review_box( $post ) {
 		<tr>
 			<th scope="row"><label for="ci-video-rating"><?php esc_html_e( 'Rating', 'customimpulse' ); ?></label></th>
 			<td><select name="ci_rating" id="ci-video-rating">
+				<option value="0" <?php selected( $rating, 0 ); ?>><?php esc_html_e( '— No rating (no stars shown) —', 'customimpulse' ); ?></option>
 				<?php for ( $i = 5; $i >= 1; $i-- ) : ?>
-					<option value="<?php echo esc_attr( $i ); ?>" <?php selected( $rating ? $rating : 5, $i ); ?>><?php echo esc_html( str_repeat( '★', $i ) ); ?></option>
+					<option value="<?php echo esc_attr( $i ); ?>" <?php selected( $rating, $i ); ?>><?php echo esc_html( str_repeat( '★', $i ) ); ?></option>
 				<?php endfor; ?>
 			</select></td>
 		</tr>
@@ -165,7 +166,7 @@ add_action(
 		$video_id = absint( $_POST['ci_video_id'] ?? 0 );
 		update_post_meta( $post_id, '_ci_video_id', $video_id && wp_attachment_is( 'video', $video_id ) ? $video_id : 0 );
 		update_post_meta( $post_id, '_ci_video_url', esc_url_raw( wp_unslash( $_POST['ci_video_url'] ?? '' ) ) );
-		update_post_meta( $post_id, '_ci_rating', min( 5, max( 1, absint( $_POST['ci_rating'] ?? 5 ) ) ) );
+		update_post_meta( $post_id, '_ci_rating', min( 5, absint( $_POST['ci_rating'] ?? 0 ) ) );
 		update_post_meta( $post_id, '_ci_product', absint( $_POST['ci_product'] ?? 0 ) );
 	}
 );

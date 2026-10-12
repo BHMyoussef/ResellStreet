@@ -58,7 +58,8 @@ add_filter(
 			'home_hero_image'          => 0,
 			'home_hero_image_mobile'   => 0,
 			'home_hero_focal'          => 'center center',
-			'home_hero_overlay'        => 75,
+			'home_hero_overlay'        => 35,
+			'home_hero_overlay_mobile' => 70,
 			'home_hero_height'         => 750,
 			'home_hero_height_mobile'  => 600,
 			'home_hero_eyebrow'        => '',
@@ -78,6 +79,7 @@ add_filter(
 			// Image with text
 			'home_split_enable'        => true,
 			'home_split_image'         => 0,
+			'home_split_image_mobile'  => 0,
 			'home_split_focal'         => 'center center',
 			'home_split_side'          => 'left',
 			'home_split_eyebrow'       => '',
@@ -96,7 +98,7 @@ add_filter(
 			'home_banner_image'        => 0,
 			'home_banner_image_mobile' => 0,
 			'home_banner_focal'        => 'center center',
-			'home_banner_overlay'      => 80,
+			'home_banner_overlay'      => 45,
 			'home_banner_height'       => 635,
 			'home_banner_eyebrow'      => '',
 			'home_banner_title'        => '',
@@ -208,7 +210,8 @@ add_action(
 		$image( 'home_hero_image', $s, __( 'Image', 'customimpulse' ), __( 'Landscape, at least 2400px wide.', 'customimpulse' ) );
 		$image( 'home_hero_image_mobile', $s, __( 'Mobile image (optional)', 'customimpulse' ), __( 'Portrait crop for phones; otherwise the image above is used.', 'customimpulse' ) );
 		$focal( 'home_hero_focal', $s );
-		$add( 'home_hero_overlay', $s, __( 'Dark overlay (%)', 'customimpulse' ), 'number', 'absint', $range( 0, 90 ) );
+		$add( 'home_hero_overlay', $s, __( 'Dark overlay on desktop (%)', 'customimpulse' ), 'number', 'absint', $range( 0, 90 ) );
+		$add( 'home_hero_overlay_mobile', $s, __( 'Dark overlay on phones (%)', 'customimpulse' ), 'number', 'absint', array_merge( $range( 0, 90 ), array( 'description' => __( 'Text sits over the photo on phones: check it stays readable (tools/overlay-contrast.mjs).', 'customimpulse' ) ) ) );
 		$add( 'home_hero_height', $s, __( 'Height on desktop (px)', 'customimpulse' ), 'number', 'absint', $range( 400, 1200 ) );
 		$add( 'home_hero_height_mobile', $s, __( 'Height on phones (px)', 'customimpulse' ), 'number', 'absint', $range( 300, 900 ) );
 		$heading( $s, 'home_hero' );
@@ -231,7 +234,8 @@ add_action(
 		$s = 'ci_home_split';
 		$section( $s, __( 'Image with text', 'customimpulse' ) );
 		$check( 'home_split_enable', $s, __( 'Show image with text', 'customimpulse' ) );
-		$image( 'home_split_image', $s, __( 'Image', 'customimpulse' ), __( 'Portrait 4:5.', 'customimpulse' ) );
+		$image( 'home_split_image', $s, __( 'Image', 'customimpulse' ), __( 'Desktop: about 1.2:1 (landscape-ish).', 'customimpulse' ) );
+		$image( 'home_split_image_mobile', $s, __( 'Mobile image (optional)', 'customimpulse' ), __( 'Portrait crop for phones (shown about 9:10).', 'customimpulse' ) );
 		$focal( 'home_split_focal', $s );
 		$add(
 			'home_split_side',

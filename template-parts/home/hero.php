@@ -13,10 +13,11 @@ if ( ! ci_mod( 'home_hero_enable' ) || ( ! $ci_image && '' === $ci_title ) ) {
 	return;
 }
 $ci_style = sprintf(
-	'--hero-h:%dpx;--hero-h-mobile:%dpx;--overlay:%s',
+	'--hero-h:%dpx;--hero-h-mobile:%dpx;--overlay:%s;--overlay-mobile:%s',
 	max( 400, absint( ci_mod( 'home_hero_height' ) ) ),
 	max( 300, absint( ci_mod( 'home_hero_height_mobile' ) ) ),
-	min( 90, absint( ci_mod( 'home_hero_overlay' ) ) ) / 100
+	min( 90, absint( ci_mod( 'home_hero_overlay' ) ) ) / 100,
+	min( 90, absint( ci_mod( 'home_hero_overlay_mobile' ) ) ) / 100
 );
 ?>
 <section class="home-hero" style="<?php echo esc_attr( $ci_style ); ?>"<?php echo $ci_title ? ' aria-labelledby="home-hero-title"' : ''; ?>>

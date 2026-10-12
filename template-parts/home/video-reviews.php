@@ -1,6 +1,6 @@
 <?php
 /**
- * Video reviews ("Hear from our customers"): poster cards (Products → Video reviews); the video file is
+ * Video reviews ("Hear from our customers"): poster cards (Products → Video reviews; no video = photo card); the video file is
  * only requested when a card is tapped (home.js). Rating summary = all approved product reviews.
  *
  * @package CustomImpulse
@@ -48,7 +48,7 @@ if ( count( $ci_videos ) > 1 ) {
 		<ul class="video-reviews" role="list" data-carousel-track>
 			<?php foreach ( $ci_videos as $ci_video ) : ?>
 				<li class="video-card">
-					<div class="video-card__media" data-video>
+					<div class="video-card__media<?php echo $ci_video['rating'] || '' !== $ci_video['name'] ? ' video-card__media--caption' : ''; ?>" data-video>
 						<?php
 						echo wp_get_attachment_image(
 							$ci_video['poster'],
@@ -58,7 +58,7 @@ if ( count( $ci_videos ) > 1 ) {
 								'class'   => 'video-card__poster',
 								'loading' => 'lazy',
 								'sizes'   => '(min-width: 769px) 221px, 56vw',
-								'alt'     => '',
+								'alt'     => $ci_video['video'] ? '' : __( 'Customer photo', 'customimpulse' ),
 							)
 						);
 						?>
@@ -67,16 +67,24 @@ if ( count( $ci_videos ) > 1 ) {
 								<span class="video-card__play-icon" aria-hidden="true"></span>
 								<span class="visually-hidden">
 									<?php
-									/* translators: %s: customer name */
-									echo esc_html( sprintf( __( 'Play video review by %s', 'customimpulse' ), $ci_video['name'] ) );
+									echo esc_html(
+										'' !== $ci_video['name']
+											/* translators: %s: customer name */
+											? sprintf( __( 'Play video review by %s', 'customimpulse' ), $ci_video['name'] )
+											: __( 'Play customer video review', 'customimpulse' )
+									);
 									?>
 								</span>
 							</button>
 						<?php endif; ?>
-						<div class="video-card__caption">
-							<?php echo ci_stars( $ci_video['rating'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-							<p class="video-card__name"><?php echo esc_html( $ci_video['name'] ); ?></p>
-						</div>
+						<?php if ( $ci_video['rating'] || '' !== $ci_video['name'] ) : ?>
+							<div class="video-card__caption">
+								<?php echo $ci_video['rating'] ? ci_stars( $ci_video['rating'] ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?>
+								<?php if ( '' !== $ci_video['name'] ) : ?>
+									<p class="video-card__name"><?php echo esc_html( $ci_video['name'] ); ?></p>
+								<?php endif; ?>
+							</div>
+						<?php endif; ?>
 					</div>
 					<?php if ( $ci_video['product'] ) : ?>
 						<a class="video-card__product" href="<?php echo esc_url( $ci_video['product']->get_permalink() ); ?>">

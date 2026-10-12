@@ -64,9 +64,10 @@
   content: "";
   position: absolute;
   inset: 0;
-  /* 70% → 100%: at the default 75% overlay, white text keeps ≥ 4.5:1 even over a pure-white photo area */
+  /* Phones and desktop have their own strength (the phone photo sits behind the text); measured with
+     tools/overlay-contrast.mjs: hero 70% phones / 35% desktop keeps every text line ≥ 4.5:1 */
   background: linear-gradient(180deg, color-mix(in srgb, var(--color-hero-overlay) 70%, transparent) 0%, var(--color-hero-overlay) 85%);
-  opacity: var(--overlay);
+  opacity: var(--overlay-mobile, var(--overlay));
 }
 .home-hero__content { position: relative; z-index: 1; padding-block: 40px; }
 .home-hero__title {
@@ -160,7 +161,7 @@
 .video-card { scroll-snap-align: start; }
 .video-card__media { position: relative; aspect-ratio: 9 / 16; overflow: hidden; background: var(--brand-navy); }
 .video-card__poster, .video-card__media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.video-card__media::after { /* legible caption */
+.video-card__media--caption::after { /* legible caption (only when there is a name/stars) */
   content: "";
   position: absolute;
   inset: auto 0 0;
@@ -263,7 +264,6 @@
 /* ---------- Image with text ---------- */
 .home-split { display: grid; }
 .home-split__media { position: relative; aspect-ratio: 9 / 10; overflow: hidden; background: var(--brand-navy); }
-.home-split__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .home-split__body { display: flex; align-items: center; padding: 56px 23px 48px; }
 .home-split .home-eyebrow { margin-bottom: 20px; }
 .home-split__text { max-width: 480px; }
@@ -303,5 +303,6 @@
   .home-heading { margin-bottom: 40px; }
   .home-buttons { flex-direction: row; align-items: center; gap: 4px; }
   .home-hero { min-height: var(--hero-h); }
+  .home-hero::after { opacity: var(--overlay); }
   .home-hero__content { padding-block: 88px; }
 }
