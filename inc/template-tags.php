@@ -32,6 +32,7 @@ function ci_icon( $name, $class = '' ) {
 		'return'       => '<path d="M14 24h30a12 12 0 010 24H22"/><path d="M23 13L12 24l11 11"/>',
 		'gift'         => '<path d="M10 24h44v10H10zM14 34h36v22H14zM32 24v32"/><path d="M32 24c-3-9-15-11-15-4 0 4 8 4 15 4zm0 0c3-9 15-11 15-4 0 4-8 4-15 4z"/>',
 		'check'        => '<path d="M13 33l12 12 26-26"/>',
+		'shield'       => '<path d="M32 6l22 8v16c0 14-9 24-22 28C19 54 10 44 10 30V14z"/><path d="M22 32l7 7 13-13"/>',
 		'chat'         => '<path d="M8 12h48v32H28L16 54V44H8z"/>',
 	);
 	if ( ! isset( $paths[ $name ] ) ) {
