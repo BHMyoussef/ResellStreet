@@ -23,10 +23,11 @@
 .woocommerce-product-gallery__image a { display: block; }
 .woocommerce-product-gallery__image img { width: 100%; height: auto; }
 
-/* Phones (design v2): full-width square slides, swipe; dots below (active = short bar) */
+/* Phones (design v2): full-width square slides, swipe; dots below (active = short bar).
+   The frame is square but the photo never is cropped: contain, letterboxed on the slide background. */
 .woocommerce-product-gallery__image { aspect-ratio: 1; overflow: hidden; }
 .woocommerce-product-gallery__image a, .woocommerce-product-gallery__image img { height: 100%; }
-.woocommerce-product-gallery__image img { object-fit: cover; }
+.woocommerce-product-gallery__image img { object-fit: contain; }
 /* Room for the dots before flexslider adds them */
 .woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image):not(:has(.flex-control-nav)) { padding-bottom: 30px; }
 
