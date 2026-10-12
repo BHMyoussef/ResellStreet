@@ -285,14 +285,15 @@ WP_CLI::success( 'Checkout fixtures: Cash on delivery enabled, coupon TEST10, cu
 // ---------------------------------------------------------------------------
 
 /**
- * Attachment for a file in reference/media (imported once, tagged `_ci_seed` like tools/seed.sh does).
+ * Review photo from reference/media: its own attachment (tagged `_ci_fixture_media`), never shared with the store's
+ * media or product images — CusRev deletes a review's photos when the review is deleted (fixtures re-run).
  */
 function ci_fx_local_media( $file ) {
 	$found = get_posts(
 		array(
 			'post_type'   => 'attachment',
 			'post_status' => 'inherit',
-			'meta_key'    => '_ci_seed', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'meta_key'    => '_ci_fixture_media', // phpcs:ignore WordPress.DB.SlowDBQuery
 			'meta_value'  => $file, // phpcs:ignore WordPress.DB.SlowDBQuery
 			'fields'      => 'ids',
 			'numberposts' => 1,
@@ -313,7 +314,7 @@ function ci_fx_local_media( $file ) {
 		WP_CLI::warning( $id->get_error_message() );
 		return 0;
 	}
-	update_post_meta( $id, '_ci_seed', $file );
+	update_post_meta( $id, '_ci_fixture_media', $file );
 	return (int) $id;
 }
 
@@ -331,7 +332,7 @@ $fx_images  = (array) get_option( 'ci_fixture_images', array() );
 
 $reviews = array(
 	// product, stars, name, verified (true | 'order' = CusRev order meta), photos, days ago, text
-	array( $sneaker, 5, 'Liam P.', 'order', array( 'avatar-1.jpg', $fx_images[1] ?? 0 ), 3, 'The product looks exactly like the photos, maybe even better. Clean stitching, no issues, and arrived quicker than I expected.' ),
+	array( $sneaker, 5, 'Liam P.', 'order', array( 'avatar-1.jpg', 'tile-shoes.jpg' ), 3, 'The product looks exactly like the photos, maybe even better. Clean stitching, no issues, and arrived quicker than I expected.' ),
 	array( $sneaker, 5, 'James R.', true, array( 'avatar-2.jpg' ), 9, 'Honestly wasn’t expecting this level of quality for the price. The fit is perfect and the material feels premium. Will definitely order again.' ),
 	array( $sneaker, 4, 'Oliver M.', true, array(), 14, 'Great fit, runs slightly small, go half a size up.' ),
 	array( $sneaker, 3, 'Sam T.', false, array(), 21, 'Comfortable, but the laces came loose a lot.' ),
