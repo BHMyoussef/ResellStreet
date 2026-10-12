@@ -65,7 +65,7 @@ const drawerState = (p) =>
   await p.waitForTimeout(600);
   let s = await drawerState(p);
   check('Quick Shop closed, drawer opened', !(await qs.evaluate((d) => d.open)) && s.open);
-  check('drawer shows the item with options', s.items.length === 1 && /Color:\s?Khaki/.test(s.items[0].meta) && /Size \(USA\):\s?8/.test(s.items[0].meta), JSON.stringify(s.items[0]));
+  check('drawer shows the item with options', s.items.length === 1 && /Colour:\s?Khaki/.test(s.items[0].meta) && /Size \(USA\):\s?8/.test(s.items[0].meta), JSON.stringify(s.items[0]));
   check('line price with compare-at', /£92\.99.*£45\.75/.test(s.items[0]?.price || ''), s.items[0]?.price);
   check('subtotal', s.subtotal === '£45.75', s.subtotal);
   check('cart dot on', s.dot);

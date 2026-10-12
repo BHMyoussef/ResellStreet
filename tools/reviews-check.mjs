@@ -28,8 +28,8 @@ const b = await launch();
   p.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await p.goto(PRODUCT, { waitUntil: 'networkidle' });
 
-  const summary = await p.$eval('.rating-summary', (a) => ({ text: a.textContent.trim(), href: a.getAttribute('href'), rating: a.querySelector('.ci-stars').style.getPropertyValue('--rating') }));
-  check('stars + count under the title, linking to #reviews', summary.href === '#reviews' && /4\.3 · 4 reviews/.test(summary.text) && summary.rating === '4.25', JSON.stringify(summary));
+  const summary = await p.$eval('.product-rating', (a) => ({ avg: a.querySelector('.product-rating__avg').textContent, count: a.querySelector('.product-rating__count').textContent, href: a.getAttribute('href'), rating: a.querySelector('.ci-stars').style.getPropertyValue('--rating') }));
+  check('stars + average + count under the title, linking to #reviews', summary.href === '#reviews' && summary.avg === '4.3' && summary.count === '4 reviews' && summary.rating === '4.25', JSON.stringify(summary));
   const assets = await p.evaluate(() => ['cr-frontend-css-css', 'cr-colcade-js', 'cr-frontend-js-js'].filter((id) => document.getElementById(id)));
   check('no CusRev CSS / masonry / upload script on load', assets.length === 0, assets.join());
   const schema = await p.evaluate(() => [...document.querySelectorAll('script[type="application/ld+json"]')].map((s) => s.textContent).join('').split('aggregateRating').length - 1);
@@ -61,8 +61,8 @@ const b = await launch();
   const card = p.locator('ul.products > li', { hasText: /Test Sneaker [–-] Men/ });
   await card.hover();
   await card.locator('.product-card__quick').click();
-  await p.waitForSelector('dialog[data-modal="quick-shop"] .rating-summary', { timeout: 10000 });
-  check('Quick Shop shows stars linking to the product reviews', /#reviews$/.test(await p.getAttribute('dialog[data-modal="quick-shop"] .rating-summary', 'href')));
+  await p.waitForSelector('dialog[data-modal="quick-shop"] .product-rating', { timeout: 10000 });
+  check('Quick Shop shows stars linking to the product reviews', /#reviews$/.test(await p.getAttribute('dialog[data-modal="quick-shop"] .product-rating', 'href')));
   check('no console errors (display)', errors.length === 0, errors.join(' | '));
   await p.close();
 }

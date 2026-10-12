@@ -162,17 +162,12 @@ add_action(
 		}
 		$href = is_product() ? '#reviews' : get_permalink( $product->get_id() ) . '#reviews';
 		printf(
-			'<a class="rating-summary" href="%1$s">%2$s<span class="rating-summary__text">%3$s</span></a>',
+			'<a class="product-rating" href="%1$s">%2$s<span class="product-rating__avg">%3$s</span><span class="product-rating__count">%4$s</span></a>',
 			esc_url( $href ),
 			ci_stars( $product->get_average_rating() ), // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in ci_stars().
-			esc_html(
-				sprintf(
-					/* translators: 1: average rating, 2: number of reviews */
-					_n( '%1$s · %2$s review', '%1$s · %2$s reviews', $count, 'customimpulse' ),
-					wc_format_decimal( $product->get_average_rating(), 1 ),
-					number_format_i18n( $count )
-				)
-			)
+			esc_html( wc_format_decimal( $product->get_average_rating(), 1 ) ),
+			/* translators: %s: number of reviews */
+			esc_html( sprintf( _n( '%s review', '%s reviews', $count, 'customimpulse' ), number_format_i18n( $count ) ) )
 		);
 	}
 );

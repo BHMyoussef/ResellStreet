@@ -125,6 +125,13 @@
   --ls-wide: 0.2em;            /* nav, announcement */
   --ls-wider: 0.3em;           /* buttons, labels */
 
+  /* Product page (design v2: reference/product-v2) */
+  --fs-product-title: 24px;
+  --swatch-size: 60px;
+  --option-h: 48px;              /* size buttons */
+  --atc-h: 52px;                 /* quantity stepper + add to cart */
+  --color-option-disabled: #a3a6ae; /* sold-out size text (crossed out) */
+
   /* Product card (homepage v2 design) */
   --fs-card-brand: 11px;
   --ls-card-brand: 0.22em;
@@ -181,6 +188,7 @@
     --page-gutter: 40px;
     --section-space: 60px;
     --home-section-space: 75px;
+    --fs-product-title: 32px;
     --fs-display: 80px;
     --fs-banner: 68px;
     --fs-split-title: 52px;

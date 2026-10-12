@@ -69,10 +69,19 @@ done
 "$WP" theme mod set banner_text "Limited pairs remaining!"
 
 # Product page (templates/product.json → main-product blocks)
+# Product page v2: trust lines under add to cart (check marks), quantity stepper, authenticity box, no payment icons
 "$WP" theme mod set sales_point_1_icon truck
-"$WP" theme mod set sales_point_1_text "Free UK shipping 🇬🇧"
+"$WP" theme mod set sales_point_1_text "Free UK shipping"
 "$WP" theme mod set sales_point_2_icon lock
-"$WP" theme mod set sales_point_2_text "Secure Checkout"
+"$WP" theme mod set sales_point_2_text "Secure checkout"
+"$WP" theme mod set sales_point_3_icon return
+"$WP" theme mod set sales_point_3_text "Easy 30-day returns"
+"$WP" theme mod set product_qty_enable 1
+"$WP" theme mod set trust_badges_enable 0
+"$WP" theme mod set product_auth_badge "100%"
+"$WP" theme mod set product_auth_title "100% authentic"
+"$WP" theme mod set product_auth_text "Verified by our team before shipping."
+"$WP" theme mod set product_auth_link_label "How we check"
 "$WP" theme mod set product_tab_1_title "Shipping information"
 "$WP" theme mod set product_tab_1_content "<p>We offer FREE shipping across the UK!</p><p>The team carefully packs each order on the same day and ships it straight to your door. You’ll receive a tracking number as soon as your order has been dispatched. Delivery typically takes 4 to 10 business</p>"
 "$WP" theme mod set product_tab_2_title "SATISFACTION GUARANTEE"
@@ -221,6 +230,8 @@ mod home_trust_4_icon shield; mod home_trust_4_title "Authentic guaranteed"; mod
 "$WP" theme mod remove custom_logo >/dev/null 2>&1 || true
 
 # ---------- Colour swatches (product page): colour per product from its title, hex from its photo ----------
+# UK wording for the colour attribute label (slug pa_color unchanged).
+"$WP" eval '$id = wc_attribute_taxonomy_id_by_name( "pa_color" ); $a = $id ? wc_get_attribute( $id ) : null; if ( $a && "Colour" !== $a->name ) { wc_update_attribute( $id, array( "name" => "Colour", "slug" => "color", "type" => $a->type, "order_by" => $a->order_by, "has_archives" => $a->has_archives ) ); }'
 # Needs the site running (Playwright reads the photos); only products without a colour are touched.
 node "$(dirname "$0")/product-colours.mjs" || echo "Colour swatches skipped (run: node tools/product-colours.mjs)"
 

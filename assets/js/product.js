@@ -27,13 +27,18 @@
       if (stickyPrice && stickyPrice.innerHTML !== html) stickyPrice.innerHTML = html;
     };
 
+    // state: ok | low | out | pick (nothing chosen yet: "In stock, ready to ship – select your size")
     const setStock = (state, qty) => {
       if (!stockEl) return;
       stockEl.classList.remove('product-stock--ok', 'product-stock--low', 'product-stock--out');
-      stockEl.classList.add(`product-stock--${state}`);
+      stockEl.classList.add(`product-stock--${state === 'pick' ? 'ok' : state}`);
       const label = stockEl.dataset[`label${state[0].toUpperCase()}${state.slice(1)}`] || '';
-      stockEl.querySelector('.product-stock__text').textContent = label.replace('%d', qty ?? '');
+      const text = stockEl.querySelector('.product-stock__text');
+      const next = label.replace('%d', qty ?? '');
+      if (text.textContent !== next) text.textContent = next;
     };
+
+    initQuantity(form);
 
     const dataEl = form.querySelector('.ci-variant-data');
     if (!dataEl) return; // Simple product: nothing to sync
@@ -80,6 +85,15 @@
         });
       });
 
+      // Visible "SIZE (UK): 8" value
+      attrs.forEach((name) => {
+        const out = form.querySelector(`[data-variant-value="${CSS.escape(name)}"]`);
+        if (!out) return;
+        const input = group(name)?.querySelector('input:checked');
+        const text = input ? input.labels[0].textContent.trim() : out.dataset.empty;
+        if (out.textContent !== text) out.textContent = text;
+      });
+
       const match = attrs.every((n) => sel[n]) ? variations.find((v) => fits(v, sel)) : null;
       if (match) {
         setPrice(prices[match.p]);
@@ -87,6 +101,7 @@
         setStock(match.s ? (low ? 'low' : 'ok') : 'out', match.q);
       } else {
         setPrice(basePrice);
+        if (variations.some((v) => v.s)) setStock('pick');
       }
 
       if (standalone) {
@@ -334,6 +349,35 @@
     });
   }
 
+  /* Quantity: − / + buttons around WooCommerce's number input (the input stays the form field). */
+  function initQuantity(form) {
+    form.querySelectorAll('.quantity:not(.is-stepper)').forEach((box) => {
+      const input = box.querySelector('input.qty');
+      if (!input || input.type === 'hidden') return;
+      box.classList.add('is-stepper');
+      const make = (dir, label) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = `qty-step qty-step--${dir > 0 ? 'up' : 'down'}`;
+        b.setAttribute('aria-label', label);
+        b.textContent = dir > 0 ? '+' : '−';
+        b.addEventListener('click', () => {
+          const step = Number(input.step) || 1;
+          const min = input.min === '' ? 1 : Number(input.min);
+          const max = input.max === '' ? Infinity : Number(input.max);
+          const next = Math.min(max, Math.max(min, (Number(input.value) || min) + dir * step));
+          if (String(next) === input.value) return;
+          input.value = next;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        return b;
+      };
+      box.prepend(make(-1, box.dataset.labelDown || 'Decrease quantity'));
+      box.append(make(1, box.dataset.labelUp || 'Increase quantity'));
+    });
+  }
+
   /* Gallery extras: badge + "1 / N" counter + "Hover to zoom" label inside WC's gallery (flexslider). */
   function initGalleryExtras() {
     const gallery = document.querySelector('.single-product .woocommerce-product-gallery');
@@ -358,6 +402,7 @@
   ns.initVariantForm = initVariantForm;
   document.querySelectorAll('form.variations_form').forEach(initVariantForm);
   initGalleryExtras();
+  document.querySelectorAll('.single-product form.cart:not(.variations_form)').forEach(initQuantity); // simple products
   initSticky();
   initReviews();
   initSizeGuide();

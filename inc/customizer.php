@@ -107,6 +107,13 @@ function ci_defaults() {
 		'stock_low_threshold'        => 10,
 		'trust_badges_enable'        => true,
 		'trust_badges_title'         => '',
+		'size_system_label'          => 'UK',
+		'product_auth_enable'        => true,
+		'product_auth_badge'         => '',
+		'product_auth_title'         => '',
+		'product_auth_text'          => '',
+		'product_auth_link_label'    => '',
+		'product_auth_link_url'      => '',
 		// Quick shop + cart drawer.
 		'quick_shop_enable'          => true,
 		'quick_shop_text'            => '',
@@ -383,7 +390,7 @@ add_action(
 		);
 		for ( $i = 1; $i <= CI_SALES_POINT_SLOTS; $i++ ) {
 			/* translators: %d: selling point number */
-			$add( "sales_point_{$i}_text", 'ci_product', sprintf( __( 'Selling point %d', 'customimpulse' ), $i ) );
+			$add( "sales_point_{$i}_text", 'ci_product', sprintf( __( 'Trust line %d (under add to cart)', 'customimpulse' ), $i ) );
 			$add(
 				"sales_point_{$i}_icon",
 				'ci_product',
@@ -394,6 +401,13 @@ add_action(
 				array( 'choices' => ci_sales_point_icons() )
 			);
 		}
+		$add( 'size_system_label', 'ci_product', __( 'Size system shown after "Size" (e.g. UK; empty = none)', 'customimpulse' ) );
+		$add( 'product_auth_enable', 'ci_product', __( 'Show the authenticity box under add to cart', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'product_auth_badge', 'ci_product', __( 'Authenticity box: badge text (e.g. 100%)', 'customimpulse' ) );
+		$add( 'product_auth_title', 'ci_product', __( 'Authenticity box: title', 'customimpulse' ) );
+		$add( 'product_auth_text', 'ci_product', __( 'Authenticity box: text', 'customimpulse' ) );
+		$add( 'product_auth_link_label', 'ci_product', __( 'Authenticity box: link label', 'customimpulse' ) );
+		$add( 'product_auth_link_url', 'ci_product', __( 'Authenticity box: link URL', 'customimpulse' ), 'url', 'esc_url_raw' );
 		$add( 'trust_badges_enable', 'ci_product', __( 'Show trust badges under add to cart (payment icons from Footer settings)', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 		$add( 'trust_badges_title', 'ci_product', __( 'Trust badges title (optional)', 'customimpulse' ) );
 		for ( $i = 1; $i <= CI_PRODUCT_TAB_SLOTS; $i++ ) {

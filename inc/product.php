@@ -21,6 +21,19 @@ remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_singl
 remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40 );
 remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_product_data_tabs', 10 );
 
+/* Brand above the title (WooCommerce Brands), linking to the brand page. */
+add_action(
+	'woocommerce_single_product_summary',
+	function () {
+		global $product;
+		$brand = $product instanceof WC_Product && function_exists( 'ci_product_brand' ) ? ci_product_brand( $product->get_id() ) : null;
+		if ( $brand ) {
+			printf( '<a class="product-brand" href="%1$s">%2$s</a>', esc_url( get_term_link( $brand ) ), esc_html( $brand->name ) );
+		}
+	},
+	4
+);
+
 /* Slot under the title for review stars (inc/reviews.php: theme stars + count). */
 add_action(
 	'woocommerce_single_product_summary',
@@ -41,10 +54,13 @@ add_action(
 	10
 );
 
-/* Selling points + stock status, right above the add to cart button (inside the form). */
+/* Colour: this product's colour + its other colourways (design v2), before the size buttons. */
+add_action( 'woocommerce_single_product_summary', 'ci_product_colourways', 25 );
+
+/* Stock status, right above quantity + add to cart (inside the form). */
 add_action( 'woocommerce_before_add_to_cart_button', 'ci_product_selling_points', 5 );
 
-/* Slot after the add to cart form; trust badges are the default occupant. */
+/* Slot after the add to cart form: express checkout slot, trust lines, authenticity box, (payment icons). */
 add_action(
 	'woocommerce_after_add_to_cart_form',
 	function () {
@@ -52,6 +68,9 @@ add_action(
 	},
 	10
 );
+add_action( 'ci_product_after_add_to_cart', 'ci_product_express_checkout', 2 );
+add_action( 'ci_product_after_add_to_cart', 'ci_product_trust_lines', 5 );
+add_action( 'ci_product_after_add_to_cart', 'ci_product_authenticity', 8 );
 add_action( 'ci_product_after_add_to_cart', 'ci_product_trust_badges', 10 );
 
 add_action( 'woocommerce_single_product_summary', 'ci_product_description', 35 );
@@ -227,27 +246,44 @@ add_filter(
 			}
 		}
 
-		$select = str_replace( '<select ', '<select tabindex="-1" aria-hidden="true" ', $html );
-		$out    = '<div class="variant-select visually-hidden">' . $select . '</div>';
+		$select  = str_replace( '<select ', '<select tabindex="-1" aria-hidden="true" ', $html );
+		$out     = '<div class="variant-select visually-hidden">' . $select . '</div>';
 		$is_size = ci_is_size_attribute( $attribute, $label );
-		$out    .= sprintf( '<fieldset class="variant-buttons" data-variant-group="%s"%s>', esc_attr( $name ), $is_size ? ' data-size-group' : '' );
-		$out   .= '<legend class="visually-hidden">' . esc_html( $label ) . '</legend>';
+		$swatch  = CI_COLOUR_TAXONOMY === $attribute;
+		$heading = $label;
+		$system  = trim( (string) ci_mod( 'size_system_label' ) );
+		if ( $is_size && '' !== $system && false === stripos( $label, $system ) ) {
+			$heading .= " ({$system})";
+		}
+
+		// Visible head: "SIZE (UK): 8" (value kept in sync by product.js) + size guide link on the right.
+		$out .= sprintf(
+			'<div class="variant-head"><p class="variant-head__label">%1$s: <span class="variant-head__value" data-variant-value="%2$s" data-empty="%3$s">%4$s</span></p>%5$s</div>',
+			esc_html( $heading ),
+			esc_attr( $name ),
+			esc_attr__( 'Select', 'customimpulse' ),
+			esc_html( (string) ( $options[ (string) $args['selected'] ] ?? __( 'Select', 'customimpulse' ) ) ),
+			$is_size && ci_product_size_guide( $product ) ? ci_size_guide_button() : ''
+		);
+		$out .= sprintf( '<fieldset class="variant-buttons%3$s" data-variant-group="%1$s"%2$s>', esc_attr( $name ), $is_size ? ' data-size-group' : '', $swatch ? ' variant-buttons--swatches' : '' );
+		$out .= '<legend class="visually-hidden">' . esc_html( $label ) . '</legend>';
 		foreach ( $options as $value => $text ) {
 			$id   = wp_unique_id( 'variant-' );
+			$term = $swatch ? get_term_by( 'slug', $value, $attribute ) : null;
+			$css  = $term ? ci_swatch_css( $term->term_id ) : '';
 			$out .= sprintf(
-				'<input class="variant-buttons__input visually-hidden" type="radio" id="%1$s" name="ci-%2$s" value="%3$s"%4$s><label class="variant-buttons__label" for="%1$s">%5$s</label>',
+				'<input class="variant-buttons__input visually-hidden" type="radio" id="%1$s" name="ci-%2$s" value="%3$s"%4$s><label class="variant-buttons__label%6$s" for="%1$s">%5$s</label>',
 				esc_attr( $id ),
 				esc_attr( $name ),
 				esc_attr( $value ),
 				checked( (string) $args['selected'], (string) $value, false ),
-				esc_html( $text )
+				$css
+					? '<span class="colour-swatch__fill" style="background:' . esc_attr( $css ) . '"></span><span class="visually-hidden">' . esc_html( $text ) . '</span>'
+					: esc_html( $text ),
+				$css ? ' variant-buttons__label--swatch' : ''
 			);
 		}
 		$out .= '</fieldset>';
-
-		if ( $is_size && ci_product_size_guide( $product ) ) {
-			$out .= ci_size_guide_button();
-		}
 		return $out;
 	},
 	10,
@@ -261,38 +297,141 @@ add_filter( 'woocommerce_reset_variations_link', '__return_empty_string' );
  * Selling points, stock status, trust badges
  * ------------------------------------------------------------------------ */
 
+/**
+ * Stock line above quantity + add to cart (design v2; the selling points became the trust lines under it).
+ */
 function ci_product_selling_points() {
 	global $product;
-	$points = array();
+	$stock = ci_mod( 'stock_status_enable' ) ? ci_stock_status_html( $product ) : '';
+	if ( $stock ) {
+		echo '<ul class="selling-points">' . $stock . '</ul>'; // phpcs:ignore WordPress.Security.EscapeOutput -- built in ci_stock_status_html().
+	}
+}
+
+/**
+ * Trust lines under add to cart: the Customizer selling points, each with a check mark.
+ */
+function ci_product_trust_lines() {
+	$lines = array();
 	for ( $i = 1; $i <= CI_SALES_POINT_SLOTS; $i++ ) {
 		$text = trim( (string) ci_mod( "sales_point_{$i}_text" ) );
 		if ( '' !== $text ) {
-			$points[] = array(
-				'icon' => (string) ci_mod( "sales_point_{$i}_icon" ),
-				'text' => $text,
-			);
+			$lines[] = $text;
 		}
 	}
-	$stock = ci_mod( 'stock_status_enable' ) ? ci_stock_status_html( $product ) : '';
-	if ( ! $points && ! $stock ) {
+	if ( ! $lines ) {
 		return;
 	}
+	echo '<ul class="trust-lines">';
+	foreach ( $lines as $line ) {
+		echo '<li class="trust-lines__item"><span class="trust-lines__check" aria-hidden="true">' . ci_icon( 'check' ) . '</span>' . esc_html( $line ) . '</li>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+	echo '</ul>';
+}
 
-	echo '<ul class="selling-points">';
-	foreach ( $points as $i => $point ) {
-		printf(
-			'<li class="selling-points__item">%s<span>%s</span></li>',
-			ci_icon( array_key_exists( $point['icon'], ci_sales_point_icons() ) ? $point['icon'] : 'check' ), // phpcs:ignore WordPress.Security.EscapeOutput
-			esc_html( $point['text'] )
-		);
-		// Stock status sits after the first selling point, as on the reference store.
-		if ( 0 === $i && $stock ) {
-			echo $stock; // phpcs:ignore WordPress.Security.EscapeOutput -- built below.
-			$stock = '';
+/**
+ * Express checkout slot: payment plugins (Stripe, PayPal…) render their wallet buttons through the
+ * `ci_product_express_checkout` action. The "Express checkout" divider only shows when something is inside.
+ */
+function ci_product_express_checkout() {
+	ob_start();
+	do_action( 'ci_product_express_checkout' );
+	$slot = trim( (string) ob_get_clean() );
+	printf(
+		'<div class="express-checkout"%3$s><p class="express-checkout__label"><span>%1$s</span></p><div class="express-checkout__slot" data-express-checkout>%2$s</div></div>',
+		esc_html__( 'Express checkout', 'customimpulse' ),
+		$slot, // phpcs:ignore WordPress.Security.EscapeOutput -- plugin output.
+		'' === $slot ? ' hidden' : ''
+	);
+}
+
+/**
+ * Authenticity box (Customizer → Product page).
+ */
+function ci_product_authenticity() {
+	$title = trim( (string) ci_mod( 'product_auth_title' ) );
+	$text  = trim( (string) ci_mod( 'product_auth_text' ) );
+	if ( ! ci_mod( 'product_auth_enable' ) || ( '' === $title && '' === $text ) ) {
+		return;
+	}
+	$badge = trim( (string) ci_mod( 'product_auth_badge' ) );
+	$label = trim( (string) ci_mod( 'product_auth_link_label' ) );
+	$url   = (string) ci_mod( 'product_auth_link_url' );
+	echo '<div class="authenticity">';
+	if ( '' !== $badge ) {
+		echo '<span class="authenticity__badge" aria-hidden="true">' . esc_html( $badge ) . '</span>';
+	}
+	echo '<div class="authenticity__body">';
+	if ( '' !== $title ) {
+		echo '<p class="authenticity__title">' . esc_html( $title ) . '</p>';
+	}
+	echo '<p class="authenticity__text">' . esc_html( $text );
+	if ( '' !== $label && '' !== $url ) {
+		echo ' <a class="authenticity__link" href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a>';
+	}
+	echo '</p></div></div>';
+}
+
+/**
+ * Colour row: this product's colour (pa_color, non-variation) + the other colourways of the same model
+ * (products in the same deepest category with a colour), as swatch links. Colour variations use the
+ * variation buttons instead.
+ */
+function ci_product_colourways() {
+	global $product;
+	if ( ! $product instanceof WC_Product ) {
+		return;
+	}
+	$attr = $product->get_attributes()[ CI_COLOUR_TAXONOMY ] ?? null;
+	if ( ! $attr || $attr->get_variation() ) {
+		return;
+	}
+	$own = $attr->get_terms()[0] ?? null;
+	if ( ! $own ) {
+		return;
+	}
+	// The model = the deepest category of the product (e.g. Shoes > New Balance > New Balance 530).
+	$model = null;
+	$depth = -1;
+	foreach ( wc_get_product_terms( $product->get_id(), 'product_cat', array( 'fields' => 'all' ) ) as $cat ) {
+		$d = count( get_ancestors( $cat->term_id, 'product_cat', 'taxonomy' ) );
+		if ( $d > $depth ) {
+			$depth = $d;
+			$model = $cat;
 		}
 	}
-	echo $stock; // phpcs:ignore WordPress.Security.EscapeOutput
-	echo '</ul>';
+	$items = array( $product->get_id() => $own );
+	if ( $model && $depth > 0 ) {
+		foreach ( wc_get_products(
+			array(
+				'status'   => 'publish',
+				'limit'    => 12,
+				'category' => array( $model->slug ),
+				'orderby'  => 'title',
+				'order'    => 'ASC',
+				'exclude'  => array( $product->get_id() ),
+			)
+		) as $sibling ) {
+			$a = $sibling->get_attributes()[ CI_COLOUR_TAXONOMY ] ?? null;
+			$t = $a && ! $a->get_variation() ? ( $a->get_terms()[0] ?? null ) : null;
+			if ( $t && ci_swatch_css( $t->term_id ) ) {
+				$items[ $sibling->get_id() ] = $t;
+			}
+		}
+	}
+	echo '<div class="product-colours"><div class="variant-head"><p class="variant-head__label">' . esc_html( wc_attribute_label( CI_COLOUR_TAXONOMY, $product ) ) . ': <span class="variant-head__value">' . esc_html( $own->name ) . '</span></p></div><ul class="colour-swatches">';
+	foreach ( $items as $id => $term ) {
+		$current = $id === $product->get_id();
+		printf(
+			'<li><a class="colour-swatch%1$s" href="%2$s"%3$s title="%4$s"><span class="colour-swatch__fill" style="background:%5$s"></span><span class="visually-hidden">%4$s</span></a></li>',
+			$current ? ' is-current' : '',
+			esc_url( get_permalink( $id ) ),
+			$current ? ' aria-current="page"' : '',
+			esc_attr( $term->name ),
+			esc_attr( ci_swatch_css( $term->term_id ) ? ci_swatch_css( $term->term_id ) : 'var(--color-border)' )
+		);
+	}
+	echo '</ul></div>';
 }
 
 /**
@@ -318,13 +457,14 @@ function ci_stock_status_html( WC_Product $product ) {
 		$state = 'low';
 	}
 	return sprintf(
-		'<li class="selling-points__item product-stock product-stock--%1$s" data-product-stock data-label-ok="%2$s" data-label-low="%3$s" data-label-out="%4$s"><span class="product-stock__dot" aria-hidden="true"></span><span class="product-stock__text">%5$s</span></li>',
+		'<li class="selling-points__item product-stock product-stock--%1$s" data-product-stock data-label-ok="%2$s" data-label-low="%3$s" data-label-out="%4$s" data-label-pick="%6$s"><span class="product-stock__dot" aria-hidden="true"></span><span class="product-stock__text">%5$s</span></li>',
 		esc_attr( $state ),
 		esc_attr__( 'In stock, ready to ship', 'customimpulse' ),
 		/* translators: %d: units left. Keep the %d placeholder. */
 		esc_attr__( 'Low stock - %d items left', 'customimpulse' ),
 		esc_attr__( 'Sold out', 'customimpulse' ),
-		esc_html( ci_stock_label( $state, $qty ) )
+		esc_html( ci_stock_label( $state, $qty ) ),
+		esc_attr__( 'In stock, ready to ship – select your size', 'customimpulse' )
 	);
 }
 
