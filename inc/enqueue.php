@@ -58,7 +58,8 @@ add_action(
 		ci_enqueue_style( 'footer' );
 
 		if ( is_front_page() ) {
-			ci_enqueue_style( 'home' );
+			ci_enqueue_style( 'collection' ); // Product cards (new arrivals, trending).
+			ci_enqueue_style( 'home', array( 'ci-collection' ) );
 			ci_enqueue_script( 'home' );
 		}
 		if ( function_exists( 'ci_is_collection' ) && ci_is_collection() ) {

@@ -94,7 +94,8 @@ ul.products > li { min-width: 0; margin: 0; }
   padding: 5px 9px;
   font-size: var(--fs-card-brand);
   font-weight: var(--fw-bold);
-  letter-spacing: var(--ls-card-brand);
+  line-height: normal;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 .product-card__tag--sold-out {

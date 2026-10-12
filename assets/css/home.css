@@ -19,7 +19,7 @@
   text-transform: uppercase;
 }
 .home-eyebrow--light { margin-bottom: 18px; color: var(--color-on-image); letter-spacing: var(--ls-wider); }
-.home-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+.home-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
 .home-heading--center { justify-content: center; text-align: center; }
 .home-heading__title { margin: 0; font-size: var(--fs-section-title); line-height: 1.1; }
 .home-heading__link {
@@ -77,6 +77,46 @@
   letter-spacing: 0.02em;
 }
 .home-hero__text { max-width: 440px; margin: 18px 0 0; font-size: var(--fs-home-text); line-height: 1.5; letter-spacing: normal; }
+
+/* ---------- Product cards on the homepage (design card: left-aligned, brand line, sentence case) ---------- */
+.home-products.products { gap: 32px 12px; }
+.home-products .product-card__meta { padding: 14px 0 0; text-align: left; }
+.home-products .product-card__brand { margin-bottom: 5px; }
+.home-products .product-card__title {
+  font-size: 16px;
+  font-weight: var(--fw-regular);
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.home-products .product-card__price { margin-top: 6px; font-size: 15px; font-weight: var(--fw-regular); letter-spacing: normal; }
+
+/* Swipe row on phones (scroll-snap, no JS) */
+.home-products--carousel.products {
+  grid-auto-flow: column;
+  grid-template-columns: none;
+  grid-auto-columns: 61vw;
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding-inline: var(--page-gutter);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--page-gutter);
+  scrollbar-width: none;
+}
+.home-products--carousel::-webkit-scrollbar { display: none; }
+.home-products--carousel > li { scroll-snap-align: start; }
+
+@media (min-width: 769px) {
+  .home-products.products { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px 24px; }
+  .home-products--carousel.products {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    margin-inline: 0;
+    padding-inline: 0;
+    overflow: visible;
+  }
+}
 
 @media (min-width: 769px) {
   .home-heading { margin-bottom: 40px; }
