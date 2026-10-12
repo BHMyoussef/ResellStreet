@@ -718,3 +718,20 @@ body.has-sticky-atc .site-footer { padding-bottom: 110px; }
 /* ---------- You may also like / Recently viewed (homepage card + grid, design v2) ---------- */
 .single-product div.product > .product-related, .single-product div.product > .product-recent { grid-column: 1 / -1; }
 .product-related { padding-top: var(--home-section-pad); }
+.product-recent { padding-block: 32px var(--home-section-pad); }
+.product-recent:not(:has(.products)) { padding: 0; } /* nothing loaded yet: no gap */
+.product-recent:not(:has(.products)) .product-recent__title { display: none; }
+.product-recent__title { margin: 0 0 24px; font-size: 16px; line-height: 1.1; }
+/* Compact cards (design: 6 columns, smaller type, no "Save %") */
+.product-recent .home-products--compact.products { gap: 24px 10px; }
+.product-recent .home-products--compact.home-products--carousel.products { grid-auto-columns: 34vw; }
+.product-recent .home-products--compact .product-card__meta { padding-top: 10px; }
+.product-recent .home-products--compact .product-card__brand { margin-bottom: 3px; font-size: 10px; }
+.product-recent .home-products--compact .product-card__title { font-size: 14px; line-height: 1.3; }
+.product-recent .home-products--compact .product-card__price { margin-top: 3px; font-size: 14px; }
+.product-recent .home-products--compact .price__savings { display: none; }
+@media (min-width: 769px) {
+  .product-recent { padding-top: 56px; }
+  .product-recent__title { margin-bottom: 28px; font-size: 20px; }
+  .product-recent .home-products--compact.products { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 24px 16px; }
+}

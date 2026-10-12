@@ -378,9 +378,46 @@
     sync();
   }
 
+  /* Recently viewed: product IDs in localStorage (newest first, max 12); cards from REST when the section nears. */
+  function initRecentlyViewed() {
+    const section = document.querySelector('[data-recent]');
+    if (!section) return;
+    const KEY = 'ci_recent';
+    const id = Number(section.dataset.productId);
+    let ids = [];
+    try {
+      ids = JSON.parse(localStorage.getItem(KEY) || '[]').filter((n) => Number.isInteger(n) && n > 0);
+      localStorage.setItem(KEY, JSON.stringify([id, ...ids.filter((n) => n !== id)].slice(0, 12)));
+    } catch {
+      return; // private mode / blocked storage: no section
+    }
+    const others = ids.filter((n) => n !== id).slice(0, 6);
+    if (!others.length) return;
+    const load = async () => {
+      try {
+        const res = await fetch(`${section.dataset.recentUrl}?ids=${others.join(',')}`, { credentials: 'same-origin' });
+        const data = res.ok ? await res.json() : null;
+        if (!data?.html) return;
+        section.querySelector('[data-recent-list]').innerHTML = data.html; // markup from our own endpoint
+        section.hidden = false;
+      } catch {
+        /* offline: keep hidden */
+      }
+    };
+    if (!('IntersectionObserver' in window)) return load();
+    const io = new IntersectionObserver((entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      load();
+    }, { rootMargin: '600px 0px' });
+    section.hidden = false; // must be laid out to be observed; empty until loaded
+    io.observe(section);
+  }
+
   ns.initVariantForm = initVariantForm;
   document.querySelectorAll('form.variations_form').forEach(initVariantForm);
   initGalleryExtras();
+  initRecentlyViewed();
   document.querySelectorAll('.single-product form.cart:not(.variations_form)').forEach(initQuantity); // simple products
   initSticky();
   initReviews();

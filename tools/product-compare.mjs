@@ -79,7 +79,17 @@ for (const width of (widths.length ? widths : ['390', '1440']).map(Number)) {
   // Local
   {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
+    if (area === 'recently-viewed') {
+      // Browse 6 products first (from the homepage's new arrivals) so the section has history to show.
+      await page.goto(new URL('/', PRODUCT).href, { waitUntil: 'domcontentloaded' });
+      const links = await page.$$eval('.home-new a.woocommerce-loop-product__link', (a) => [...new Set(a.map((x) => x.href))].slice(0, 6));
+      for (const href of links) await page.goto(href, { waitUntil: 'domcontentloaded' });
+    }
     await page.goto(PRODUCT, { waitUntil: 'networkidle' });
+    if (area === 'recently-viewed') {
+      await page.locator('.product-recent').scrollIntoViewIfNeeded();
+      await page.waitForSelector('.product-recent .products', { timeout: 10000 });
+    }
     if (area === 'drawer') {
       await page.locator('.variant-buttons__input:not(:disabled) + label').nth(5).click();
       await page.click('.single_add_to_cart_button');

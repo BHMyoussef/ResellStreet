@@ -118,6 +118,60 @@ remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_upsell_d
 remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
 add_action( 'woocommerce_after_single_product_summary', 'ci_product_also_like', 14 );
 
+/* Recently viewed: an empty shell; product.js fills it from localStorage + REST ci/v1/cards (no server session). */
+add_action(
+	'woocommerce_after_single_product_summary',
+	function () {
+		global $product;
+		if ( ! $product instanceof WC_Product ) {
+			return;
+		}
+		printf(
+			'<section class="product-recent" aria-labelledby="product-recent-title" data-recent data-recent-url="%1$s" data-product-id="%2$s" hidden><h2 class="product-recent__title" id="product-recent-title">%3$s</h2><div data-recent-list></div></section>',
+			esc_url( rest_url( 'ci/v1/cards' ) ),
+			esc_attr( $product->get_id() ),
+			esc_html__( 'Recently viewed', 'customimpulse' )
+		);
+	},
+	15
+);
+
+/* GET ci/v1/cards?ids=1,2,3 → { html } compact product cards, in the given order (public, cacheable). */
+add_action(
+	'rest_api_init',
+	function () {
+		register_rest_route(
+			'ci/v1',
+			'/cards',
+			array(
+				'methods'             => 'GET',
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'ids' => array(
+						'required'          => true,
+						'sanitize_callback' => fn( $v ) => array_slice( array_values( array_filter( array_map( 'absint', explode( ',', (string) $v ) ) ) ), 0, 12 ),
+					),
+				),
+				'callback'            => function ( WP_REST_Request $request ) {
+					$ids  = (array) $request['ids'];
+					$html = $ids ? ci_home_products(
+						array(
+							'post__in'       => $ids,
+							'orderby'        => 'post__in',
+							'posts_per_page' => count( $ids ),
+						),
+						'home-products--carousel home-products--compact',
+						array( 'ci_badge' => 'none' )
+					) : '';
+					$response = rest_ensure_response( array( 'html' => $html ) );
+					$response->header( 'Cache-Control', 'public, max-age=300' );
+					return $response;
+				},
+			)
+		);
+	}
+);
+
 /**
  * Up to 4 products: upsells first, then WooCommerce related products; other colourways of the same model go last
  * (the colour swatches already show them). "View all" = the product's model category.
