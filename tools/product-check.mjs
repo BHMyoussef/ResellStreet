@@ -126,6 +126,62 @@ await p.locator('.product-recent').scrollIntoViewIfNeeded();
 await p.waitForTimeout(1200);
 check('recently viewed: earlier products from localStorage', (await p.$$('.product-recent li.product')).length > 0);
 
+// ---- Main image is never cropped (Test Gallery Ratios: 4:5 main, square / 3:2 / 3:4 / 200×150 gallery,
+//      UK 7 = 3:2 and UK 8 = 3:4 variation images; Test Cap: one 200×150 image) ----
+const mainImage = () => p.evaluate(() => {
+  const gallery = document.querySelector('.woocommerce-product-gallery');
+  const slide = gallery.querySelector('.flex-active-slide') || gallery.querySelector('.woocommerce-product-gallery__image');
+  const img = slide.querySelector('img:not(.zoomImg)');
+  if (!img.complete || !img.naturalWidth) return { cropped: true, why: 'image not loaded' };
+  const box = img.getBoundingClientRect();
+  const fit = getComputedStyle(img).objectFit;
+  const nr = img.naturalWidth / img.naturalHeight;
+  const br = box.width / box.height;
+  const file = img.currentSrc.split('/').pop();
+  // srcset must not have picked a hard-cropped file: same ratio as the original upload.
+  const ow = +img.dataset.large_image_width, oh = +img.dataset.large_image_height;
+  if (ow && oh && Math.abs(ow / oh - nr) > 0.02) return { cropped: true, why: `file ${file} is ${img.naturalWidth}×${img.naturalHeight}, original ${ow}×${oh}` };
+  // Drawn content box inside the element (object-position 50% 50%).
+  let cw = box.width, ch = box.height;
+  if (fit === 'contain' || fit === 'scale-down') {
+    if (nr > br) ch = box.width / nr; else cw = box.height * nr;
+    if (fit === 'scale-down') { cw = Math.min(cw, img.naturalWidth); ch = Math.min(ch, img.naturalHeight); }
+  } else if (Math.abs(nr - br) > 0.01) {
+    return { cropped: true, why: `object-fit: ${fit} on a ${img.naturalWidth}×${img.naturalHeight} image in a ${Math.round(box.width)}×${Math.round(box.height)} box` };
+  }
+  const x = box.left + (box.width - cw) / 2, y = box.top + (box.height - ch) / 2;
+  for (let el = img.parentElement; el && el !== gallery.parentElement; el = el.parentElement) {
+    const s = getComputedStyle(el);
+    if (s.overflowX === 'visible' && s.overflowY === 'visible') continue;
+    const r = el.getBoundingClientRect();
+    if (x < r.left - 1 || y < r.top - 1 || x + cw > r.right + 1 || y + ch > r.bottom + 1) {
+      return { cropped: true, why: `clipped by .${[...el.classList].join('.')} (${Math.round(r.width)}×${Math.round(r.height)}, image ${Math.round(cw)}×${Math.round(ch)})` };
+    }
+  }
+  return { cropped: false, why: `${file} ${Math.round(cw)}×${Math.round(ch)} in ${Math.round(box.width)}×${Math.round(box.height)}` };
+});
+const notCropped = async (label) => { const r = await mainImage(); check(`main image not cropped: ${label}`, !r.cropped, r.why); };
+for (const w of [390, 768, 1440]) {
+  await p.setViewportSize({ width: w, height: w < 769 ? 844 : 900 });
+  await p.goto(BASE + 'test-gallery-ratios/', { waitUntil: 'networkidle' });
+  await p.waitForTimeout(600);
+  await notCropped(`${w}px first load (4:5)`);
+  const slides = await p.$$eval('.flex-control-thumbs li', (li) => li.length);
+  for (let i = 1; i < slides; i++) {
+    await p.evaluate((n) => document.querySelectorAll('.flex-control-thumbs li img')[n].click(), i);
+    await p.waitForTimeout(900);
+    await notCropped(`${w}px slide ${i + 1}/${slides}`);
+  }
+  for (const [size, ratio] of [['7', '3:2'], ['8', '3:4']]) {
+    await pick(size);
+    await p.waitForTimeout(900);
+    await notCropped(`${w}px variation UK ${size} image (${ratio})`);
+  }
+  await p.goto(BASE + 'test-cap/', { waitUntil: 'networkidle' });
+  await p.waitForTimeout(400);
+  await notCropped(`${w}px very small image (200×150, simple product)`);
+}
+
 check('no console errors', errors.length === 0, errors.join(' | '));
 await p.evaluate(async () => {
   const api = window.CustomImpulse?.cart?.api;

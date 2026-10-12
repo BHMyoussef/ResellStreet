@@ -254,6 +254,94 @@ ci_fx_runner( 'CI-TEST-RUNNER-BLACK', 'Black', '#23262d', $ci_fx_model->term_id,
 ci_fx_runner( 'CI-TEST-RUNNER-CREAM', 'Cream', '#ece8df', $ci_fx_model->term_id, 'nike', array_slice( $images, 2 ) );
 
 // ---------------------------------------------------------------------------
+// Image ratios (main image must never be cropped, tools/product-check.mjs), simple + out-of-stock products.
+// ---------------------------------------------------------------------------
+
+/**
+ * Generated test image (GD): colour fill with a 6% dark frame on every edge, so any crop shows. Imported once,
+ * tagged `_ci_fixture_ratio` = "<w>x<h>".
+ */
+function ci_fx_ratio_image( $w, $h, $rgb ) {
+	$key   = "{$w}x{$h}-" . implode( '-', $rgb );
+	$found = get_posts(
+		array(
+			'post_type'   => 'attachment',
+			'post_status' => 'inherit',
+			'meta_key'    => '_ci_fixture_ratio', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'meta_value'  => $key, // phpcs:ignore WordPress.DB.SlowDBQuery
+			'fields'      => 'ids',
+			'numberposts' => 1,
+		)
+	);
+	if ( $found && file_exists( (string) get_attached_file( $found[0] ) ) ) {
+		return (int) $found[0];
+	}
+	$im    = imagecreatetruecolor( $w, $h );
+	$frame = max( 4, (int) round( min( $w, $h ) * 0.06 ) );
+	imagefill( $im, 0, 0, imagecolorallocate( $im, 28, 37, 59 ) );
+	imagefilledrectangle( $im, $frame, $frame, $w - 1 - $frame, $h - 1 - $frame, imagecolorallocate( $im, ...$rgb ) );
+	$tmp = wp_tempnam( "ci-ratio-{$key}.jpg" );
+	imagejpeg( $im, $tmp, 85 );
+	imagedestroy( $im );
+	$id = media_handle_sideload( array( 'name' => "ci-ratio-{$key}.jpg", 'tmp_name' => $tmp ), 0, "Test image {$w}×{$h}" );
+	if ( is_wp_error( $id ) ) {
+		WP_CLI::warning( $id->get_error_message() );
+		return 0;
+	}
+	update_post_meta( $id, '_ci_fixture_ratio', $key );
+	return (int) $id;
+}
+
+/** Simple product, found by SKU. */
+function ci_fx_simple( $sku, $name, $category_id, $image_id, $in_stock ) {
+	$id      = wc_get_product_id_by_sku( $sku );
+	$product = new WC_Product_Simple( $id ? $id : 0 );
+	$product->set_name( $name );
+	$product->set_sku( $sku );
+	$product->set_status( 'publish' );
+	$product->set_category_ids( array( $category_id ) );
+	$product->set_description( '<p>Test product for the theme checks.</p>' );
+	$product->set_regular_price( '24.99' );
+	$product->set_image_id( $image_id );
+	$product->set_stock_status( $in_stock ? 'instock' : 'outofstock' );
+	$product_id = $product->save();
+	WP_CLI::success( "{$name} (#{$product_id})" );
+	return $product_id;
+}
+
+$ci_fx_ratio = array(
+	'square'    => ci_fx_ratio_image( 1000, 1000, array( 168, 220, 207 ) ),
+	'portrait'  => ci_fx_ratio_image( 800, 1000, array( 236, 232, 223 ) ),   // 4:5
+	'tall'      => ci_fx_ratio_image( 750, 1000, array( 193, 165, 132 ) ),   // 3:4
+	'landscape' => ci_fx_ratio_image( 1200, 800, array( 200, 210, 230 ) ),   // 3:2
+	'small'     => ci_fx_ratio_image( 200, 150, array( 230, 200, 200 ) ),    // very small, 4:3
+);
+// Main image portrait 4:5, gallery mixed; UK 7 / UK 8 have their own landscape / 3:4 images (variation swap).
+$ci_fx_ratio_id = ci_fx_runner(
+	'CI-TEST-RATIOS',
+	'Ratios',
+	'#ece8df',
+	$shoes->term_id, // top-level category: no colourway siblings
+	'nike',
+	array( $ci_fx_ratio['portrait'], $ci_fx_ratio['square'], $ci_fx_ratio['landscape'], $ci_fx_ratio['tall'], $ci_fx_ratio['small'] )
+);
+$ci_fx_ratios = wc_get_product( $ci_fx_ratio_id );
+$ci_fx_ratios->set_name( 'Test Gallery Ratios' );
+$ci_fx_ratios->set_slug( 'test-gallery-ratios' );
+$ci_fx_ratios->save();
+foreach ( $ci_fx_ratios->get_children() as $ci_fx_child ) {
+	$ci_fx_var  = wc_get_product( $ci_fx_child );
+	$ci_fx_size = $ci_fx_var->get_attribute( 'pa_size' );
+	if ( isset( array( '7' => 1, '8' => 1 )[ $ci_fx_size ] ) ) {
+		$ci_fx_var->set_image_id( '7' === $ci_fx_size ? $ci_fx_ratio['landscape'] : $ci_fx_ratio['tall'] );
+		$ci_fx_var->save();
+	}
+}
+wc_delete_product_transients( $ci_fx_ratio_id );
+ci_fx_simple( 'CI-TEST-CAP', 'Test Cap', $shoes->term_id, $ci_fx_ratio['small'], true );
+ci_fx_simple( 'CI-TEST-SOLD-OUT', 'Test Sold Out Tee', $shoes->term_id, $ci_fx_ratio['tall'], false );
+
+// ---------------------------------------------------------------------------
 // Checkout / account testing (DEV ONLY)
 // ---------------------------------------------------------------------------
 
