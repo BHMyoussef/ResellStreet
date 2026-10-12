@@ -130,6 +130,7 @@
   --swatch-size: 60px;
   --option-h: 48px;              /* size buttons */
   --atc-h: 52px;                 /* quantity stepper + add to cart */
+  --accordion-width: 800px;
   --color-option-disabled: #a3a6ae; /* sold-out size text (crossed out) */
 
   /* Product card (homepage v2 design) */

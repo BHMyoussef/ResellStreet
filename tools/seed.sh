@@ -82,11 +82,12 @@ done
 "$WP" theme mod set product_auth_title "100% authentic"
 "$WP" theme mod set product_auth_text "Verified by our team before shipping."
 "$WP" theme mod set product_auth_link_label "How we check"
-"$WP" theme mod set product_tab_1_title "Shipping information"
-"$WP" theme mod set product_tab_1_content "<p>We offer FREE shipping across the UK!</p><p>The team carefully packs each order on the same day and ships it straight to your door. You’ll receive a tracking number as soon as your order has been dispatched. Delivery typically takes 4 to 10 business</p>"
-"$WP" theme mod set product_tab_2_title "SATISFACTION GUARANTEE"
-"$WP" theme mod set product_tab_2_content "<p>We stand by our quality and your satisfaction is our priority. If you're not completely happy with your purchase, let us know, and we’ll make it right!</p>"
-# Tab 3 (customer service: hours + email) comes from the theme defaults (placeholders) / Customizer.
+# Accordions under the product (Description / Product details come from each product)
+"$WP" theme mod set product_shipping_title "Shipping & returns"
+"$WP" theme mod set product_shipping_text "<p>We offer FREE shipping across the UK. The team carefully packs each order on the same day and ships it straight to your door. You’ll receive a tracking number as soon as your order has been dispatched. Delivery typically takes 4 to 10 business days.</p><p>We stand by our quality and your satisfaction is our priority. If you're not completely happy with your purchase, let us know, and we’ll make it right!</p>"
+"$WP" theme mod set product_authenticity_title "Authenticity guarantee"
+"$WP" theme mod set product_authenticity_text "<p>Every item is checked by our team before it ships.</p>"
+for k in product_tab_1_title product_tab_1_content product_tab_2_title product_tab_2_content product_tab_3_title product_tab_3_content product_description_inline; do "$WP" theme mod remove "$k" >/dev/null 2>&1 || true; done
 
 # ---------- WooCommerce catalog settings ----------
 # Grid: 3 columns × 7 rows (main-collection per_row / rows_per_page). Card images are square (homepage v2 design).

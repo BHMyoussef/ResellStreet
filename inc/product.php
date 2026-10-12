@@ -73,8 +73,11 @@ add_action( 'ci_product_after_add_to_cart', 'ci_product_trust_lines', 5 );
 add_action( 'ci_product_after_add_to_cart', 'ci_product_authenticity', 8 );
 add_action( 'ci_product_after_add_to_cart', 'ci_product_trust_badges', 10 );
 
-add_action( 'woocommerce_single_product_summary', 'ci_product_description', 35 );
-add_action( 'woocommerce_single_product_summary', 'ci_product_tabs', 36 );
+/* Short description lives in the "Product details" accordion now. */
+remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_excerpt', 20 );
+
+/* Accordions under the product (design v2), before the reviews. */
+add_action( 'woocommerce_after_single_product_summary', 'ci_product_accordions', 5 );
 
 /* Reviews: full width under the product (like the reference store's review app section); filled by inc/reviews.php. */
 add_action(
@@ -506,66 +509,165 @@ function ci_product_trust_badges() {
  * Description, tabs, reviews
  * ------------------------------------------------------------------------ */
 
-function ci_product_description() {
-	if ( ! ci_mod( 'product_description_inline' ) ) {
-		return;
-	}
-	$content = get_the_content();
-	if ( '' === trim( $content ) ) {
-		return;
-	}
-	echo '<div class="product-description rte">';
-	the_content();
-	echo '</div>';
-}
-
 /**
- * Collapsible tabs: Customizer tabs (shared by all products) + tabs added to woocommerce_product_tabs by plugins.
+ * Accordion rows: Description (open), Product details, Shipping & returns, Authenticity guarantee, then any tab a
+ * plugin adds through woocommerce_product_tabs (description/reviews/additional information are ours).
+ *
+ * @param WC_Product $product Product.
+ * @return array<int,array{title:string,html:string}>
  */
-function ci_product_tabs() {
-	$tabs = array();
-	for ( $i = 1; $i <= CI_PRODUCT_TAB_SLOTS; $i++ ) {
-		$title   = trim( (string) ci_mod( "product_tab_{$i}_title" ) );
-		$content = (string) ci_mod( "product_tab_{$i}_content" );
-		if ( '' !== $title && '' !== trim( $content ) ) {
-			$tabs[] = array(
-				'title' => $title,
-				'html'  => wp_kses_post( wpautop( $content ) ),
+function ci_product_accordion_items( WC_Product $product ) {
+	$items = array();
+	$desc  = trim( (string) get_post_field( 'post_content', $product->get_id() ) );
+	if ( '' !== $desc ) {
+		$items[] = array(
+			'title' => __( 'Description', 'customimpulse' ),
+			'html'  => apply_filters( 'the_content', $desc ),
+		);
+	}
+
+	$details = trim( (string) $product->get_short_description() );
+	$items[] = array(
+		'title' => __( 'Product details', 'customimpulse' ),
+		'html'  => '' !== $details ? wp_kses_post( wpautop( $details ) ) : ci_product_details_list( $product ),
+	);
+
+	foreach ( array(
+		'shipping'     => __( 'Shipping & returns', 'customimpulse' ),
+		'authenticity' => __( 'Authenticity guarantee', 'customimpulse' ),
+	) as $key => $default_title ) {
+		$own   = trim( (string) get_post_meta( $product->get_id(), "_ci_{$key}_text", true ) );
+		$text  = '' !== $own ? $own : trim( (string) ci_mod( "product_{$key}_text" ) );
+		$title = trim( (string) ci_mod( "product_{$key}_title" ) );
+		if ( '' !== $text ) {
+			$items[] = array(
+				'title' => '' !== $title ? $title : $default_title,
+				'html'  => wp_kses_post( wpautop( $text ) ),
 			);
 		}
 	}
 
-	// Description is shown inline (or as a tab when inline is off); reviews get their own section.
-	$skip = array( 'additional_information', 'reviews' );
-	if ( ci_mod( 'product_description_inline' ) ) {
-		$skip[] = 'description';
-	}
 	foreach ( apply_filters( 'woocommerce_product_tabs', array() ) as $key => $tab ) {
-		if ( in_array( $key, $skip, true ) || empty( $tab['callback'] ) ) {
+		if ( in_array( $key, array( 'description', 'additional_information', 'reviews' ), true ) || empty( $tab['callback'] ) ) {
 			continue;
 		}
 		ob_start();
 		call_user_func( $tab['callback'], $key, $tab );
-		$tabs[] = array(
+		$items[] = array(
 			'title' => wp_strip_all_tags( apply_filters( "woocommerce_product_{$key}_tab_title", $tab['title'], $key ) ),
 			'html'  => (string) ob_get_clean(),
 		);
 	}
+	return array_values( array_filter( $items, fn( $i ) => '' !== trim( wp_strip_all_tags( $i['html'] ) ) ) );
+}
 
-	if ( ! $tabs ) {
+/**
+ * "Product details" when the product has no short description: brand, visible attributes (sizes as a range), SKU.
+ *
+ * @param WC_Product $product Product.
+ */
+function ci_product_details_list( WC_Product $product ) {
+	$rows  = array();
+	$brand = function_exists( 'ci_product_brand' ) ? ci_product_brand( $product->get_id() ) : null;
+	if ( $brand ) {
+		$rows[ __( 'Brand', 'customimpulse' ) ] = $brand->name;
+	}
+	foreach ( $product->get_attributes() as $attribute ) {
+		if ( ! $attribute->get_visible() ) {
+			continue;
+		}
+		$values = $attribute->is_taxonomy() ? wp_list_pluck( $attribute->get_terms(), 'name' ) : $attribute->get_options();
+		$label  = wc_attribute_label( $attribute->get_name(), $product );
+		if ( ci_is_size_attribute( $attribute->get_name(), $label ) && count( $values ) > 2 ) {
+			$nums = array_map( fn( $v ) => (float) str_replace( ',', '.', $v ), $values );
+			if ( count( array_filter( $nums ) ) === count( $nums ) ) {
+				$system = trim( (string) ci_mod( 'size_system_label' ) );
+				$values = array( trim( $system . ' ' . wc_format_localized_decimal( min( $nums ) ) . '–' . wc_format_localized_decimal( max( $nums ) ) ) );
+			}
+		}
+		$rows[ $label ] = implode( ', ', $values );
+	}
+	if ( $product->get_sku() ) {
+		$rows[ __( 'SKU', 'customimpulse' ) ] = $product->get_sku();
+	}
+	if ( ! $rows ) {
+		return '';
+	}
+	$html = '<dl class="product-details">';
+	foreach ( $rows as $label => $value ) {
+		$html .= '<div><dt>' . esc_html( $label ) . '</dt><dd>' . esc_html( $value ) . '</dd></div>';
+	}
+	return $html . '</dl>';
+}
+
+/**
+ * Accordion block under the product (native <details>; the first row is open).
+ */
+function ci_product_accordions() {
+	global $product;
+	if ( ! $product instanceof WC_Product ) {
 		return;
 	}
-	echo '<div class="product-tabs">';
-	foreach ( $tabs as $tab ) {
+	$items = ci_product_accordion_items( $product );
+	if ( ! $items ) {
+		return;
+	}
+	echo '<section class="product-accordions" aria-label="' . esc_attr__( 'Product information', 'customimpulse' ) . '">';
+	foreach ( $items as $i => $item ) {
 		printf(
-			'<details class="product-tab"><summary class="product-tab__title">%s%s</summary><div class="product-tab__content rte">%s</div></details>',
-			esc_html( $tab['title'] ),
-			ci_icon( 'chevron-down', 'product-tab__icon' ), // phpcs:ignore WordPress.Security.EscapeOutput
-			$tab['html'] // phpcs:ignore WordPress.Security.EscapeOutput -- kses'd above or plugin tab output.
+			'<details class="product-accordion"%1$s><summary class="product-accordion__title">%2$s%3$s</summary><div class="product-accordion__content rte">%4$s</div></details>',
+			0 === $i ? ' open' : '',
+			esc_html( $item['title'] ),
+			ci_icon( 'chevron-down', 'product-accordion__icon' ), // phpcs:ignore WordPress.Security.EscapeOutput
+			$item['html'] // phpcs:ignore WordPress.Security.EscapeOutput -- kses'd / the_content / plugin tab output.
 		);
 	}
-	echo '</div>';
+	echo '</section>';
 }
+
+/* Per-product override of the Shipping & returns / Authenticity guarantee accordion text. */
+add_action(
+	'add_meta_boxes_product',
+	function () {
+		add_meta_box(
+			'ci-product-texts',
+			__( 'Product page: accordion texts', 'customimpulse' ),
+			function ( $post ) {
+				wp_nonce_field( 'ci_product_texts', 'ci_product_texts_nonce' );
+				foreach ( array(
+					'shipping'     => __( 'Shipping & returns (empty = Customizer text)', 'customimpulse' ),
+					'authenticity' => __( 'Authenticity guarantee (empty = Customizer text)', 'customimpulse' ),
+				) as $key => $label ) {
+					printf(
+						'<p><label for="ci-%1$s-text"><strong>%2$s</strong></label><textarea class="widefat" rows="4" id="ci-%1$s-text" name="ci_%1$s_text">%3$s</textarea></p>',
+						esc_attr( $key ),
+						esc_html( $label ),
+						esc_textarea( (string) get_post_meta( $post->ID, "_ci_{$key}_text", true ) )
+					);
+				}
+			},
+			'product',
+			'normal',
+			'low'
+		);
+	}
+);
+add_action(
+	'save_post_product',
+	function ( $post_id ) {
+		if ( ! isset( $_POST['ci_product_texts_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['ci_product_texts_nonce'] ), 'ci_product_texts' ) || ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+		foreach ( array( 'shipping', 'authenticity' ) as $key ) {
+			$text = trim( wp_kses_post( wp_unslash( $_POST[ "ci_{$key}_text" ] ?? '' ) ) );
+			if ( '' === $text ) {
+				delete_post_meta( $post_id, "_ci_{$key}_text" );
+			} else {
+				update_post_meta( $post_id, "_ci_{$key}_text", $text );
+			}
+		}
+	}
+);
 
 /* ---------------------------------------------------------------------------
  * Size guide: HTML per product category (term meta), shown in a modal

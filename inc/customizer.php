@@ -10,7 +10,6 @@ defined( 'ABSPATH' ) || exit;
 
 const CI_ANNOUNCEMENT_SLOTS = 3;
 const CI_SALES_POINT_SLOTS = 3;
-const CI_PRODUCT_TAB_SLOTS = 3;
 
 /**
  * Icons offered for selling points.
@@ -100,7 +99,10 @@ function ci_defaults() {
 		// Product page.
 		'variant_preselect'          => true,
 		'product_qty_enable'         => false,
-		'product_description_inline' => true,
+		'product_shipping_title'     => '',
+		'product_shipping_text'      => '',
+		'product_authenticity_title' => '',
+		'product_authenticity_text'  => '',
 		'related_enable'             => false,
 		'sticky_atc_enable'          => true,
 		'stock_status_enable'        => true,
@@ -123,14 +125,7 @@ function ci_defaults() {
 	for ( $i = 1; $i <= 3; $i++ ) {
 		$defaults[ "sales_point_{$i}_icon" ] = $point_icons[ $i ];
 		$defaults[ "sales_point_{$i}_text" ] = '';
-		$defaults[ "product_tab_{$i}_title" ]   = '';
-		$defaults[ "product_tab_{$i}_content" ] = '';
 	}
-	// Tab 3: customer service (placeholders until the owner enters real details).
-	$defaults['product_tab_3_title']   = __( 'Customer service', 'customimpulse' );
-	$defaults['product_tab_3_content'] = '<p>Questions about your order or sizing? Our team is here to help.</p>'
-		. '<p><strong>Hours:</strong> [days and hours]<br><strong>Email:</strong> [support email]</p>'
-		. '<p>You can also use our <a href="/contact-us/">contact form</a>.</p>';
 	for ( $i = 1; $i <= CI_ANNOUNCEMENT_SLOTS; $i++ ) {
 		$defaults[ "announcement_{$i}_text" ] = '';
 		$defaults[ "announcement_{$i}_link" ] = '';
@@ -376,7 +371,6 @@ add_action(
 		);
 		$add( 'variant_preselect', 'ci_product', __( 'Preselect the first available variant', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 		$add( 'product_qty_enable', 'ci_product', __( 'Show quantity selector', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
-		$add( 'product_description_inline', 'ci_product', __( 'Show description under the add to cart button (otherwise as a tab)', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 		$add( 'sticky_atc_enable', 'ci_product', __( 'Sticky add to cart bar on mobile', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 		$add( 'related_enable', 'ci_product', __( 'Show related products', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 		$add( 'stock_status_enable', 'ci_product', __( 'Show stock status', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
@@ -410,12 +404,11 @@ add_action(
 		$add( 'product_auth_link_url', 'ci_product', __( 'Authenticity box: link URL', 'customimpulse' ), 'url', 'esc_url_raw' );
 		$add( 'trust_badges_enable', 'ci_product', __( 'Show trust badges under add to cart (payment icons from Footer settings)', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 		$add( 'trust_badges_title', 'ci_product', __( 'Trust badges title (optional)', 'customimpulse' ) );
-		for ( $i = 1; $i <= CI_PRODUCT_TAB_SLOTS; $i++ ) {
-			/* translators: %d: tab number */
-			$add( "product_tab_{$i}_title", 'ci_product', sprintf( __( 'Tab %d title', 'customimpulse' ), $i ) );
-			/* translators: %d: tab number */
-			$add( "product_tab_{$i}_content", 'ci_product', sprintf( __( 'Tab %d content (HTML allowed)', 'customimpulse' ), $i ), 'textarea', 'wp_kses_post' );
-		}
+		// Accordions under the product (Description and Product details come from the product itself).
+		$add( 'product_shipping_title', 'ci_product', __( 'Accordion: Shipping & returns title', 'customimpulse' ) );
+		$add( 'product_shipping_text', 'ci_product', __( 'Accordion: Shipping & returns text (HTML allowed; a product can override it)', 'customimpulse' ), 'textarea', 'wp_kses_post' );
+		$add( 'product_authenticity_title', 'ci_product', __( 'Accordion: Authenticity guarantee title', 'customimpulse' ) );
+		$add( 'product_authenticity_text', 'ci_product', __( 'Accordion: Authenticity guarantee text (HTML allowed; a product can override it)', 'customimpulse' ), 'textarea', 'wp_kses_post' );
 
 		// Cart drawer.
 		$wp_customize->add_section(
