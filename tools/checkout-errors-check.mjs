@@ -59,6 +59,9 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   await p.fill('#billing_postcode', 'NOT A POSTCODE');
   await p.fill('#billing_email', 'buyer@example.com');
   await p.waitForTimeout(800);
+  // Cash on delivery (fixtures): Stripe card (the default when active) validates its own fields first.
+  if (await p.$('#payment_method_cod')) await p.check('#payment_method_cod', { force: true });
+  await p.waitForTimeout(300);
   await p.click('#place_order');
   await p.waitForSelector('#billing_postcode_field .checkout-inline-error-message', { timeout: 15000 });
   await p.waitForTimeout(500);

@@ -57,7 +57,7 @@ const b = await launch();
   await p.waitForTimeout(200);
 
   // Quick Shop (collection page) shows the same stars
-  await p.goto(`${SITE}/product-category/shoes/`, { waitUntil: 'networkidle' });
+  await p.goto(`${SITE}/?s=Test+Sneaker&post_type=product`, { waitUntil: 'networkidle' }); // contains the test product whatever the catalogue size
   const card = p.locator('ul.products > li', { hasText: /Test Sneaker [–-] Men/ });
   await card.hover();
   await card.locator('.product-card__quick').click();

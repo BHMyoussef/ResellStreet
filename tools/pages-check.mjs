@@ -88,12 +88,16 @@ const b = await launch();
   await p.waitForFunction(() => document.querySelector('.order-total')?.textContent.includes('41.18'), null, { timeout: 10000 });
   check('TEST10 applied: total £41.18, bar total updated', (await toggle.textContent()).includes('41.18'), await toggle.textContent());
 
-  // Country change still switches the state/county field without selectWoo.
-  await p.selectOption('#billing_country', 'US');
-  await p.waitForTimeout(800);
-  check('country → state field switches (native select)', await p.evaluate(() => document.querySelector('#billing_state')?.tagName === 'SELECT'));
-  await p.selectOption('#billing_country', 'GB');
-  await p.waitForTimeout(800);
+  // Country change still switches the state/county field without selectWoo (only when the store sells to the US).
+  if (await p.$('#billing_country option[value="US"]')) {
+    await p.selectOption('#billing_country', 'US');
+    await p.waitForTimeout(800);
+    check('country → state field switches (native select)', await p.evaluate(() => document.querySelector('#billing_state')?.tagName === 'SELECT'));
+    await p.selectOption('#billing_country', 'GB');
+    await p.waitForTimeout(800);
+  } else {
+    console.log('- country → state check skipped (store sells to the UK only)');
+  }
 
   await p.fill('#billing_first_name', 'Test');
   await p.fill('#billing_last_name', 'Buyer');

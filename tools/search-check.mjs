@@ -24,11 +24,12 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   check('icon opens the overlay over the header row, input focused', (await isOpen()) && (await p.evaluate(() => document.activeElement?.name === 's')) && bar === (w < 769 ? 59 : 94), `bar=${bar}px`);
 
   // Typing fast: only the latest query is rendered
-  await p.type('.search-dialog__input', 'hood', { delay: 40 });
+  // "hoka" then "sneaker": two queries with different results in the real (shoe) catalogue.
+  await p.type('.search-dialog__input', 'hoka', { delay: 40 });
   await p.waitForSelector('.search-result', { timeout: 10000 });
   await p.waitForTimeout(400);
   const names = await p.$$eval('.search-result__name', (n) => n.map((x) => x.textContent));
-  check('predictive results for the latest query only', names.length >= 1 && names.every((n) => /hood/i.test(n)), names.join(', '));
+  check('predictive results for the latest query only', names.length >= 1 && names.every((n) => /hoka/i.test(n)), names.join(', '));
   await p.fill('.search-dialog__input', 'sneaker');
   await p.waitForFunction(() => [...document.querySelectorAll('.search-result__name')].some((n) => /sneaker/i.test(n.textContent)), null, { timeout: 10000 });
   const first = await p.$eval('.search-result', (a) => ({ img: /-150x150\.|placeholder/.test(a.querySelector('img').src), price: a.querySelector('.search-result__price').textContent.replace(/\s+/g, ' ').trim() }));
@@ -85,12 +86,12 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
     form: document.querySelector('.search-page__form input[name="s"]')?.value,
     cards: document.querySelectorAll('ul.products > li').length,
   }));
-  check('results page: visible title, count, search form, product cards', /sneaker/i.test(page.title) && page.titleVisible && page.count === `${page.cards} products` && page.form === 'sneaker' && page.cards >= 2, JSON.stringify(page));
+  check('results page: visible title, count, search form, product cards', /sneaker/i.test(page.title) && page.titleVisible && Number((page.count.match(/^(\d+) products?$/) || [])[1]) >= page.cards && page.form === 'sneaker' && page.cards >= 2, JSON.stringify(page));
   if (w === 1440) await p.screenshot({ path: 'screens-local/search-results-1440.png', fullPage: true });
 
   await p.goto(`${SITE}/?s=zzqqxx&post_type=product`, { waitUntil: 'networkidle' });
   check('empty results page: message + browse button', (await p.$$('.search-page__empty .btn')).length === 1);
-  await p.goto(`${SITE}/?s=hoodie`, { waitUntil: 'networkidle' });
+  await p.goto(`${SITE}/?s=sneaker`, { waitUntil: 'networkidle' });
   check('plain ?s= search redirects to the product search', /post_type=product/.test(p.url()) && (await p.$$('ul.products > li')).length >= 1);
 
   check('no console errors', errors.length === 0, errors.join(' | '));

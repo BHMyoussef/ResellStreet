@@ -3,7 +3,8 @@ import { launch, wcJqueryScripts } from './lib/browser.mjs';
 
 const SITE = 'http://resellstreet.local';
 const PRODUCT = `${SITE}/product/test-sneaker-mens-casual-leather-sneakers/`;
-const COLLECTION = `${SITE}/product-category/shoes/`;
+// Product search = a collection page that contains the test product whatever the catalogue size.
+const COLLECTION = `${SITE}/?s=Test+Sneaker&post_type=product`;
 const b = await launch();
 let fails = 0;
 const check = (label, ok, info = '') => {
