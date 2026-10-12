@@ -107,6 +107,7 @@ remove_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_ad
 
 add_action( 'woocommerce_before_shop_loop_item_title', 'ci_loop_media', 10 );
 add_action( 'woocommerce_shop_loop_item_title', 'ci_loop_meta_open', 1 );
+add_action( 'woocommerce_shop_loop_item_title', 'ci_loop_brand', 5 );
 add_action( 'woocommerce_shop_loop_item_title', 'ci_loop_title', 10 );
 add_action( 'woocommerce_after_shop_loop_item_title', 'ci_loop_price', 10 );
 add_action( 'woocommerce_after_shop_loop_item_title', 'ci_loop_meta_close', 100 );
@@ -164,8 +165,11 @@ function ci_loop_media() {
 		}
 	}
 
+	// Loop prop ci_badge = 'new' (homepage New Arrivals) shows "New" instead of "Sale".
 	if ( ! $product->is_in_stock() ) {
 		echo '<span class="product-card__tag product-card__tag--sold-out">' . esc_html__( 'Sold out', 'customimpulse' ) . '</span>';
+	} elseif ( 'new' === wc_get_loop_prop( 'ci_badge' ) ) {
+		echo '<span class="product-card__tag product-card__tag--new">' . esc_html__( 'New', 'customimpulse' ) . '</span>';
 	} elseif ( $product->is_on_sale() ) {
 		echo '<span class="product-card__tag">' . esc_html__( 'Sale', 'customimpulse' ) . '</span>';
 	}
@@ -178,6 +182,29 @@ function ci_loop_meta_open() {
 
 function ci_loop_meta_close() {
 	echo '</div>';
+}
+
+/**
+ * Brand name above the card title (first WooCommerce brand).
+ */
+function ci_loop_brand() {
+	$brand = ci_product_brand( get_the_ID() );
+	if ( $brand ) {
+		echo '<p class="product-card__brand">' . esc_html( $brand->name ) . '</p>';
+	}
+}
+
+/**
+ * First product_brand term of a product (null when brands are off or none is set).
+ *
+ * @param int $product_id Product ID.
+ */
+function ci_product_brand( $product_id ) {
+	if ( ! taxonomy_exists( 'product_brand' ) ) {
+		return null;
+	}
+	$terms = get_the_terms( $product_id, 'product_brand' );
+	return is_array( $terms ) && $terms ? $terms[0] : null;
 }
 
 function ci_loop_title() {

@@ -80,14 +80,13 @@ done
 # Tab 3 (customer service: hours + email) comes from the theme defaults (placeholders) / Customizer.
 
 # ---------- WooCommerce catalog settings ----------
-# Grid: 3 columns × 7 rows (main-collection per_row / rows_per_page). Card images are 4:3 (landscape grid).
+# Grid: 3 columns × 7 rows (main-collection per_row / rows_per_page). Card images are square (homepage v2 design).
 "$WP" option update woocommerce_catalog_columns 3 >/dev/null
 "$WP" option update woocommerce_catalog_rows 7 >/dev/null
-if [ "$("$WP" option get woocommerce_thumbnail_cropping)" != "custom" ] || [ "$("$WP" option get woocommerce_thumbnail_cropping_custom_height)" != "3" ]; then
-  "$WP" option update woocommerce_thumbnail_cropping custom >/dev/null
-  "$WP" option update woocommerce_thumbnail_cropping_custom_width 4 >/dev/null
-  "$WP" option update woocommerce_thumbnail_cropping_custom_height 3 >/dev/null
-  "$WP" media regenerate --image_size=woocommerce_thumbnail --yes
+if [ "$("$WP" option get woocommerce_thumbnail_cropping)" != "1:1" ]; then
+  "$WP" option update woocommerce_thumbnail_cropping 1:1 >/dev/null
+  "$WP" media regenerate --image_size=woocommerce_thumbnail --yes | tail -1
+  "$WP" media regenerate --image_size=ci-card-sm --yes | tail -1
 fi
 
 "$WP" media regenerate --image_size=ci-card-sm --only-missing --yes | tail -1
@@ -103,7 +102,7 @@ fi
 # Reviews: CusRev collects them (emails + photo upload on the review form); the theme displays them.
 "$WP" option update ivole_attach_image yes >/dev/null
 
-# ---------- Homepage (templates/index.json) ----------
+# ---------- Homepage (design: reference/homepage-v2) ----------
 # Media files come from reference/media (downloaded once from the live store; reference/ is git-ignored).
 MEDIA_DIR="$(cd "$(dirname "$0")/.." && pwd)/reference/media"
 media_id() { # file title -> attachment id (imported once, tagged with _ci_seed)
@@ -127,41 +126,82 @@ cat_id() { # slug name [parent slug] -> term id
 set_thumb() { [ -n "$2" ] && "$WP" term meta update "$1" thumbnail_id "$2" >/dev/null; }
 
 SHOP_URL=$("$WP" eval 'echo get_permalink( wc_get_page_id( "shop" ) );')
+NEW_URL="${SHOP_URL}?orderby=date"
+mod() { "$WP" theme mod set "$1" "$2" >/dev/null; }
 
-HERO=$(media_id hero-1.jpg "Hero - Step Into Power")
-"$WP" theme mod set home_hero_1_image "$HERO"
-"$WP" theme mod set home_hero_1_eyebrow "Urban footwear built for those who move different."
-"$WP" theme mod set home_hero_1_title "Step Into Power."
-"$WP" theme mod set home_hero_1_btn1_label "Shop the Drop"
-"$WP" theme mod set home_hero_1_btn1_url "$SHOP_URL"
-"$WP" theme mod set home_hero_1_btn2_label "Explore Collection"
-"$WP" theme mod set home_hero_1_btn2_url "$SHOP_URL"
-"$WP" theme mod set home_hero_1_focal "top center"
-
-T_SHOES=$(cat_id shoes "Shoes"); T_ACC=$(cat_id accessories "Accessories"); T_SETS=$(cat_id sets "Sets"); T_BAGS=$(cat_id bags "Bags")
-set_thumb "$T_SHOES" "$(media_id tile-shoes.jpg 'Shoes')"
-set_thumb "$T_ACC" "$(media_id tile-accessories.jpg 'Accessories')"
-set_thumb "$T_SETS" "$(media_id tile-sets.jpg 'Sets')"
-set_thumb "$T_BAGS" "$(media_id tile-bags.jpg 'Bags')"
-for f in tile-shoes.jpg tile-accessories.jpg tile-sets.jpg tile-bags.jpg; do
-  for size in ci-square ci-square-lg; do
-    "$WP" media regenerate "$(media_id "$f" '')" --image_size=$size --only-missing --yes >/dev/null
-  done
+# Old homepage (v1) settings
+for k in home_hero_autoplay home_hero_parallax home_hero_title_size home_tiles_enable home_tiles_title home_tiles_per_row \
+  home_testimonials_enable home_testimonials_title home_testimonials_count home_testimonials_min home_testimonials_photos \
+  home_testimonials_verified home_story_enable home_story_subtitle home_story_title home_story_text home_story_btn_label \
+  home_story_btn_url home_story_image home_story_focal home_story_height home_story_layout home_story_parallax; do
+  "$WP" theme mod remove "$k" >/dev/null 2>&1 || true
 done
-"$WP" theme mod set home_tiles_title "Choose Your Vibe"
-i=1; for t in "$T_SHOES" "$T_ACC" "$T_SETS" "$T_BAGS"; do "$WP" theme mod set "home_tile_${i}_cat" "$t" >/dev/null; i=$((i+1)); done
+for i in 1 2 3; do for k in image image_mobile eyebrow title text btn1_label btn1_url btn2_label btn2_url focal align overlay; do
+  "$WP" theme mod remove "home_hero_${i}_${k}" >/dev/null 2>&1 || true; done; done
+for i in 1 2 3 4 5 6 7 8; do for k in cat title image; do "$WP" theme mod remove "home_tile_${i}_${k}" >/dev/null 2>&1 || true; done; done
 
-"$WP" theme mod set home_testimonials_title "Hear From Our Customers"
-# Testimonials come from real product reviews (Customizer → Homepage → Testimonials); remove the old slot mods.
-for n in 1 2 3 4 5 6 7 8; do
-  "$WP" theme mod remove "home_testimonial_${n}_text" "home_testimonial_${n}_author" "home_testimonial_${n}_image" "home_testimonial_${n}_stars" "home_testimonial_${n}_info" >/dev/null 2>&1 || true
+# Brands (logos), Sneakers category, "trending" tag
+"$WP" eval-file "$(dirname "$0")/home-data.php" --user="$("$WP" user list --role=administrator --field=ID --number=1)"
+
+# Hero
+mod home_hero_image "$(media_id hero-1.jpg 'Hero - Step into the drip')"
+mod home_hero_focal "top center"
+mod home_hero_overlay 70
+mod home_hero_eyebrow "New season drop"
+mod home_hero_title "Step into the drip."
+mod home_hero_text "Authentic sneakers, apparel and accessories from the brands that run the street. Shipped free across the UK."
+mod home_hero_btn1_label "Shop new arrivals"
+mod home_hero_btn1_url "$NEW_URL"
+mod home_hero_btn2_label "Shop by brand"
+mod home_hero_btn2_url "$("$WP" option get home)/#shop-by-brand"
+
+# New arrivals
+mod home_new_eyebrow "Just landed"
+mod home_new_title "New arrivals"
+mod home_new_link_label "View all"
+mod home_new_link_url "$NEW_URL"
+
+# Image with text
+mod home_split_image "$(media_id banner-1.jpg 'Street-luxury')"
+mod home_split_focal "bottom center"
+mod home_split_eyebrow "Resell Street is not just a shoe"
+mod home_split_title "It's a mindset."
+mod home_split_text "Designed for the streets, engineered for the bold. Every piece we stock blends clean design with undeniable presence — checked, authenticated and ready to wear. <strong>Street-luxury lives here.</strong>"
+mod home_split_btn_label "Shop the drop"
+mod home_split_btn_url "$SHOP_URL"
+
+# Shop by brand: the 12 brands in this order
+mod home_brands_eyebrow "The labels"
+mod home_brands_title "Shop by brand"
+i=1; for b in nike adidas new-balance asics hoka on jordan puma brooks ugg reebok the-north-face; do
+  mod "home_brand_${i}" "$("$WP" term list product_brand --slug="$b" --field=term_id)"; i=$((i+1))
 done
 
-"$WP" theme mod set home_story_image "$(media_id banner-1.jpg 'Street-luxury')"
-"$WP" theme mod set home_story_subtitle "ResellStreet is not just a shoe"
-"$WP" theme mod set home_story_title "— it’s a mindset."
-"$WP" theme mod set home_story_text "<p>Designed for the streets, engineered for the bold.<br/>Every pair blends clean design with undeniable presence.<br/><strong>Street-luxury lives here.</strong></p>"
-"$WP" theme mod set home_story_focal "bottom center"
+# Banner
+mod home_banner_image "$(media_id banner-1.jpg 'Street-luxury')"
+mod home_banner_focal "center center"
+mod home_banner_eyebrow "Authenticated. Every pair."
+mod home_banner_title "Wear what moves the street."
+mod home_banner_text "The most-wanted silhouettes, sourced and checked so you don't have to."
+mod home_banner_btn_label "Explore collection"
+mod home_banner_btn_url "$SHOP_URL"
+
+# Trending: one tab for now (more tabs = more categories in Customizer → Homepage → Trending styles)
+mod home_trending_eyebrow "Most wanted right now"
+mod home_trending_title "Trending styles"
+mod home_trending_1_label "Sneakers"
+mod home_trending_1_cat "$(cat_id sneakers "Sneakers")"
+mod home_trending_btn_label "Shop trending"
+
+# Video reviews (videos themselves: Products → Video reviews)
+mod home_videos_eyebrow "Real customers, real fits"
+mod home_videos_title "Hear from our customers"
+
+# Trust row
+mod home_trust_1_icon truck;  mod home_trust_1_title "Free UK shipping";     mod home_trust_1_text "On every order, tracked to your door."
+mod home_trust_2_icon lock;   mod home_trust_2_title "Secure checkout";      mod home_trust_2_text "Encrypted payments with all major cards."
+mod home_trust_3_icon return; mod home_trust_3_title "Easy returns";         mod home_trust_3_text "Changed your mind? Send it back hassle-free."
+mod home_trust_4_icon shield; mod home_trust_4_title "Authentic guaranteed"; mod home_trust_4_text "Every item checked before it ships."
 
 # ---------- Logo ----------
 # The ResellStreet logo ships with the theme (assets/brand, header + light footer version): no upload needed.

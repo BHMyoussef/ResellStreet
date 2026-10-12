@@ -1,6 +1,6 @@
 <?php
 /**
- * Front page: sections from Customizer → Homepage (order follows the reference index.json).
+ * Front page (design: reference/homepage-v2). Sections and their order: CI_HOME_SECTIONS; content: Customizer → Homepage.
  *
  * @package CustomImpulse
  */
@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 
 get_header();
 
-foreach ( array( 'hero', 'tiles', 'testimonials', 'story' ) as $ci_section ) {
+foreach ( CI_HOME_SECTIONS as $ci_section ) {
 	get_template_part( 'template-parts/home/' . $ci_section );
 }
 

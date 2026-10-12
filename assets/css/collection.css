@@ -66,7 +66,7 @@ ul.products > li { min-width: 0; margin: 0; }
 .woocommerce-loop-product__link { display: block; }
 .product-card__media {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1;
   overflow: hidden;
   background: var(--color-small-image-bg);
 }
@@ -89,6 +89,14 @@ ul.products > li { min-width: 0; margin: 0; }
   font-size: 11.7px;
   line-height: 1;
 }
+.product-card__tag.product-card__tag--new {
+  inset: 10px auto auto 10px;
+  padding: 5px 9px;
+  font-size: var(--fs-card-brand);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-card-brand);
+  text-transform: uppercase;
+}
 .product-card__tag--sold-out {
   background: var(--color-bg);
   color: var(--color-text);
@@ -97,6 +105,15 @@ ul.products > li { min-width: 0; margin: 0; }
   padding: 10px 0 6px;
   text-align: center;
   line-height: 1.3;
+}
+.product-card__brand {
+  margin: 0 0 4px;
+  color: var(--color-text-muted);
+  font-size: var(--fs-card-brand);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--ls-card-brand);
+  line-height: 1.3;
+  text-transform: uppercase;
 }
 .product-card__title {
   margin: 0;

@@ -100,6 +100,8 @@
   --font-body: "Outfit", "Helvetica Neue", Arial, sans-serif;
   --fw-heading: 800;
   --fw-body: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
   --fw-bold: 600;
 
   /* Type scale (base 18px, header base 36px) */
@@ -122,6 +124,21 @@
   --fs-collection-title: 16px;
   --ls-wide: 0.2em;            /* nav, announcement */
   --ls-wider: 0.3em;           /* buttons, labels */
+
+  /* Product card (homepage v2 design) */
+  --fs-card-brand: 11px;
+  --ls-card-brand: 0.22em;
+
+  /* Homepage v2 (reference/homepage-v2): mobile values, desktop below */
+  --fs-display: 38px;          /* hero title */
+  --fs-banner: 34px;           /* full-width banner title */
+  --fs-split-title: 30px;      /* image + text title */
+  --fs-section-title: 22px;    /* "New arrivals", "Shop by brand"… */
+  --fs-eyebrow: 12px;          /* small spaced line above titles */
+  --fs-home-text: 16px;        /* hero/banner body text */
+  --home-width: 1200px;
+  --home-section-pad: 56px;
+  --color-hero-overlay: color-mix(in srgb, var(--brand-navy) 55%, transparent);
 
   /* Layout */
   --page-width: 1500px;
@@ -164,6 +181,12 @@
     --page-gutter: 40px;
     --section-space: 60px;
     --home-section-space: 75px;
+    --fs-display: 80px;
+    --fs-banner: 68px;
+    --fs-split-title: 52px;
+    --fs-section-title: 32px;
+    --fs-home-text: 18px;
+    --home-section-pad: 100px;
     --grid-gap: 20px;
     --header-pad-y: 20px;
     --icon-size: 28px;

@@ -1,7 +1,7 @@
 <?php
 /**
- * Customizer → Homepage. Section order follows the reference templates/index.json:
- * slideshow → featured collections → testimonials → background image + text.
+ * Customizer → Homepage (design: reference/homepage-v2). One Customizer section per homepage section,
+ * in page order: hero → new arrivals → image with text → brands → banner → trending → video reviews → trust row.
  * Content defaults are empty; tools/seed.sh fills in the store's content.
  *
  * @package CustomImpulse
@@ -9,8 +9,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const CI_HERO_SLOTS        = 3;
-const CI_TILE_SLOTS        = 8;
+const CI_BRAND_SLOTS    = 12;
+const CI_TRENDING_TABS  = 4;
+const CI_TRUST_ITEMS    = 4;
+const CI_HOME_SECTIONS  = array( 'hero', 'new-arrivals', 'split', 'brands', 'banner', 'trending', 'video-reviews', 'trust' );
 
 function ci_focal_choices() {
 	return array(
@@ -26,65 +28,113 @@ function ci_sanitize_focal( $value ) {
 	return array_key_exists( $value, ci_focal_choices() ) ? $value : 'center center';
 }
 
-function ci_sanitize_align( $value ) {
-	return in_array( $value, array( 'left', 'center', 'right' ), true ) ? $value : 'center';
+function ci_sanitize_side( $value ) {
+	return 'right' === $value ? 'right' : 'left';
 }
 
-function ci_sanitize_rating( $value ) {
-	return min( 5, max( 1, absint( $value ) ) );
+/** Icons offered for the trust row (all in ci_icon()). */
+function ci_trust_icon_choices() {
+	return array(
+		'truck'  => __( 'Delivery truck', 'customimpulse' ),
+		'lock'   => __( 'Padlock', 'customimpulse' ),
+		'return' => __( 'Return arrow', 'customimpulse' ),
+		'shield' => __( 'Shield', 'customimpulse' ),
+		'check'  => __( 'Check mark', 'customimpulse' ),
+		'gift'   => __( 'Gift', 'customimpulse' ),
+		'chat'   => __( 'Chat bubble', 'customimpulse' ),
+	);
+}
+
+function ci_sanitize_trust_icon( $value ) {
+	return array_key_exists( $value, ci_trust_icon_choices() ) ? $value : 'check';
 }
 
 add_filter(
 	'ci_defaults',
 	function ( $d ) {
 		$d += array(
-			'home_hero_enable'            => true,
-			'home_hero_height'            => 750,
-			'home_hero_title_size'        => 80,
-			'home_hero_autoplay'          => 7,
-			'home_hero_parallax'          => true,
-			'home_tiles_enable'           => true,
-			'home_tiles_title'            => '',
-			'home_tiles_per_row'          => 4,
-			'home_testimonials_enable'    => true,
-			'home_testimonials_title'     => '',
-			'home_testimonials_count'     => 8,
-			'home_testimonials_min'       => 5,
-			'home_testimonials_photos'    => true,
-			'home_testimonials_verified'  => false,
-			'home_story_enable'           => true,
-			'home_story_subtitle'         => '',
-			'home_story_title'            => '',
-			'home_story_text'             => '',
-			'home_story_btn_label'        => '',
-			'home_story_btn_url'          => '',
-			'home_story_image'            => 0,
-			'home_story_focal'            => 'center center',
-			'home_story_height'           => 550,
-			'home_story_layout'           => 'left',
-			'home_story_parallax'         => true,
+			// Hero
+			'home_hero_enable'         => true,
+			'home_hero_image'          => 0,
+			'home_hero_image_mobile'   => 0,
+			'home_hero_focal'          => 'center center',
+			'home_hero_overlay'        => 45,
+			'home_hero_height'         => 750,
+			'home_hero_height_mobile'  => 600,
+			'home_hero_eyebrow'        => '',
+			'home_hero_title'          => '',
+			'home_hero_text'           => '',
+			'home_hero_btn1_label'     => '',
+			'home_hero_btn1_url'       => '',
+			'home_hero_btn2_label'     => '',
+			'home_hero_btn2_url'       => '',
+			// New arrivals
+			'home_new_enable'          => true,
+			'home_new_eyebrow'         => '',
+			'home_new_title'           => '',
+			'home_new_count'           => 8,
+			'home_new_link_label'      => '',
+			'home_new_link_url'        => '',
+			// Image with text
+			'home_split_enable'        => true,
+			'home_split_image'         => 0,
+			'home_split_focal'         => 'center center',
+			'home_split_side'          => 'left',
+			'home_split_eyebrow'       => '',
+			'home_split_title'         => '',
+			'home_split_text'          => '',
+			'home_split_btn_label'     => '',
+			'home_split_btn_url'       => '',
+			// Brands
+			'home_brands_enable'       => true,
+			'home_brands_eyebrow'      => '',
+			'home_brands_title'        => '',
+			'home_brands_link_label'   => '',
+			'home_brands_link_url'     => '',
+			// Banner
+			'home_banner_enable'       => true,
+			'home_banner_image'        => 0,
+			'home_banner_image_mobile' => 0,
+			'home_banner_focal'        => 'center center',
+			'home_banner_overlay'      => 55,
+			'home_banner_height'       => 635,
+			'home_banner_eyebrow'      => '',
+			'home_banner_title'        => '',
+			'home_banner_text'         => '',
+			'home_banner_btn_label'    => '',
+			'home_banner_btn_url'      => '',
+			// Trending
+			'home_trending_enable'     => true,
+			'home_trending_eyebrow'    => '',
+			'home_trending_title'      => '',
+			'home_trending_tag'        => 'trending',
+			'home_trending_count'      => 8,
+			'home_trending_btn_label'  => '',
+			'home_trending_btn_url'    => '',
+			// Video reviews
+			'home_videos_enable'       => true,
+			'home_videos_eyebrow'      => '',
+			'home_videos_title'        => '',
+			'home_videos_count'        => 10,
+			'home_videos_summary'      => true,
+			// Trust row
+			'home_trust_enable'        => true,
 		);
-		for ( $i = 1; $i <= CI_HERO_SLOTS; $i++ ) {
+		for ( $i = 1; $i <= CI_BRAND_SLOTS; $i++ ) {
+			$d += array( "home_brand_{$i}" => 0 );
+		}
+		for ( $i = 1; $i <= CI_TRENDING_TABS; $i++ ) {
 			$d += array(
-				"home_hero_{$i}_image"        => 0,
-				"home_hero_{$i}_image_mobile" => 0,
-				"home_hero_{$i}_eyebrow"      => '',
-				"home_hero_{$i}_title"        => '',
-				"home_hero_{$i}_text"         => '',
-				"home_hero_{$i}_btn1_label"   => '',
-				"home_hero_{$i}_btn1_url"     => '',
-				"home_hero_{$i}_btn2_label"   => '',
-				"home_hero_{$i}_btn2_url"     => '',
-				"home_hero_{$i}_focal"        => 'center center',
-				"home_hero_{$i}_align"        => 'center',
-				"home_hero_{$i}_overlay"      => 0,
+				"home_trending_{$i}_label" => '',
+				"home_trending_{$i}_cat"   => 0,
 			);
 		}
-		for ( $i = 1; $i <= CI_TILE_SLOTS; $i++ ) {
+		$icons = array( 'truck', 'lock', 'return', 'shield' );
+		for ( $i = 1; $i <= CI_TRUST_ITEMS; $i++ ) {
 			$d += array(
-				"home_tile_{$i}_cat"   => 0,
-				"home_tile_{$i}_title" => '',
-				"home_tile_{$i}_image" => 0,
+				"home_trust_{$i}_icon"  => $icons[ $i - 1 ],
+				"home_trust_{$i}_title" => '',
+				"home_trust_{$i}_text"  => '',
 			);
 		}
 		return $d;
@@ -124,274 +174,156 @@ add_action(
 				)
 			);
 		};
-		$check = fn( $id, $section, $label ) => $add( $id, $section, $label, 'checkbox', 'ci_sanitize_checkbox' );
-		$px    = fn( $min, $max ) => array( 'input_attrs' => array( 'min' => $min, 'max' => $max ) );
+		$check   = fn( $id, $section, $label ) => $add( $id, $section, $label, 'checkbox', 'ci_sanitize_checkbox' );
+		$range   = fn( $min, $max ) => array( 'input_attrs' => array( 'min' => $min, 'max' => $max ) );
+		$section = function ( $id, $title, $description = '' ) use ( $wp_customize ) {
+			$wp_customize->add_section(
+				$id,
+				array(
+					'title'       => $title,
+					'panel'       => 'ci_home',
+					'description' => $description,
+				)
+			);
+		};
+		$heading = function ( $s, $prefix ) use ( $add ) {
+			$add( "{$prefix}_eyebrow", $s, __( 'Small text above the title', 'customimpulse' ) );
+			$add( "{$prefix}_title", $s, __( 'Title', 'customimpulse' ) );
+		};
+		$focal   = fn( $id, $s ) => $add( $id, $s, __( 'Image focal point', 'customimpulse' ), 'select', 'ci_sanitize_focal', array( 'choices' => ci_focal_choices() ) );
 
 		$wp_customize->add_panel(
 			'ci_home',
 			array(
 				'title'       => __( 'Homepage', 'customimpulse' ),
 				'priority'    => 31,
-				'description' => __( 'Sections appear in this order on the front page.', 'customimpulse' ),
+				'description' => __( 'Sections appear in this order on the front page. A section without content is hidden.', 'customimpulse' ),
 			)
 		);
 
-		/* Hero slideshow */
-		$wp_customize->add_section( 'ci_home_hero', array( 'title' => __( 'Hero slideshow', 'customimpulse' ), 'panel' => 'ci_home' ) );
-		$check( 'home_hero_enable', 'ci_home_hero', __( 'Show hero', 'customimpulse' ) );
-		$add( 'home_hero_height', 'ci_home_hero', __( 'Height on desktop (px)', 'customimpulse' ), 'number', 'absint', $px( 300, 1200 ) );
-		$add( 'home_hero_title_size', 'ci_home_hero', __( 'Title size on desktop (px, mobile is half)', 'customimpulse' ), 'number', 'absint', $px( 30, 140 ) );
-		$add( 'home_hero_autoplay', 'ci_home_hero', __( 'Seconds per slide (0 = no autoplay)', 'customimpulse' ), 'number', 'absint', $px( 0, 30 ) );
-		$check( 'home_hero_parallax', 'ci_home_hero', __( 'Parallax on desktop', 'customimpulse' ) );
-		for ( $i = 1; $i <= CI_HERO_SLOTS; $i++ ) {
-			/* translators: %d: slide number */
-			$n = fn( $label ) => sprintf( $label, $i );
-			$image( "home_hero_{$i}_image", 'ci_home_hero', $n( __( 'Slide %d: image', 'customimpulse' ) ), $i > 1 ? __( 'Slides without an image are skipped.', 'customimpulse' ) : '' );
-			$image( "home_hero_{$i}_image_mobile", 'ci_home_hero', $n( __( 'Slide %d: mobile image (optional)', 'customimpulse' ) ) );
-			$add( "home_hero_{$i}_eyebrow", 'ci_home_hero', $n( __( 'Slide %d: small text above the title', 'customimpulse' ) ) );
-			$add( "home_hero_{$i}_title", 'ci_home_hero', $n( __( 'Slide %d: title', 'customimpulse' ) ) );
-			$add( "home_hero_{$i}_text", 'ci_home_hero', $n( __( 'Slide %d: text under the title', 'customimpulse' ) ) );
-			$add( "home_hero_{$i}_btn1_label", 'ci_home_hero', $n( __( 'Slide %d: button 1 label', 'customimpulse' ) ) );
-			$add( "home_hero_{$i}_btn1_url", 'ci_home_hero', $n( __( 'Slide %d: button 1 link', 'customimpulse' ) ), 'url', 'esc_url_raw' );
-			$add( "home_hero_{$i}_btn2_label", 'ci_home_hero', $n( __( 'Slide %d: button 2 label', 'customimpulse' ) ) );
-			$add( "home_hero_{$i}_btn2_url", 'ci_home_hero', $n( __( 'Slide %d: button 2 link', 'customimpulse' ) ), 'url', 'esc_url_raw' );
-			$add( "home_hero_{$i}_focal", 'ci_home_hero', $n( __( 'Slide %d: image focal point', 'customimpulse' ) ), 'select', 'ci_sanitize_focal', array( 'choices' => ci_focal_choices() ) );
-			$add(
-				"home_hero_{$i}_align",
-				'ci_home_hero',
-				$n( __( 'Slide %d: text alignment', 'customimpulse' ) ),
-				'select',
-				'ci_sanitize_align',
-				array(
-					'choices' => array(
-						'center' => __( 'Center', 'customimpulse' ),
-						'left'   => __( 'Left', 'customimpulse' ),
-						'right'  => __( 'Right', 'customimpulse' ),
-					),
-				)
-			);
-			$add( "home_hero_{$i}_overlay", 'ci_home_hero', $n( __( 'Slide %d: dark overlay (%%)', 'customimpulse' ) ), 'number', 'absint', $px( 0, 90 ) );
+		/* Hero */
+		$s = 'ci_home_hero';
+		$section( $s, __( 'Hero', 'customimpulse' ) );
+		$check( 'home_hero_enable', $s, __( 'Show hero', 'customimpulse' ) );
+		$image( 'home_hero_image', $s, __( 'Image', 'customimpulse' ), __( 'Landscape, at least 2400px wide.', 'customimpulse' ) );
+		$image( 'home_hero_image_mobile', $s, __( 'Mobile image (optional)', 'customimpulse' ), __( 'Portrait crop for phones; otherwise the image above is used.', 'customimpulse' ) );
+		$focal( 'home_hero_focal', $s );
+		$add( 'home_hero_overlay', $s, __( 'Dark overlay (%)', 'customimpulse' ), 'number', 'absint', $range( 0, 90 ) );
+		$add( 'home_hero_height', $s, __( 'Height on desktop (px)', 'customimpulse' ), 'number', 'absint', $range( 400, 1200 ) );
+		$add( 'home_hero_height_mobile', $s, __( 'Height on phones (px)', 'customimpulse' ), 'number', 'absint', $range( 300, 900 ) );
+		$heading( $s, 'home_hero' );
+		$add( 'home_hero_text', $s, __( 'Text', 'customimpulse' ), 'textarea' );
+		$add( 'home_hero_btn1_label', $s, __( 'Button 1 label', 'customimpulse' ) );
+		$add( 'home_hero_btn1_url', $s, __( 'Button 1 link', 'customimpulse' ), 'url', 'esc_url_raw' );
+		$add( 'home_hero_btn2_label', $s, __( 'Button 2 label', 'customimpulse' ) );
+		$add( 'home_hero_btn2_url', $s, __( 'Button 2 link', 'customimpulse' ), 'url', 'esc_url_raw' );
+
+		/* New arrivals */
+		$s = 'ci_home_new';
+		$section( $s, __( 'New arrivals', 'customimpulse' ), __( 'Latest published products.', 'customimpulse' ) );
+		$check( 'home_new_enable', $s, __( 'Show new arrivals', 'customimpulse' ) );
+		$heading( $s, 'home_new' );
+		$add( 'home_new_count', $s, __( 'Number of products', 'customimpulse' ), 'number', 'absint', $range( 2, 16 ) );
+		$add( 'home_new_link_label', $s, __( 'Link label (e.g. View all)', 'customimpulse' ) );
+		$add( 'home_new_link_url', $s, __( 'Link URL (empty = shop, newest first)', 'customimpulse' ), 'url', 'esc_url_raw' );
+
+		/* Image with text */
+		$s = 'ci_home_split';
+		$section( $s, __( 'Image with text', 'customimpulse' ) );
+		$check( 'home_split_enable', $s, __( 'Show image with text', 'customimpulse' ) );
+		$image( 'home_split_image', $s, __( 'Image', 'customimpulse' ), __( 'Portrait 4:5.', 'customimpulse' ) );
+		$focal( 'home_split_focal', $s );
+		$add(
+			'home_split_side',
+			$s,
+			__( 'Image side on desktop', 'customimpulse' ),
+			'select',
+			'ci_sanitize_side',
+			array(
+				'choices' => array(
+					'left'  => __( 'Left', 'customimpulse' ),
+					'right' => __( 'Right', 'customimpulse' ),
+				),
+			)
+		);
+		$heading( $s, 'home_split' );
+		$add( 'home_split_text', $s, __( 'Text (bold allowed: <strong>…</strong>)', 'customimpulse' ), 'textarea', 'wp_kses_post' );
+		$add( 'home_split_btn_label', $s, __( 'Button label', 'customimpulse' ) );
+		$add( 'home_split_btn_url', $s, __( 'Button link', 'customimpulse' ), 'url', 'esc_url_raw' );
+
+		/* Brands */
+		$brands = array( 0 => __( '— None —', 'customimpulse' ) );
+		if ( taxonomy_exists( 'product_brand' ) ) {
+			foreach ( get_terms( array( 'taxonomy' => 'product_brand', 'hide_empty' => false ) ) as $term ) {
+				$brands[ $term->term_id ] = $term->name;
+			}
+		}
+		$s = 'ci_home_brands';
+		$section( $s, __( 'Shop by brand', 'customimpulse' ), __( 'Logos are the brand thumbnails (Products → Brands). Tiles show in slot order; empty slots are skipped. All slots empty = brands with the most products.', 'customimpulse' ) );
+		$check( 'home_brands_enable', $s, __( 'Show brands', 'customimpulse' ) );
+		$heading( $s, 'home_brands' );
+		$add( 'home_brands_link_label', $s, __( 'Link label (e.g. All brands)', 'customimpulse' ) );
+		$add( 'home_brands_link_url', $s, __( 'Link URL', 'customimpulse' ), 'url', 'esc_url_raw' );
+		for ( $i = 1; $i <= CI_BRAND_SLOTS; $i++ ) {
+			/* translators: %d: slot number */
+			$add( "home_brand_{$i}", $s, sprintf( __( 'Brand %d', 'customimpulse' ), $i ), 'select', 'absint', array( 'choices' => $brands ) );
 		}
 
-		/* Collection tiles */
-		$cats = array( 0 => __( '— Select a category —', 'customimpulse' ) );
+		/* Banner */
+		$s = 'ci_home_banner';
+		$section( $s, __( 'Full-width banner', 'customimpulse' ) );
+		$check( 'home_banner_enable', $s, __( 'Show banner', 'customimpulse' ) );
+		$image( 'home_banner_image', $s, __( 'Image', 'customimpulse' ) );
+		$image( 'home_banner_image_mobile', $s, __( 'Mobile image (optional)', 'customimpulse' ) );
+		$focal( 'home_banner_focal', $s );
+		$add( 'home_banner_overlay', $s, __( 'Dark overlay (%)', 'customimpulse' ), 'number', 'absint', $range( 0, 90 ) );
+		$add( 'home_banner_height', $s, __( 'Height on desktop (px)', 'customimpulse' ), 'number', 'absint', $range( 300, 1000 ) );
+		$heading( $s, 'home_banner' );
+		$add( 'home_banner_text', $s, __( 'Text', 'customimpulse' ), 'textarea' );
+		$add( 'home_banner_btn_label', $s, __( 'Button label', 'customimpulse' ) );
+		$add( 'home_banner_btn_url', $s, __( 'Button link', 'customimpulse' ), 'url', 'esc_url_raw' );
+
+		/* Trending */
+		$cats = array( 0 => __( '— None —', 'customimpulse' ) );
 		if ( taxonomy_exists( 'product_cat' ) ) {
 			foreach ( get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => false ) ) as $term ) {
 				$cats[ $term->term_id ] = $term->name;
 			}
 		}
-		$wp_customize->add_section(
-			'ci_home_tiles',
-			array(
-				'title'       => __( 'Collection tiles', 'customimpulse' ),
-				'panel'       => 'ci_home',
-				'description' => __( 'Tile images default to the category thumbnail (Products → Categories).', 'customimpulse' ),
-			)
-		);
-		$check( 'home_tiles_enable', 'ci_home_tiles', __( 'Show collection tiles', 'customimpulse' ) );
-		$add( 'home_tiles_title', 'ci_home_tiles', __( 'Section title', 'customimpulse' ) );
-		$add( 'home_tiles_per_row', 'ci_home_tiles', __( 'Tiles per row on desktop', 'customimpulse' ), 'select', 'absint', array( 'choices' => array( 2 => '2', 3 => '3', 4 => '4', 5 => '5' ) ) );
-		for ( $i = 1; $i <= CI_TILE_SLOTS; $i++ ) {
-			/* translators: %d: tile number */
-			$n = fn( $label ) => sprintf( $label, $i );
-			$add( "home_tile_{$i}_cat", 'ci_home_tiles', $n( __( 'Tile %d: category', 'customimpulse' ) ), 'select', 'absint', array( 'choices' => $cats ) );
-			$add( "home_tile_{$i}_title", 'ci_home_tiles', $n( __( 'Tile %d: label (optional, defaults to the category name)', 'customimpulse' ) ) );
-			$image( "home_tile_{$i}_image", 'ci_home_tiles', $n( __( 'Tile %d: image (optional)', 'customimpulse' ) ) );
+		$s = 'ci_home_trending';
+		$section( $s, __( 'Trending styles', 'customimpulse' ), __( 'Products with the tag below, one tab per category. Tabs without products are hidden; the tab bar shows from 2 tabs.', 'customimpulse' ) );
+		$check( 'home_trending_enable', $s, __( 'Show trending styles', 'customimpulse' ) );
+		$heading( $s, 'home_trending' );
+		$add( 'home_trending_tag', $s, __( 'Product tag (slug)', 'customimpulse' ), 'text', 'sanitize_title' );
+		$add( 'home_trending_count', $s, __( 'Products per tab', 'customimpulse' ), 'number', 'absint', $range( 2, 16 ) );
+		for ( $i = 1; $i <= CI_TRENDING_TABS; $i++ ) {
+			/* translators: %d: tab number */
+			$add( "home_trending_{$i}_label", $s, sprintf( __( 'Tab %d: label', 'customimpulse' ), $i ) );
+			/* translators: %d: tab number */
+			$add( "home_trending_{$i}_cat", $s, sprintf( __( 'Tab %d: category', 'customimpulse' ), $i ), 'select', 'absint', array( 'choices' => $cats ) );
 		}
+		$add( 'home_trending_btn_label', $s, __( 'Button label', 'customimpulse' ) );
+		$add( 'home_trending_btn_url', $s, __( 'Button link (empty = the tag page)', 'customimpulse' ), 'url', 'esc_url_raw' );
 
-		/* Testimonials */
-		$wp_customize->add_section(
-			'ci_home_testimonials',
-			array(
-				'title'       => __( 'Testimonials', 'customimpulse' ),
-				'panel'       => 'ci_home',
-				'description' => __( 'Shows real product reviews (newest first). Reviews are collected with Customer Reviews for WooCommerce.', 'customimpulse' ),
-			)
-		);
-		$check( 'home_testimonials_enable', 'ci_home_testimonials', __( 'Show testimonials', 'customimpulse' ) );
-		$add( 'home_testimonials_title', 'ci_home_testimonials', __( 'Section title', 'customimpulse' ) );
-		$add( 'home_testimonials_count', 'ci_home_testimonials', __( 'Number of reviews', 'customimpulse' ), 'number', 'absint', $px( 1, 12 ) );
-		$add(
-			'home_testimonials_min',
-			'ci_home_testimonials',
-			__( 'Minimum rating', 'customimpulse' ),
-			'select',
-			'ci_sanitize_rating',
-			array( 'choices' => array( 5 => '★★★★★', 4 => '★★★★ +', 3 => '★★★ +', 2 => '★★ +', 1 => '★ +' ) )
-		);
-		$check( 'home_testimonials_photos', 'ci_home_testimonials', __( 'Only reviews with photos', 'customimpulse' ) );
-		$check( 'home_testimonials_verified', 'ci_home_testimonials', __( 'Only verified buyers', 'customimpulse' ) );
+		/* Video reviews */
+		$s = 'ci_home_videos';
+		$section( $s, __( 'Video reviews', 'customimpulse' ), __( 'Videos are managed in Products → Video reviews (the Order field sets the order). The rating summary uses all approved product reviews.', 'customimpulse' ) );
+		$check( 'home_videos_enable', $s, __( 'Show video reviews', 'customimpulse' ) );
+		$heading( $s, 'home_videos' );
+		$add( 'home_videos_count', $s, __( 'Number of videos', 'customimpulse' ), 'number', 'absint', $range( 1, 20 ) );
+		$check( 'home_videos_summary', $s, __( 'Show the rating summary (average + number of reviews)', 'customimpulse' ) );
 
-		/* Image with text */
-		$wp_customize->add_section( 'ci_home_story', array( 'title' => __( 'Image with text', 'customimpulse' ), 'panel' => 'ci_home' ) );
-		$check( 'home_story_enable', 'ci_home_story', __( 'Show image with text', 'customimpulse' ) );
-		$image( 'home_story_image', 'ci_home_story', __( 'Background image', 'customimpulse' ) );
-		$add( 'home_story_subtitle', 'ci_home_story', __( 'Subtitle', 'customimpulse' ) );
-		$add( 'home_story_title', 'ci_home_story', __( 'Title', 'customimpulse' ) );
-		$add( 'home_story_text', 'ci_home_story', __( 'Text (HTML allowed)', 'customimpulse' ), 'textarea', 'wp_kses_post' );
-		$add( 'home_story_btn_label', 'ci_home_story', __( 'Button label (optional)', 'customimpulse' ) );
-		$add( 'home_story_btn_url', 'ci_home_story', __( 'Button link', 'customimpulse' ), 'url', 'esc_url_raw' );
-		$add( 'home_story_focal', 'ci_home_story', __( 'Image focal point', 'customimpulse' ), 'select', 'ci_sanitize_focal', array( 'choices' => ci_focal_choices() ) );
-		$add( 'home_story_height', 'ci_home_story', __( 'Height on desktop (px)', 'customimpulse' ), 'number', 'absint', $px( 300, 1000 ) );
-		$add(
-			'home_story_layout',
-			'ci_home_story',
-			__( 'Text box position', 'customimpulse' ),
-			'select',
-			'ci_sanitize_align',
-			array(
-				'choices' => array(
-					'left'   => __( 'Left', 'customimpulse' ),
-					'center' => __( 'Center', 'customimpulse' ),
-					'right'  => __( 'Right', 'customimpulse' ),
-				),
-			)
-		);
-		$check( 'home_story_parallax', 'ci_home_story', __( 'Parallax on desktop', 'customimpulse' ) );
+		/* Trust row */
+		$s = 'ci_home_trust';
+		$section( $s, __( 'Trust row', 'customimpulse' ) );
+		$check( 'home_trust_enable', $s, __( 'Show trust row', 'customimpulse' ) );
+		for ( $i = 1; $i <= CI_TRUST_ITEMS; $i++ ) {
+			/* translators: %d: item number */
+			$add( "home_trust_{$i}_icon", $s, sprintf( __( 'Item %d: icon', 'customimpulse' ), $i ), 'select', 'ci_sanitize_trust_icon', array( 'choices' => ci_trust_icon_choices() ) );
+			/* translators: %d: item number */
+			$add( "home_trust_{$i}_title", $s, sprintf( __( 'Item %d: title', 'customimpulse' ), $i ) );
+			/* translators: %d: item number */
+			$add( "home_trust_{$i}_text", $s, sprintf( __( 'Item %d: text', 'customimpulse' ), $i ) );
+		}
 	}
 );
-
-/* ---------------------------------------------------------------------------
- * Data helpers for the templates
- * ------------------------------------------------------------------------ */
-
-/**
- * Hero slides that have an image.
- *
- * @return array<int,array<string,mixed>>
- */
-function ci_home_slides() {
-	$slides = array();
-	for ( $i = 1; $i <= CI_HERO_SLOTS; $i++ ) {
-		$image = absint( ci_mod( "home_hero_{$i}_image" ) );
-		if ( ! $image ) {
-			continue;
-		}
-		$slides[] = array(
-			'image'        => $image,
-			'image_mobile' => absint( ci_mod( "home_hero_{$i}_image_mobile" ) ),
-			'eyebrow'      => (string) ci_mod( "home_hero_{$i}_eyebrow" ),
-			'title'        => (string) ci_mod( "home_hero_{$i}_title" ),
-			'text'         => (string) ci_mod( "home_hero_{$i}_text" ),
-			'buttons'      => array_filter(
-				array(
-					array( 'label' => (string) ci_mod( "home_hero_{$i}_btn1_label" ), 'url' => (string) ci_mod( "home_hero_{$i}_btn1_url" ) ),
-					array( 'label' => (string) ci_mod( "home_hero_{$i}_btn2_label" ), 'url' => (string) ci_mod( "home_hero_{$i}_btn2_url" ) ),
-				),
-				fn( $b ) => '' !== $b['label'] && '' !== $b['url']
-			),
-			'focal'        => ci_sanitize_focal( ci_mod( "home_hero_{$i}_focal" ) ),
-			'align'        => ci_sanitize_align( ci_mod( "home_hero_{$i}_align" ) ),
-			'overlay'      => min( 90, absint( ci_mod( "home_hero_{$i}_overlay" ) ) ),
-		);
-	}
-	return $slides;
-}
-
-/**
- * Collection tiles with a valid category.
- *
- * @return array<int,array{url:string,label:string,image:int}>
- */
-function ci_home_tiles() {
-	$tiles = array();
-	for ( $i = 1; $i <= CI_TILE_SLOTS; $i++ ) {
-		$term = get_term( absint( ci_mod( "home_tile_{$i}_cat" ) ), 'product_cat' );
-		if ( ! $term instanceof WP_Term ) {
-			continue;
-		}
-		$image = absint( ci_mod( "home_tile_{$i}_image" ) );
-		if ( ! $image ) {
-			$image = absint( get_term_meta( $term->term_id, 'thumbnail_id', true ) );
-		}
-		$label   = trim( (string) ci_mod( "home_tile_{$i}_title" ) );
-		$tiles[] = array(
-			'url'   => get_term_link( $term ),
-			'label' => '' !== $label ? $label : $term->name,
-			'image' => $image,
-		);
-	}
-	return $tiles;
-}
-
-/**
- * Homepage testimonials: real product reviews, newest first, filtered by the Customizer settings.
- * Cached; the cache is invalidated whenever a review changes.
- *
- * @return array<int,array{text:string,stars:int,image:int,image_url:string,author:string,info:string,url:string}>
- */
-function ci_home_testimonials() {
-	if ( ! function_exists( 'ci_review_photos' ) ) {
-		return array();
-	}
-	$args = array(
-		'count'    => min( 12, max( 1, absint( ci_mod( 'home_testimonials_count' ) ) ) ),
-		'min'      => ci_sanitize_rating( ci_mod( 'home_testimonials_min' ) ),
-		'photos'   => (bool) ci_mod( 'home_testimonials_photos' ),
-		'verified' => (bool) ci_mod( 'home_testimonials_verified' ),
-	);
-	$key    = 'ci_home_reviews_' . md5( wp_json_encode( $args ) . get_option( 'ci_reviews_cache_version', 1 ) );
-	$cached = get_transient( $key );
-	if ( is_array( $cached ) ) {
-		return $cached;
-	}
-
-	$meta = array(
-		'relation' => 'AND',
-		array(
-			'key'     => 'rating',
-			'value'   => $args['min'],
-			'compare' => '>=',
-			'type'    => 'NUMERIC',
-		),
-	);
-	if ( $args['photos'] ) {
-		$meta[] = array(
-			'relation' => 'OR',
-			array( 'key' => 'ivole_review_image2', 'compare' => 'EXISTS' ),
-			array( 'key' => 'ivole_review_image', 'compare' => 'EXISTS' ),
-		);
-	}
-	if ( $args['verified'] ) {
-		$meta[] = array(
-			'relation' => 'OR',
-			array( 'key' => 'verified', 'value' => '1' ),
-			array( 'key' => 'ivole_order', 'compare' => 'EXISTS' ),
-		);
-	}
-
-	$items = array();
-	foreach ( get_comments(
-		array(
-			'type'        => 'review',
-			'status'      => 'approve',
-			'post_status' => 'publish',
-			'parent'      => 0,
-			'number'      => $args['count'],
-			'orderby'     => 'comment_date_gmt',
-			'order'       => 'DESC',
-			'meta_query'  => $meta, // phpcs:ignore WordPress.DB.SlowDBQuery
-		)
-	) as $review ) {
-		$photos  = ci_review_photos( $review->comment_ID, 'thumbnail' );
-		$items[] = array(
-			'text'      => wp_trim_words( $review->comment_content, 40, '…' ),
-			'stars'     => (int) get_comment_meta( $review->comment_ID, 'rating', true ),
-			'image'     => $photos ? (int) $photos[0]['id'] : 0,
-			'image_url' => $photos ? $photos[0]['thumb'] : '',
-			'author'    => get_comment_author( $review ),
-			'info'      => get_the_title( $review->comment_post_ID ),
-			'url'       => get_permalink( $review->comment_post_ID ) . '#review-' . $review->comment_ID,
-		);
-	}
-	set_transient( $key, $items, 12 * HOUR_IN_SECONDS );
-	return $items;
-}
-
-/* Any review change invalidates the homepage testimonials cache. */
-$ci_bump_reviews_cache = function () {
-	update_option( 'ci_reviews_cache_version', (int) get_option( 'ci_reviews_cache_version', 1 ) + 1, false );
-};
-foreach ( array( 'wp_insert_comment', 'edit_comment', 'deleted_comment', 'transition_comment_status', 'added_comment_meta', 'updated_comment_meta' ) as $ci_hook ) {
-	add_action( $ci_hook, $ci_bump_reviews_cache );
-}

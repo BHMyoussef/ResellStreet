@@ -109,7 +109,7 @@ ul.products > li { position: relative; }
     z-index: 2;
     display: flex;
     align-items: flex-end;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1;
     padding: 10px;
     pointer-events: none; /* the card link underneath stays clickable */
     opacity: 0;
