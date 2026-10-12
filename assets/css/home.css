@@ -115,7 +115,7 @@
 .home-split .home-eyebrow { margin-bottom: 20px; }
 .home-split__text { max-width: 480px; }
 .home-split__title { margin: 0; font-size: var(--fs-split-title); line-height: 1.02; letter-spacing: 0.03em; }
-.home-split__copy { max-width: 445px; margin-top: 20px; font-size: 17px; line-height: 1.6; letter-spacing: normal; }
+.home-split__copy { max-width: 455px; margin-top: 20px; font-size: 17px; line-height: 1.6; letter-spacing: normal; }
 .home-split__copy p { margin: 0; }
 .home-split__copy strong { font-weight: var(--fw-bold); }
 
