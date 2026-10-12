@@ -47,6 +47,8 @@ add_action(
 
 		// Small square crop so product cards get a mobile-sized srcset candidate next to woocommerce_thumbnail (600×600).
 		add_image_size( 'ci-card-sm', 360, 360, true );
+		// Video review posters (~220px cards, 56vw on phones): a step between medium (300) and medium_large (768).
+		add_image_size( 'ci-450w', 450, 0, false );
 
 		register_nav_menus(
 			array(

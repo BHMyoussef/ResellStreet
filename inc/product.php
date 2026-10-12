@@ -645,7 +645,8 @@ function ci_product_accordion_items( WC_Product $product ) {
 	if ( '' !== $desc ) {
 		$items[] = array(
 			'title' => __( 'Description', 'customimpulse' ),
-			'html'  => apply_filters( 'the_content', $desc ),
+			// Imported descriptions embed full-size photos (often from the old Shopify CDN): lazy, below the fold.
+			'html'  => preg_replace( '/<img(?![^>]*\sloading=)/i', '<img loading="lazy" decoding="async"', apply_filters( 'the_content', $desc ) ),
 		);
 	}
 

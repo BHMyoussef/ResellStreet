@@ -102,4 +102,12 @@ foreach ( $ci_reviews as $ci_i => list( $ci_file, $ci_sku ) ) {
 	update_post_meta( $id, '_ci_seed_review', $ci_file );
 	++$ci_created;
 }
+// Poster size for the cards (inc/setup.php ci-450w).
+foreach ( get_posts( array( 'post_type' => 'ci_video_review', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ) ) as $ci_vr ) {
+	$ci_poster = (int) get_post_thumbnail_id( $ci_vr );
+	$ci_meta   = $ci_poster ? wp_get_attachment_metadata( $ci_poster ) : array();
+	if ( $ci_poster && empty( $ci_meta['sizes']['ci-450w'] ) && ( $ci_meta['width'] ?? 0 ) > 450 ) {
+		wp_update_attachment_metadata( $ci_poster, wp_generate_attachment_metadata( $ci_poster, get_attached_file( $ci_poster ) ) );
+	}
+}
 WP_CLI::success( "{$ci_created} customer review cards created (" . count( $ci_reviews ) . ' in total). Add names/ratings/products in Products → Video reviews.' );

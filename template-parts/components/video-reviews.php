@@ -57,7 +57,7 @@ if ( count( $ci_videos ) > 1 ) {
 						<?php
 						echo wp_get_attachment_image(
 							$ci_video['poster'],
-							'medium_large',
+							'ci-450w',
 							false,
 							array(
 								'class'   => 'video-card__poster',
