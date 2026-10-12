@@ -706,3 +706,11 @@ body.has-sticky-atc .site-footer { padding-bottom: 110px; }
   .quick-shop { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
   .quick-shop .summary { padding-left: 45px; }
 }
+
+/* ---------- Video reviews (shared component) inside the product column ---------- */
+.single-product div.product > .product-videos { grid-column: 1 / -1; }
+.product-videos {
+  /* Edge-to-edge sand band while the content keeps the 1200px column */
+  border-image: linear-gradient(var(--color-section-alt), var(--color-section-alt)) fill 0 / 0 / 0 100vmax;
+}
+.product-videos .home-width { max-width: none; padding-inline: 0; }

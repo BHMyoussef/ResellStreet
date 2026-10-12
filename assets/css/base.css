@@ -301,3 +301,41 @@ label { display: inline-block; margin-bottom: 6px; }
   mask: var(--star-mask) left center / var(--star-size) var(--star-size) repeat-x;
 }
 .ci-stars--lg { --star-size: 22px; }
+
+/* ---------- Section primitives (design v2: homepage + product page) ---------- */
+.home-width {
+  width: 100%;
+  max-width: calc(var(--home-width) + 2 * var(--page-gutter));
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+.home-section { padding-block: var(--home-section-pad); }
+.home-section--alt { background: var(--color-section-alt); color: var(--color-section-alt-text); }
+.home-eyebrow {
+  margin: 0 0 10px;
+  color: var(--color-text-muted);
+  font-size: var(--fs-eyebrow);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.28em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+.home-eyebrow--light { margin-bottom: 18px; color: var(--color-on-image); letter-spacing: var(--ls-wider); }
+.home-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.home-heading--center { justify-content: center; text-align: center; }
+.home-heading__title { margin: 0; font-size: var(--fs-section-title); line-height: 1.1; }
+.home-heading__link {
+  flex: none;
+  padding-bottom: 3px;
+  border-bottom: 1px solid currentColor;
+  font-size: var(--fs-eyebrow);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.22em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+.home-heading__link:hover { color: var(--color-text-muted); }
+
+@media (min-width: 769px) {
+  .home-heading { margin-bottom: 40px; }
+}

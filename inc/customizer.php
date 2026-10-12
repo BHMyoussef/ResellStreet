@@ -110,6 +110,7 @@ function ci_defaults() {
 		'trust_badges_enable'        => true,
 		'trust_badges_title'         => '',
 		'size_system_label'          => 'UK',
+		'product_videos_enable'      => true,
 		'product_auth_enable'        => true,
 		'product_auth_badge'         => '',
 		'product_auth_title'         => '',
@@ -395,6 +396,7 @@ add_action(
 				array( 'choices' => ci_sales_point_icons() )
 			);
 		}
+		$add( 'product_videos_enable', 'ci_product', __( 'Show video reviews (Customizer → Homepage → Video reviews: heading, count)', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 		$add( 'size_system_label', 'ci_product', __( 'Size system shown after "Size" (e.g. UK; empty = none)', 'customimpulse' ) );
 		$add( 'product_auth_enable', 'ci_product', __( 'Show the authenticity box under add to cart', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 		$add( 'product_auth_badge', 'ci_product', __( 'Authenticity box: badge text (e.g. 100%)', 'customimpulse' ) );

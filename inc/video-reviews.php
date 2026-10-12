@@ -38,19 +38,26 @@ add_action(
 /**
  * Published video reviews that have a poster, in display order.
  *
- * @param int $count Maximum number.
+ * @param int $count      Maximum number.
+ * @param int $product_id Reviews linked to this product come first (0 = keep the admin order).
  * @return array<int,array{name:string,poster:int,video:string,rating:int,product:?WC_Product}> name '' / rating 0 = not shown.
  */
-function ci_video_reviews( $count ) {
+function ci_video_reviews( $count, $product_id = 0 ) {
 	$items = array();
-	foreach ( get_posts(
+	$posts = get_posts(
 		array(
 			'post_type'   => 'ci_video_review',
 			'post_status' => 'publish',
-			'numberposts' => $count,
+			'numberposts' => $product_id ? -1 : $count,
 			'orderby'     => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
 		)
-	) as $post ) {
+	);
+	if ( $product_id ) {
+		// Stable: this product's reviews first, then the rest in the admin order.
+		usort( $posts, fn( $a, $b ) => ( (int) get_post_meta( $b->ID, '_ci_product', true ) === $product_id ) <=> ( (int) get_post_meta( $a->ID, '_ci_product', true ) === $product_id ) );
+		$posts = array_slice( $posts, 0, $count );
+	}
+	foreach ( $posts as $post ) {
 		$poster = (int) get_post_thumbnail_id( $post );
 		if ( ! $poster ) {
 			continue;

@@ -60,7 +60,9 @@ add_action(
 		if ( is_front_page() ) {
 			ci_enqueue_style( 'collection' ); // Product cards (new arrivals, trending).
 			ci_enqueue_style( 'brands' );
+			ci_enqueue_style( 'video-reviews' );
 			ci_enqueue_style( 'home', array( 'ci-collection' ) );
+			ci_enqueue_script( 'video-reviews' );
 			ci_enqueue_script( 'home' );
 		}
 		if ( is_singular() && has_shortcode( (string) get_post_field( 'post_content', get_queried_object_id() ), 'ci_brands' ) ) {
@@ -72,6 +74,8 @@ add_action(
 		if ( function_exists( 'is_product' ) && is_product() ) {
 			ci_enqueue_style( 'product' );
 			ci_enqueue_script( 'product' );
+			ci_enqueue_style( 'video-reviews' );
+			ci_enqueue_script( 'video-reviews' );
 			if ( ci_mod( 'related_enable' ) ) {
 				ci_enqueue_style( 'collection' ); // Product cards in related/upsells.
 			}

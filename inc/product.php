@@ -93,6 +93,26 @@ add_action(
 	12
 );
 
+/* Video reviews (shared homepage component), after the reviews; this product's videos first. */
+add_action(
+	'woocommerce_after_single_product_summary',
+	function () {
+		global $product;
+		if ( $product instanceof WC_Product && ci_mod( 'product_videos_enable' ) ) {
+			get_template_part(
+				'template-parts/components/video-reviews',
+				null,
+				array(
+					'product' => $product->get_id(),
+					'id'      => 'product-videos-title',
+					'class'   => 'product-videos',
+				)
+			);
+		}
+	},
+	13
+);
+
 /* Related products are off on the reference store. */
 add_action(
 	'wp',
