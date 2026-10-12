@@ -11,7 +11,8 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 
 const DIR = path.resolve(import.meta.dirname, '..', 'reference', 'media', 'brands');
-const HEIGHT = 200, MAX_W = 520;
+// Tiles show logos ≤ 44px tall / 112px wide: 132px = 3× retina, so no larger file is ever needed.
+const HEIGHT = 132, MAX_W = 340;
 const mono = !process.argv.includes('--color');
 const NAVY = '#1C253B';
 

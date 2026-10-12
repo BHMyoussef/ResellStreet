@@ -72,6 +72,20 @@ foreach ( $ci_brands as $slug => $name ) {
 		}
 		update_post_meta( $id, '_ci_brand_logo', "{$slug}:{$hash}" );
 		update_post_meta( $id, '_wp_attachment_image_alt', $name );
+		// Older versions of this logo (previous PNG) are no longer used.
+		foreach ( get_posts(
+			array(
+				'post_type'   => 'attachment',
+				'post_status' => 'inherit',
+				'numberposts' => -1,
+				'fields'      => 'ids',
+				'meta_query'  => array( array( 'key' => '_ci_brand_logo', 'value' => "{$slug}:", 'compare' => 'LIKE' ) ), // phpcs:ignore WordPress.DB.SlowDBQuery
+			)
+		) as $old ) {
+			if ( (int) $old !== (int) $id && 0 === strpos( (string) get_post_meta( $old, '_ci_brand_logo', true ), "{$slug}:" ) ) {
+				wp_delete_attachment( $old, true );
+			}
+		}
 	}
 	update_term_meta( $term->term_id, 'thumbnail_id', $id );
 }
