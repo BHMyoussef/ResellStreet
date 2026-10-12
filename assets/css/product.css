@@ -23,45 +23,74 @@
 .woocommerce-product-gallery__image a { display: block; }
 .woocommerce-product-gallery__image img { width: 100%; height: auto; }
 
-/* Mobile "partial" layout: the slide is 75% wide and its neighbours peek in */
-.woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image) > .woocommerce-product-gallery__wrapper,
-.woocommerce-product-gallery .flex-viewport {
-  width: 75%;
-  margin-inline: auto;
-}
-.woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image) { --slide-w: 75cqw; }
+/* Phones (design v2): full-width square slides, swipe; dots below (active = short bar) */
+.woocommerce-product-gallery__image { aspect-ratio: 1; overflow: hidden; }
+.woocommerce-product-gallery__image a, .woocommerce-product-gallery__image img { height: 100%; }
+.woocommerce-product-gallery__image img { object-fit: cover; }
 /* Room for the dots before flexslider adds them */
-.woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image):not(:has(.flex-control-nav)) { padding-bottom: 22px; }
-.woocommerce-product-gallery .flex-viewport { overflow: visible !important; }
-.woocommerce-product-gallery .flex-viewport .woocommerce-product-gallery__image { padding-inline: 2px; }
+.woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image):not(:has(.flex-control-nav)) { padding-bottom: 30px; }
 
 /* Thumbnails become dots on mobile */
 .woocommerce-product-gallery .flex-control-thumbs {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  margin: 10px 0 0;
-  padding: 4px 0;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 0;
   list-style: none;
 }
 .flex-control-thumbs li {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: 5px;
+  height: 5px;
   background: var(--color-border);
   overflow: hidden;
   cursor: pointer;
+  transition: width 0.2s ease;
 }
-.flex-control-thumbs li:has(.flex-active) { background: var(--color-text); }
+.flex-control-thumbs li:has(.flex-active) { width: 18px; height: 4px; background: var(--color-text); }
 .flex-control-thumbs img { width: 100%; height: 100%; opacity: 0; }
 
-/* Zoom / lightbox trigger: round button on the image */
+/* Badge + counter (moved into the gallery by product.js) */
+.gallery-extras { display: none; }
+.gallery-extras.is-ready { display: contents; }
+.gallery-badge {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: calc(var(--page-gutter) + 0px);
+  padding: 5px 9px;
+  background: var(--color-sale-tag);
+  color: var(--color-sale-tag-text);
+  font-size: var(--fs-card-brand);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.18em;
+  line-height: normal;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.gallery-badge--sold-out { background: var(--color-surface); color: var(--color-text); }
+.gallery-counter {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  right: 12px;
+  padding: 4px 8px;
+  background: var(--color-surface);
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+  letter-spacing: normal;
+  line-height: normal;
+  pointer-events: none;
+}
+
+/* Zoom / lightbox trigger: round button on the image (phones); "Hover to zoom" label on desktop */
 .woocommerce-product-gallery__trigger {
   position: absolute;
   z-index: 3;
-  right: calc(12.5% + 10px);
-  bottom: 40px;
+  right: 12px;
+  bottom: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -486,12 +515,14 @@ body.has-sticky-atc .site-footer { padding-bottom: 110px; }
 
 /* ---------- Desktop ---------- */
 @media (min-width: 769px) {
+  /* Design v2: 1200px content, gallery 686px (80 thumbs + 16 + 590 image), 64px gap, info 450px */
+  .single-product .wc-page { max-width: calc(var(--home-width) + 2 * var(--page-gutter)); }
   .single-product div.product {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 22px;
+    grid-template-columns: minmax(0, 686fr) minmax(0, 450fr);
+    column-gap: 64px;
     align-items: start;
-    padding-top: 55px;
+    padding-top: 48px;
   }
   .single-product div.product > * { grid-column: 1 / -1; }
   .single-product div.product > .woocommerce-product-gallery { grid-column: 1; }
@@ -499,7 +530,7 @@ body.has-sticky-atc .site-footer { padding-bottom: 110px; }
 
   .woocommerce-product-gallery { margin: 0; overflow: visible; }
   /* Thumbnails beside: a fixed 80px column on the left, as tall as the main image */
-  .woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image) { --slide-w: 100cqw; padding-left: 95px; }
+  .woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image) { --slide-w: 100cqw; padding-left: 96px; }
   .woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image):not(:has(.flex-control-nav)) { padding-bottom: 0; }
   .woocommerce-product-gallery:has(.woocommerce-product-gallery__image + .woocommerce-product-gallery__image) > .woocommerce-product-gallery__wrapper,
   .woocommerce-product-gallery .flex-viewport { width: auto; margin: 0; overflow: hidden !important; }
@@ -512,17 +543,39 @@ body.has-sticky-atc .site-footer { padding-bottom: 110px; }
     flex-direction: column;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    gap: 15px;
+    gap: 10px;
     width: 80px;
     margin: 0;
     padding: 0;
     overflow-y: auto;
     scrollbar-width: none;
   }
-  .flex-control-thumbs li { flex: none; width: 80px; height: 80px; border-radius: 0; background: none; }
-  .flex-control-thumbs img { opacity: 1; object-fit: cover; border: 2px solid transparent; }
+  .flex-control-thumbs li { flex: none; width: 80px; height: 80px; background: none; }
+  .flex-control-thumbs li:has(.flex-active) { width: 80px; height: 80px; background: none; }
+  .flex-control-thumbs img { opacity: 1; object-fit: cover; border: 1px solid var(--color-border); }
   .flex-control-thumbs img.flex-active { border-color: var(--color-text); }
-  .woocommerce-product-gallery__trigger { right: 10px; bottom: 10px; }
+  .gallery-badge { top: 14px; left: 110px; }
+  .gallery-counter { display: none; }
+  /* Zoom button as the design's "Hover to zoom" label (label text set by product.js; WC keeps the a11y text) */
+  .woocommerce-product-gallery__trigger[data-label] {
+    right: 14px;
+    bottom: 14px;
+    width: auto;
+    height: auto;
+    padding: 6px 10px;
+    border-radius: 0;
+    font-size: 0;
+  }
+  .woocommerce-product-gallery__trigger[data-label]::before {
+    content: attr(data-label);
+    width: auto;
+    height: auto;
+    background: none;
+    font-size: 12px;
+    letter-spacing: normal;
+    -webkit-mask: none;
+    mask: none;
+  }
 
   .summary { margin-top: 0; padding-left: 45px; text-align: left; }
   .variant-buttons { justify-content: flex-start; }

@@ -49,7 +49,9 @@ function ci_fx_attribute( $label, $slug, array $terms ) {
 
 function ci_fx_images() {
 	$ids = get_option( 'ci_fixture_images' );
-	if ( $ids && count( array_filter( array_map( 'get_post', $ids ) ) ) === count( $ids ) ) {
+	// Reuse only when every attachment still has its file (a half-failed download leaves a post without one).
+	$ok = fn( $id ) => get_post( $id ) && file_exists( (string) get_attached_file( $id ) );
+	if ( $ids && count( array_filter( $ids, $ok ) ) === count( $ids ) ) {
 		return $ids;
 	}
 	$urls = array(

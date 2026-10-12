@@ -334,8 +334,30 @@
     });
   }
 
+  /* Gallery extras: badge + "1 / N" counter + "Hover to zoom" label inside WC's gallery (flexslider). */
+  function initGalleryExtras() {
+    const gallery = document.querySelector('.single-product .woocommerce-product-gallery');
+    const extras = document.querySelector('[data-gallery-extras]');
+    if (!gallery || !extras) return;
+    gallery.append(extras);
+    extras.classList.add('is-ready');
+    const counter = extras.querySelector('[data-gallery-counter]');
+    const total = counter ? counter.textContent.split('/')[1].trim() : '';
+    const sync = () => {
+      const slides = [...gallery.querySelectorAll('.woocommerce-product-gallery__image')];
+      const i = slides.findIndex((s) => s.classList.contains('flex-active-slide'));
+      const text = `${Math.max(0, i) + 1} / ${total}`;
+      if (counter && counter.textContent !== text) counter.textContent = text; // only write on change (observer)
+      const trigger = gallery.querySelector('.woocommerce-product-gallery__trigger');
+      if (trigger && !trigger.dataset.label) trigger.dataset.label = extras.dataset.zoomLabel;
+    };
+    new MutationObserver(sync).observe(gallery, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
+    sync();
+  }
+
   ns.initVariantForm = initVariantForm;
   document.querySelectorAll('form.variations_form').forEach(initVariantForm);
+  initGalleryExtras();
   initSticky();
   initReviews();
   initSizeGuide();

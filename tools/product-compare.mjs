@@ -18,6 +18,8 @@ const OUT = path.join(ROOT, 'reference/screens/product-v2');
 // area: [design module, local selector]
 const AREAS = {
   main: ['product-main', '.product-main'],
+  gallery: ['gallery', '.woocommerce-product-gallery'],
+  buybox: ['buy-box', '.summary'],
   accordions: ['product-accordions', '.product-accordions'],
   reviews: ['product-reviews', '#reviews'],
   'video-reviews': ['video-reviews', '.product-videos'],

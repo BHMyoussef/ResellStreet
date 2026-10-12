@@ -607,6 +607,34 @@ add_action(
 	}
 );
 
+/*
+ * Gallery extras (design v2): Sale / Sold out badge, "1 / N" counter (phones), "Hover to zoom" label for WC's zoom
+ * button. Printed after the gallery; product.js moves them into it (no template override needed).
+ */
+add_action(
+	'woocommerce_before_single_product_summary',
+	function () {
+		global $product;
+		if ( ! $product instanceof WC_Product ) {
+			return;
+		}
+		$count = count( array_filter( array_merge( array( $product->get_image_id() ), $product->get_gallery_image_ids() ) ) );
+		$badge = '';
+		if ( ! $product->is_in_stock() ) {
+			$badge = '<span class="gallery-badge gallery-badge--sold-out">' . esc_html__( 'Sold out', 'customimpulse' ) . '</span>';
+		} elseif ( $product->is_on_sale() ) {
+			$badge = '<span class="gallery-badge">' . esc_html__( 'Sale', 'customimpulse' ) . '</span>';
+		}
+		printf(
+			'<div class="gallery-extras" data-gallery-extras data-zoom-label="%1$s">%2$s%3$s</div>',
+			esc_attr__( 'Hover to zoom', 'customimpulse' ),
+			$badge, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
+			$count > 1 ? '<span class="gallery-counter" data-gallery-counter aria-hidden="true">1 / ' . absint( $count ) . '</span>' : ''
+		);
+	},
+	21
+);
+
 /* ---------------------------------------------------------------------------
  * Gallery images: main image is the LCP; give it priority and correct sizes
  * ------------------------------------------------------------------------ */
@@ -614,7 +642,9 @@ add_action(
 add_filter(
 	'woocommerce_gallery_image_html_attachment_image_params',
 	function ( $params, $attachment_id, $image_size, $main_image ) {
-		$params['sizes'] = '(min-width: 769px) 575px, 75vw';
+		// Phones: the slide is full width, but "100vw" makes 3× phones pick the original (≈250 KB). 87vw caps the
+		// choice at the 1024px file (≈2.6× density, no visible difference) — same rule as the homepage images.
+		$params['sizes'] = '(min-width: 769px) 590px, 87vw';
 		if ( $main_image ) {
 			$params['loading']       = 'eager';
 			$params['fetchpriority'] = 'high';
