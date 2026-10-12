@@ -392,12 +392,13 @@ add_filter(
 
 		// Visible head: "SIZE (UK): 8" (value kept in sync by product.js) + size guide link on the right.
 		$out .= sprintf(
-			'<div class="variant-head"><p class="variant-head__label">%1$s: <span class="variant-head__value" data-variant-value="%2$s" data-empty="%3$s">%4$s</span></p>%5$s</div>',
+			'<div class="variant-head"><p class="variant-head__label">%1$s: <span class="variant-head__value" data-variant-value="%2$s" data-empty="%3$s"%6$s>%4$s</span></p>%5$s</div>',
 			esc_html( $heading ),
 			esc_attr( $name ),
 			esc_attr__( 'Select', 'customimpulse' ),
 			esc_html( (string) ( $options[ (string) $args['selected'] ] ?? __( 'Select', 'customimpulse' ) ) ),
-			$is_size && ci_product_size_guide( $product ) ? ci_size_guide_button() : ''
+			$is_size && ci_product_size_guide( $product ) ? ci_size_guide_button() : '',
+			$is_size && '' !== $system ? ' data-prefix="' . esc_attr( $system ) . '"' : ''
 		);
 		$out .= sprintf( '<fieldset class="variant-buttons%3$s" data-variant-group="%1$s"%2$s>', esc_attr( $name ), $is_size ? ' data-size-group' : '', $swatch ? ' variant-buttons--swatches' : '' );
 		$out .= '<legend class="visually-hidden">' . esc_html( $label ) . '</legend>';

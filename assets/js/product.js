@@ -40,6 +40,19 @@
 
     initQuantity(form);
 
+    // Sticky bar line "Mint Blue / UK 8": the product's colour + every chosen option (sizes get "UK").
+    const stickyVariant = sticky?.querySelector('[data-sticky-variant]');
+    const setStickyVariant = () => {
+      if (!stickyVariant) return;
+      const parts = [...scope.querySelectorAll('.summary .product-colours .variant-head__value, [data-variant-value]')]
+        .filter((el) => el.closest('form') === form || el.closest('.product-colours'))
+        .map((el) => (el.matches('[data-variant-value]') && el.textContent === el.dataset.empty ? '' : `${el.dataset.prefix ? el.dataset.prefix + ' ' : ''}${el.textContent.trim()}`))
+        .filter(Boolean);
+      const text = parts.join(' / ');
+      if (stickyVariant.textContent !== text) stickyVariant.textContent = text;
+    };
+    setStickyVariant(); // simple products: colour only (variable products update it in render())
+
     const dataEl = form.querySelector('.ci-variant-data');
     if (!dataEl) return; // Simple product: nothing to sync
 
@@ -93,6 +106,7 @@
         const text = input ? input.labels[0].textContent.trim() : out.dataset.empty;
         if (out.textContent !== text) out.textContent = text;
       });
+      setStickyVariant();
 
       const match = attrs.every((n) => sel[n]) ? variations.find((v) => fits(v, sel)) : null;
       if (match) {
