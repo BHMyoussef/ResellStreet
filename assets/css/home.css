@@ -64,7 +64,8 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--color-hero-overlay) 60%, transparent) 0%, var(--color-hero-overlay) 85%);
+  /* 70% → 100%: at the default 75% overlay, white text keeps ≥ 4.5:1 even over a pure-white photo area */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-hero-overlay) 70%, transparent) 0%, var(--color-hero-overlay) 85%);
   opacity: var(--overlay);
 }
 .home-hero__content { position: relative; z-index: 1; padding-block: 40px; }

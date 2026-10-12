@@ -18,9 +18,11 @@
     "check:reviews": "node tools/reviews-check.mjs",
     "check:search": "node tools/search-check.mjs",
     "cleanup:local": "tools/wp eval-file tools/cleanup-local.php",
-    "convert:shopify": "node tools/shopify-to-woo.mjs"
+    "convert:shopify": "node tools/shopify-to-woo.mjs",
+    "check:a11y": "node tools/a11y-check.mjs"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "playwright": "^1.64.0"
   }
 }
