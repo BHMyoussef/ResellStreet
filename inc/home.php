@@ -197,7 +197,7 @@ function ci_home_trending_query( $cat, $tag, $count, $exists = false ) {
  */
 function ci_home_trending_html( $cat ) {
 	$count = min( 16, max( 2, absint( ci_mod( 'home_trending_count' ) ) ) );
-	return ci_home_products( ci_home_trending_query( $cat, sanitize_title( (string) ci_mod( 'home_trending_tag' ) ), $count ), 'home-products--grid' );
+	return ci_home_products( ci_home_trending_query( $cat, sanitize_title( (string) ci_mod( 'home_trending_tag' ) ), $count ), 'home-products--grid', array( 'ci_badge' => 'none' ) );
 }
 
 /* Tab switches: GET ci/v1/trending/<cat> → { html } (public, cacheable; only configured tabs). */

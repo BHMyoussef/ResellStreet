@@ -165,12 +165,12 @@ function ci_loop_media() {
 		}
 	}
 
-	// Loop prop ci_badge = 'new' (homepage New Arrivals) shows "New" instead of "Sale".
+	// Loop prop ci_badge: 'new' (homepage New Arrivals) shows "New" instead of "Sale"; 'none' only "Sold out".
 	if ( ! $product->is_in_stock() ) {
 		echo '<span class="product-card__tag product-card__tag--sold-out">' . esc_html__( 'Sold out', 'customimpulse' ) . '</span>';
 	} elseif ( 'new' === wc_get_loop_prop( 'ci_badge' ) ) {
 		echo '<span class="product-card__tag product-card__tag--new">' . esc_html__( 'New', 'customimpulse' ) . '</span>';
-	} elseif ( $product->is_on_sale() ) {
+	} elseif ( $product->is_on_sale() && 'none' !== wc_get_loop_prop( 'ci_badge' ) ) {
 		echo '<span class="product-card__tag">' . esc_html__( 'Sale', 'customimpulse' ) . '</span>';
 	}
 	echo '</div>';

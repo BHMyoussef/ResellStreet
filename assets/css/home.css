@@ -96,6 +96,27 @@
 .home-banner__text { max-width: 500px; margin: 20px auto 0; font-size: 17px; line-height: 1.55; letter-spacing: normal; }
 .home-banner .home-buttons { align-items: center; justify-content: center; }
 
+/* ---------- Trending styles ---------- */
+.home-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 0 32px; }
+.home-tabs__tab {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: var(--fw-regular);
+  letter-spacing: normal;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.home-tabs__tab:hover { border-color: var(--color-text); }
+.home-tabs__tab[aria-selected="true"] { border-color: var(--color-text); background: var(--color-variant-selected); color: var(--color-variant-selected-text); }
+.home-tabs__tab:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.home-trending__panel { transition: opacity 0.2s ease; }
+.home-trending__panel[aria-busy="true"] { opacity: 0.4; }
+.home-trending .home-buttons { align-items: center; margin-top: 40px; }
+
 /* ---------- Product cards on the homepage (design card: left-aligned, brand line, sentence case) ---------- */
 .home-products.products { gap: 32px 12px; }
 .home-products .product-card__meta { padding: 14px 0 0; text-align: left; }
@@ -107,7 +128,8 @@
   letter-spacing: normal;
   text-transform: none;
 }
-.home-products .product-card__price { margin-top: 6px; font-size: 15px; font-weight: var(--fw-regular); letter-spacing: normal; }
+.home-products .product-card__price { display: flex; flex-wrap: wrap; column-gap: 8px; margin-top: 6px; font-size: 15px; font-weight: var(--fw-regular); letter-spacing: normal; }
+.home-products .price__compare, .home-products .price__savings { margin: 0; } /* "Save X%" wraps flush left */
 
 /* Swipe row on phones (scroll-snap, no JS) */
 .home-products--carousel.products {
@@ -150,6 +172,8 @@
 
 @media (min-width: 769px) {
   .home-banner { min-height: var(--banner-h); }
+  .home-tabs { margin: -16px 0 44px; }
+  .home-trending .home-buttons { justify-content: center; margin-top: 52px; }
   .home-split { grid-template-columns: 54.17% 1fr; min-height: 662px; }
   .home-split--right .home-split__media { order: 2; }
   .home-split__media { aspect-ratio: auto; }
