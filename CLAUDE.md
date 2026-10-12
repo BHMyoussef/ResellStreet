@@ -278,6 +278,33 @@ Local site: http://resellstreet.local
    default payment: tests pick Cash on delivery and skip the US country check.
 2. Compare with `reference/screens/*`, then continue with the next ⏭ row above.
 
+## Deployment (Hostinger, GitHub Actions; no WP Pusher)
+- Repo: private GitHub repo (origin). Only the theme is deployed; the database/content is managed on each site.
+- Flow (`.github/workflows/deploy.yml`): push to `main` → job `checks` (PHP + JS syntax) → job `staging`
+  (GitHub environment "staging", automatic) → job `production` (environment "production", required reviewers =
+  manual approval). Production runs in the same workflow run, so it always ships the commit that passed staging.
+  Newer runs waiting for approval replace older ones (concurrency group per environment).
+- `npm run check:all` needs the Local site (WP-CLI, fixtures, Stripe test mode), so it can't run on GitHub's runners.
+  It runs in the pre-push hook `.githooks/pre-push` on every push to main (clean tree required, Local site running).
+  Enable the hook once per clone: `git config core.hooksPath .githooks`. Test products must exist (`npm run fixtures`).
+  `git push --no-verify` skips it: emergencies only.
+- Deploy = `.github/scripts/deploy.sh`: rsync over SSH (`-rlptz --delete --exclude-from=.distignore`) into THEME_PATH.
+  Safety: THEME_PATH must be `/…/wp-content/themes/<folder>` (no `..`); the themes folder must exist; an existing target
+  must be this theme (style.css "Theme Name: CustomImpulse"). `--delete` therefore only acts inside the theme folder.
+  Not deployed (`.distignore`): reference/, node_modules/, tools/ (tests, fixtures, seed), screens-local/,
+  test-results/, CLAUDE.md, .claude/, .github/, .githooks/, package*.json, git/dot files.
+  After a deploy: `wp litespeed-purge all` over SSH when WP-CLI + LiteSpeed Cache are there, else a log warning.
+- Secrets (GitHub → Settings → Environments, one set per environment, never in the repo): SSH_PRIVATE_KEY,
+  SSH_HOST, SSH_PORT (Hostinger: 65002), SSH_USER, THEME_PATH (e.g.
+  `/home/<user>/domains/<domain>/public_html/wp-content/themes/CustomImpulse-theme`; keep the folder name so the theme
+  stays active). Repository variable `ALLOW_NO_STAGING=true` lets runs skip an unconfigured staging (remove it once
+  staging exists).
+- Deploy key: ed25519 pair on the developer's Mac at `~/.ssh/resellstreet_deploy` (+ `.pub`), never in the repo.
+  The public key is added in hPanel → Advanced → SSH Access for each Hostinger account.
+- Safe test: Actions → "Deploy theme" → Run workflow with "Dry run" ticked: lists what would change (`--itemize-changes`)
+  on staging, then production after approval, and changes nothing.
+- Rollback: revert the commit on main and push (redeploys the previous state), or re-run an older successful run.
+
 ## WooCommerce template overrides
 _(none yet. Add every file in `/woocommerce` here with the reason)_
 
