@@ -145,6 +145,8 @@ Local site: http://resellstreet.local
   Design v2: full-width square slides on phones (no peek), bar dots, "1 / N" counter + Sale/Sold out badge
   (printed after the gallery, moved in by product.js), zoom button = "Hover to zoom" label on desktop.
   Main image sizes "(min-width: 769px) 590px, 87vw" (87vw caps 3× phones at the 1024px file).
+  The main image is NEVER cropped (user rule): square frame, `object-fit: contain` on the slide background;
+  only thumbnails may be cropped. `npm run check:product` fails if it is (390/768/1440, every slide, variation swap).
 - Product page v2 (design `reference/product-v2/*.html` = canvas of 4 frames: mobile page, sticky state, drawer
   state, desktop; compare an area with `node tools/product-compare.mjs <area>`): 1200px page, gallery 686 + 64 + 450.
   Info column (all hooks): brand eyebrow (product_brand), rating "★ 4.8 128 reviews" (.product-rating), price row,
@@ -261,6 +263,8 @@ Local site: http://resellstreet.local
   "Test Sneaker XL" (33 variations, AJAX mode) in category "Shoes" (has a size guide). Delete them after step 9.
   Fixtures also enable Cash on delivery, create coupon TEST10 (10%) and customer `ci-test-customer`
   (password `ci-test-Passw0rd!`). Test orders exist from `npm run check:pages`.
+  Also: "Test Gallery Ratios" (4:5 main, square/3:2/3:4/200×150 gallery, UK 7/8 own images; generated GD images
+  tagged `_ci_fixture_ratio`), "Test Cap" (simple, 200×150 image) and "Test Sold Out Tee" (simple, out of stock).
 - Cart & Checkout pages contain the classic shortcodes; My Account registration is enabled (both via seed.sh).
 - Plugin "Customer Reviews for WooCommerce" (CusRev) installed + active; photo uploads on (`ivole_attach_image`, seed.sh).
 
