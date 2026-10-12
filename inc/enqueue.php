@@ -59,8 +59,12 @@ add_action(
 
 		if ( is_front_page() ) {
 			ci_enqueue_style( 'collection' ); // Product cards (new arrivals, trending).
+			ci_enqueue_style( 'brands' );
 			ci_enqueue_style( 'home', array( 'ci-collection' ) );
 			ci_enqueue_script( 'home' );
+		}
+		if ( is_singular() && has_shortcode( (string) get_post_field( 'post_content', get_queried_object_id() ), 'ci_brands' ) ) {
+			ci_enqueue_style( 'brands' );
 		}
 		if ( function_exists( 'ci_is_collection' ) && ci_is_collection() ) {
 			ci_enqueue_style( 'collection' );

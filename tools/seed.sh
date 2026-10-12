@@ -171,8 +171,13 @@ mod home_split_btn_label "Shop the drop"
 mod home_split_btn_url "$SHOP_URL"
 
 # Shop by brand: the 12 brands in this order
+# "All brands" page: every brand as tiles ([ci_brands])
+BRANDS_PAGE=$("$WP" post list --post_type=page --name=brands --field=ID --posts_per_page=1)
+[ -z "$BRANDS_PAGE" ] && BRANDS_PAGE=$("$WP" post create --post_type=page --post_status=publish --post_title="Brands" --post_name=brands --post_content='<!-- wp:shortcode -->[ci_brands]<!-- /wp:shortcode -->' --porcelain)
 mod home_brands_eyebrow "The labels"
 mod home_brands_title "Shop by brand"
+mod home_brands_link_label "All brands"
+mod home_brands_link_url "$("$WP" post url "$BRANDS_PAGE")"
 i=1; for b in nike adidas new-balance asics hoka on jordan puma brooks ugg reebok the-north-face; do
   mod "home_brand_${i}" "$("$WP" term list product_brand --slug="$b" --field=term_id)"; i=$((i+1))
 done

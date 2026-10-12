@@ -327,3 +327,46 @@ function ci_home_buttons( array $buttons ) {
 	}
 	return $html ? '<div class="home-buttons">' . $html . '</div>' : '';
 }
+
+/**
+ * Brand tiles (homepage "Shop by brand", [ci_brands] page): logo = brand thumbnail, else the name.
+ *
+ * @param WP_Term[] $terms Brands.
+ * @param bool      $lazy  Lazy-load logos.
+ */
+function ci_brand_tiles( array $terms, $lazy = true ) {
+	if ( ! $terms ) {
+		return '';
+	}
+	$html = '<ul class="brand-tiles" role="list">';
+	foreach ( $terms as $term ) {
+		$logo  = absint( get_term_meta( $term->term_id, 'thumbnail_id', true ) );
+		$inner = $logo
+			? wp_get_attachment_image(
+				$logo,
+				'medium',
+				false,
+				array(
+					'class'   => 'brand-tiles__logo',
+					'alt'     => $term->name,
+					'loading' => $lazy ? 'lazy' : 'eager',
+					'sizes'   => '(min-width: 769px) 120px, 100px',
+				)
+			)
+			: '<span class="brand-tiles__name">' . esc_html( $term->name ) . '</span>';
+		$html .= '<li><a class="brand-tiles__tile" href="' . esc_url( get_term_link( $term ) ) . '">' . $inner . '</a></li>';
+	}
+	return $html . '</ul>';
+}
+
+/* [ci_brands]: every brand A–Z as tiles (the "All brands" page). */
+add_shortcode(
+	'ci_brands',
+	function () {
+		if ( ! taxonomy_exists( 'product_brand' ) ) {
+			return '';
+		}
+		$terms = get_terms( array( 'taxonomy' => 'product_brand', 'hide_empty' => false, 'orderby' => 'name' ) );
+		return ci_brand_tiles( is_array( $terms ) ? $terms : array(), false );
+	}
+);

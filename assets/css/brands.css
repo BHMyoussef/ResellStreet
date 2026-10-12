@@ -1,0 +1,28 @@
+/* Brand logo tiles: homepage "Shop by brand" and the [ci_brands] page. */
+.brand-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.brand-tiles__tile {
+  display: grid;
+  place-items: center;
+  height: 112px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: border-color 0.2s ease;
+}
+.brand-tiles__tile:hover { border-color: var(--color-text); }
+.brand-tiles__tile:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.brand-tiles__logo { width: auto; max-width: min(100%, 104px); height: auto; max-height: 38px; object-fit: contain; }
+.brand-tiles__name { font-family: var(--font-heading); font-weight: var(--fw-heading); letter-spacing: var(--ls-heading); text-transform: uppercase; }
+
+@media (min-width: 769px) {
+  .brand-tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+  .brand-tiles__tile { height: 125px; }
+  .brand-tiles__logo { max-width: min(100%, 112px); max-height: 44px; }
+}
