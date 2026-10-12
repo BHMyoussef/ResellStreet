@@ -52,8 +52,8 @@ Local site: http://resellstreet.local
   1. Star rating + review count under the product title (links to #reviews), via `ci_product_after_title`.
   2. Product page review section: rating summary, photo grid, review cards (stars, name, date, text, photos,
      verified-buyer badge), "Load more".
-  3. Homepage testimonials carousel = real reviews (Customizer: number of reviews, min rating, photos required).
-     No hardcoded testimonials.
+  3. Homepage (v2): rating summary (average + count of all approved reviews, `ci_store_rating()`) next to the
+     video reviews. The v1 text-testimonials carousel was removed with homepage v2.
 - CusRev data: photos = comment meta `ivole_review_image2` (one row per attachment ID; legacy `ivole_review_image`,
   videos `ivole_review_video2` / `ivole_review_video`, count `ivole_media_count`). Verified buyer = WooCommerce
   comment meta `verified` OR CusRev `ivole_order` (order ID).
@@ -89,9 +89,7 @@ Local site: http://resellstreet.local
   the Store API (≈13 KB+ with all gallery srcsets). Debounced, aborts stale requests, caches per query, combobox
   keyboard nav. Results page = WC product archive with visible title + search form; plain `?s=` → redirected to
   `post_type=product`. WordPress adds `search-results` to <body> on search pages: never use that as a component class.
-- Homepage testimonials = `ci_home_testimonials()` (inc/customizer-home.php): approved reviews on published products,
-  newest first, filtered by Customizer (count, min rating, photos required, verified only); cached in a transient
-  keyed by settings + `ci_reviews_cache_version` (bumped on any comment/comment-meta change). No hardcoded slots.
+- `ci_reviews_cache_version` (inc/home.php) is bumped on any comment/comment-meta change; cached review data keys on it.
 - Test reviews: `npm run fixtures` (8 reviews, tagged `_ci_fixture`). WooCommerce excludes reviews from untyped
   comment queries: always pass `'type' => 'review'`.
 
@@ -127,13 +125,15 @@ Local site: http://resellstreet.local
 | 3b | Reviews on the product page (CusRev data, theme display): stars under title, review section, test reviews | ✅ done |
 | 5b | Homepage testimonials from real reviews (Customizer: count, min rating, photos) | ✅ done |
 | 7 | Search overlay (header icon already links to product search) + results page | ✅ done |
-| 9 | Product import from the Shopify CSV in `/reference` (restarting from scratch; old import tools removed) | ⏭ next |
+| 9 | Product import from the Shopify CSV in `/reference` (converter done: brand, collection, decimal prices; 215 products imported) | ✅ done |
+| 10 | Homepage v2 (`reference/homepage-v2`), branch `homepage-v2`: hero, new arrivals, image with text, brands, banner, trending, video reviews, trust row | ✅ built, awaiting approval to merge |
 
 ### Decisions made so far
 - Body font is Outfit (live store), not Twentieth Century (export). Desktop/mobile sizes measured from live computed styles.
 - Drawers are native `<dialog data-drawer="name">`, opened by `[data-drawer-open="name"]`; API `window.CustomImpulse.openDrawer/closeDrawer`.
 - Product card is built on WC loop hooks in `inc/woocommerce.php`; `ci_price_html()` is shared with the product page.
-- Card images: WC thumbnail cropped 4:3 (600×450) + `ci-card-sm` 360×270 for srcset.
+- Card images: square (homepage v2 design, user choice): WC thumbnail 1:1 (600×600) + `ci-card-sm` 360×360 for srcset.
+  Card shows the brand (`ci_product_brand()`, product_brand) above the title. Loop prop `ci_badge`: 'new' / 'none'.
 - Newsletter form only renders with a provider shortcode or action URL (Customizer → Footer). Provider not chosen yet.
 - Product page lives in `inc/product.php` (hooks only). Variation buttons: radios drive WC's hidden selects
   (set in attribute order + native `change`), availability/price/stock from our own JSON map
@@ -158,10 +158,23 @@ Local site: http://resellstreet.local
   "standalone" (sets variation_id/image itself) when WC's variation script isn't on the page.
 - WC jQuery scripts (woocommerce, add-to-cart, blockUI, js-cookie) are dequeued except on product/cart/checkout/account
   → home and collection pages ship no jQuery (plugins may still add it).
-- Homepage: `front-page.php` + `template-parts/home/*`, settings in `inc/customizer-home.php` (Customizer → Homepage;
-  modules add defaults via the `ci_defaults` filter). Hero = up to 3 slides (+ optional mobile image via <picture>),
-  first image eager + fetchpriority=high; mobile hero height = image ratio. Tiles use category thumbnails
-  (`ci-square` 480 / `ci-square-lg` 720 crops). Testimonials = scroll-snap carousel. Parallax desktop-only (home.js).
+- Homepage v2 (design `reference/homepage-v2/*.html`; compare a section with `node tools/home-compare.mjs <section>`):
+  `front-page.php` loops `CI_HOME_SECTIONS` → `template-parts/home/<section>.php`. Settings: `inc/customizer-home.php`
+  (Customizer → Homepage, one section each; content defaults empty, seed.sh fills them). Data: `inc/home.php`
+  (`ci_home_products()` = shop card via wc_get_template_part, `ci_brand_tiles()` + `[ci_brands]` "Brands" page,
+  trending tabs + REST `ci/v1/trending/<cat>` (only configured tabs, else 404), `ci_store_rating()`, hero preload).
+  - Hero: <picture> phone source ≤1024px, eager + fetchpriority=high + <link rel=preload> per media query.
+    Overlays are solid navy at the Customizer % (hero 75 with a 70→100% gradient, banner 80): text ≥ 4.5:1 worst case.
+  - Brands = WooCommerce Brands (product_brand), NOT a pa_brand attribute (user choice). Logos = brand thumbnails,
+    real logos rendered navy by `tools/brand-logos.mjs` (sources: Wikimedia/Wikipedia + Simple Icons) into
+    reference/media/brands, imported by `tools/home-data.php` (also creates Jordan, Reebok, The North Face,
+    the Sneakers category and the `trending` tag). 12 Customizer slots = order/visibility.
+  - Trending: tabs = label + category (up to 4), tab bar only from 2 tabs; user: only Sneakers for now.
+  - Video reviews: post type `ci_video_review` (inc/video-reviews.php, Products → Video reviews): title = name,
+    featured image = poster, video file or URL, rating, product, Order field. Video only requested on tap.
+    `npm run fixtures` adds 6 "Test reviewer N" entries (never seed fake reviews into the store).
+  - Carousels: CSS scroll-snap; home.js only adds arrows (video reviews) and the trending tabs. No slider library.
+  - brands.css loads on the front page and pages with [ci_brands]; collection.css (cards) also on the front page.
 - Homepage media for seeding lives in `reference/media/` (downloaded from the live store).
 - If Chromium can't resolve novarende.com, run Playwright tools with `LIVE_IP=23.227.38.65`.
 - Cart/checkout/account (`inc/wc-pages.php`, `wc-pages.css/js`), hooks only:
@@ -205,7 +218,7 @@ Local site: http://resellstreet.local
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
-- Seeded pages, menus (Main menu, Footer), Customizer content, logo, catalog 3×7, 4:3 thumbnails,
+- Seeded pages, menus (Main menu, Footer), Customizer content, logo, catalog 3×7, square thumbnails,
   homepage content + media, categories Shoes / Sets / Bags (Accessories existed) with thumbnails.
 - Catalogue = test fixtures only (2026-10-10): the 313 imported Shopify products were dropped (backup of the imported
   state: `resellstreet/backup-before-drop-import-2026-10-10.sql`) and `npm run fixtures` re-run. WooCommerce sample
@@ -223,7 +236,9 @@ Local site: http://resellstreet.local
 ### Resume checklist
 1. `npm run shots:local` / `npm run measure -- <profile>` (global|collection|product|home) / `npm run check:all`.
    Product profile/screens point at the imported Flaireve product: re-import it (step 9) to use them.
-   Tests select fixture products by exact title and don't assume catalogue size.
+   Tests select fixture products by exact title (found via product search) and don't assume catalogue size.
+   `npm run check:a11y` = axe WCAG 2 A/AA (contrast reported separately). Store sells to GB only and Stripe is the
+   default payment: tests pick Cash on delivery and skip the US country check.
 2. Compare with `reference/screens/*`, then continue with the next ⏭ row above.
 
 ## WooCommerce template overrides
