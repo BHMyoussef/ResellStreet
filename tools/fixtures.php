@@ -225,7 +225,8 @@ function ci_fx_runner( $sku, $colour, $hex, $model_id, $brand, array $images, ar
 		wp_set_object_terms( $product_id, $brand, 'product_brand' );
 	}
 	foreach ( $sizes as $name => $term ) {
-		$v = new WC_Product_Variation();
+		$name = (string) $name; // PHP turns the key "11" into int 11
+		$v    = new WC_Product_Variation();
 		$v->set_parent_id( $product_id );
 		$v->set_attributes( array( $size_tax => $term->slug ) );
 		$v->set_regular_price( '139.99' );

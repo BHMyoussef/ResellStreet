@@ -77,6 +77,55 @@ s = await state();
 check('AJAX: Khaki/9.5 resolved by WooCommerce', s.selects.join() === 'khaki,9-5' && !!s.variationId && !s.atcDisabled, `${s.selects.join()} id=${s.variationId}`);
 check('AJAX: Khaki enables sizes 5/5.5', !s.disabled.includes('5') && !s.disabled.includes('5-5'), s.disabled.join());
 
+// ---- Product page v2 (Test Runner: UK 3–13, 4.5 / 9.5 / 11 sold out, UK 8 low stock, on sale) ----
+// Meta Pixel plugins (PixelYourSite, Facebook for WooCommerce) listen for jQuery `added_to_cart` on body.
+const countAdds = () => p.evaluate(() => {
+  window.__ciAdds = 0;
+  window.jQuery?.(document.body).on('added_to_cart', () => window.__ciAdds++);
+  return !!window.jQuery;
+});
+for (const [w, h, label] of [[1440, 900, 'main'], [390, 844, 'sticky']]) {
+  await p.setViewportSize({ width: w, height: h });
+  await p.goto(BASE + 'test-runner-mint-blue/', { waitUntil: 'networkidle' });
+  const hasJq = await countAdds();
+  await pick('8');
+  if (label === 'main') {
+    await p.click('.single_add_to_cart_button');
+  } else {
+    await p.evaluate(() => window.scrollTo(0, document.querySelector('.single_add_to_cart_button').getBoundingClientRect().bottom + scrollY + 400));
+    await p.waitForTimeout(500);
+    await p.click('[data-sticky-button]');
+  }
+  await p.waitForFunction(() => document.querySelector('dialog[data-drawer="cart"]')?.open, null, { timeout: 10000 }).catch(() => {});
+  await p.waitForTimeout(800);
+  check(`Meta Pixel contract: jQuery added_to_cart fired once (${label} add to cart)`, hasJq && (await p.evaluate(() => window.__ciAdds)) === 1, String(await p.evaluate(() => window.__ciAdds)));
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(400);
+}
+await p.setViewportSize({ width: 1440, height: 900 });
+await p.goto(BASE + 'test-runner-mint-blue/', { waitUntil: 'networkidle' });
+const v2 = await p.evaluate(() => ({
+  brand: document.querySelector('.product-brand')?.getAttribute('href'),
+  badge: document.querySelector('.gallery-badge')?.textContent,
+  swatches: [...document.querySelectorAll('.colour-swatch')].map((a) => (a.classList.contains('is-current') ? '*' : '') + a.title).join(','),
+  head: document.querySelector('[data-size-group]')?.previousElementSibling?.textContent.replace(/\s+/g, ' ').trim(),
+  soldOut: [...document.querySelectorAll('[data-size-group] input:disabled')].map((i) => i.value).join(','),
+  accordions: [...document.querySelectorAll('.product-accordion')].map((d) => (d.open ? '+' : '') + d.querySelector('summary').textContent.trim()).join(' | '),
+  related: document.querySelectorAll('.product-related li.product').length,
+}));
+check('brand links to the brand page', /\/brand\/nike\/$/.test(v2.brand || ''), v2.brand);
+check('Sale badge on the gallery', v2.badge === 'Sale', v2.badge);
+check('colour swatches: this colourway + siblings', v2.swatches === '*Mint Blue,Black,Cream', v2.swatches);
+check('size head shows the system and the choice', /^SIZE \(UK\): 3/i.test(v2.head || ''), v2.head);
+check('sold-out sizes crossed out (4.5, 9.5, 11)', v2.soldOut === '4-5,9-5,11', v2.soldOut);
+await pick('8');
+check('low stock line for UK 8', /2 items left/.test(await p.$eval('[data-product-stock]', (e) => e.textContent)), await p.$eval('[data-product-stock]', (e) => e.textContent.trim()));
+check('accordions: Description open, then details / shipping / authenticity', /^\+Description \| Product details \| Shipping & returns \| Authenticity guarantee/.test(v2.accordions), v2.accordions);
+check('"You may also like" shows products', v2.related > 0, String(v2.related));
+await p.locator('.product-recent').scrollIntoViewIfNeeded();
+await p.waitForTimeout(1200);
+check('recently viewed: earlier products from localStorage', (await p.$$('.product-recent li.product')).length > 0);
+
 check('no console errors', errors.length === 0, errors.join(' | '));
 await p.evaluate(async () => {
   const api = window.CustomImpulse?.cart?.api;
