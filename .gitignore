@@ -4,3 +4,4 @@ node_modules/
 screens-local/
 test-results/
 tools/bin/
+.claude/settings.local.json

@@ -264,7 +264,7 @@ Local site: http://resellstreet.local
 - Dev test products from `npm run fixtures` (tools/fixtures.php): "Test Sneaker" (21 variations, inline mode) and
   "Test Sneaker XL" (33 variations, AJAX mode) in category "Shoes" (has a size guide). Delete them after step 9.
   Fixtures also enable Cash on delivery, create coupon TEST10 (10%) and customer `ci-test-customer`
-  (password `ci-test-Passw0rd!`). Test orders exist from `npm run check:pages`.
+  (password in `tools/fixtures.php`; local test account, never run fixtures on a live site). Test orders exist from `npm run check:pages`.
   Also: "Test Gallery Ratios" (4:5 main, square/3:2/3:4/200×150 gallery, UK 7/8 own images; generated GD images
   tagged `_ci_fixture_ratio`), "Test Cap" (simple, 200×150 image) and "Test Sold Out Tee" (simple, out of stock).
 - Cart & Checkout pages contain the classic shortcodes; My Account registration is enabled (both via seed.sh).
