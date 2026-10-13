@@ -64,6 +64,10 @@ function ci_defaults() {
 		// A 10:1 wordmark at 170px wide = 17px tall (mobile header height unchanged).
 		'logo_width_desktop'    => 220,
 		'logo_width_mobile'     => 170,
+		// Brand colours (tokens.css --brand-*; these defaults = the values there).
+		'brand_primary'         => '#1c253b',
+		'brand_accent'          => '#c1a584',
+		'brand_bg'              => '#fafafa',
 		// Announcement bar.
 		'announcement_enable'   => true,
 		'announcement_interval' => 5,
@@ -94,7 +98,7 @@ function ci_defaults() {
 		'banner_text'             => '',
 		'banner_link'             => '',
 		'banner_label'            => '',
-		'banner_tint'             => '#1c253b', // brand navy (tokens.css --brand-navy)
+		'banner_tint'             => '', // empty = brand primary colour
 		'banner_tint_opacity'     => 10,
 		// Product page.
 		'variant_preselect'          => true,
@@ -204,6 +208,40 @@ add_action(
 		$px = array( 'input_attrs' => array( 'min' => 40, 'max' => 400, 'step' => 1 ) );
 		$add( 'logo_width_desktop', 'title_tagline', __( 'Logo width on desktop (px)', 'customimpulse' ), 'number', 'absint', $px );
 		$add( 'logo_width_mobile', 'title_tagline', __( 'Logo width on mobile (px)', 'customimpulse' ), 'number', 'absint', $px );
+
+		// Brand colours.
+		$wp_customize->add_section(
+			'ci_colors',
+			array(
+				'title'       => __( 'Brand colours', 'customimpulse' ),
+				'panel'       => 'ci_theme',
+				'description' => __( 'Primary: text, buttons, header icons, footer background. Accent: announcement bar, sale badges, selected size, button hover, footer links. Keep the primary dark and the accent light enough for primary text on it (4.5:1).', 'customimpulse' ),
+			)
+		);
+		$colors = array(
+			'brand_primary' => __( 'Primary colour', 'customimpulse' ),
+			'brand_accent'  => __( 'Accent colour', 'customimpulse' ),
+			'brand_bg'      => __( 'Page background', 'customimpulse' ),
+		);
+		foreach ( $colors as $id => $label ) {
+			$wp_customize->add_setting(
+				$id,
+				array(
+					'default'           => $d[ $id ],
+					'sanitize_callback' => 'sanitize_hex_color',
+				)
+			);
+			$wp_customize->add_control(
+				new WP_Customize_Color_Control(
+					$wp_customize,
+					$id,
+					array(
+						'label'   => $label,
+						'section' => 'ci_colors',
+					)
+				)
+			);
+		}
 
 		// Announcement bar.
 		$wp_customize->add_section(
@@ -348,8 +386,9 @@ add_action(
 				$wp_customize,
 				'banner_tint',
 				array(
-					'label'   => __( 'Banner tint color', 'customimpulse' ),
-					'section' => 'ci_collection',
+					'label'       => __( 'Banner tint color', 'customimpulse' ),
+					'description' => __( 'Empty = primary brand colour.', 'customimpulse' ),
+					'section'     => 'ci_collection',
 				)
 			)
 		);
@@ -444,8 +483,17 @@ add_action(
  * Customizer-driven CSS variables.
  */
 function ci_customizer_css() {
+	$d      = ci_defaults();
+	$colors = '';
+	foreach ( array( 'brand_primary' => '--brand-primary', 'brand_accent' => '--brand-accent', 'brand_bg' => '--brand-bg' ) as $key => $var ) {
+		$hex = sanitize_hex_color( ci_mod( $key ) );
+		if ( $hex && strtolower( $hex ) !== $d[ $key ] ) { // Defaults are already in tokens.css.
+			$colors .= "{$var}:{$hex};";
+		}
+	}
 	return sprintf(
-		':root{--logo-w-mobile:%dpx;--logo-w-desktop:%dpx;--footer-logo-h:%dpx}',
+		':root{%s--logo-w-mobile:%dpx;--logo-w-desktop:%dpx;--footer-logo-h:%dpx}',
+		$colors,
 		absint( ci_mod( 'logo_width_mobile' ) ),
 		absint( ci_mod( 'logo_width_desktop' ) ),
 		absint( ci_mod( 'footer_logo_height' ) )

@@ -21,7 +21,7 @@ if ( '' === $ci_heading && '' === $ci_text ) {
 
 $ci_style = sprintf(
 	'--banner-tint:%s;--banner-opacity:%s',
-	sanitize_hex_color( ci_mod( 'banner_tint' ) ) ?: 'transparent',
+	sanitize_hex_color( ci_mod( 'banner_tint' ) ) ?: 'var(--brand-primary)',
 	min( 100, absint( ci_mod( 'banner_tint_opacity' ) ) ) / 100
 );
 // Whole banner is the link when there is no separate label.

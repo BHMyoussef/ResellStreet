@@ -243,7 +243,7 @@ ul.products > li.product-category mark { background: none; color: inherit; }
 
 /* ---------- Image with text ---------- */
 .home-split { display: grid; }
-.home-split__media { position: relative; aspect-ratio: 9 / 10; overflow: hidden; background: var(--brand-navy); }
+.home-split__media { position: relative; aspect-ratio: 9 / 10; overflow: hidden; background: var(--brand-primary); }
 .home-split__body { display: flex; align-items: center; padding: 56px 23px 48px; }
 .home-split .home-eyebrow { margin-bottom: 20px; }
 .home-split__text { max-width: 480px; }
