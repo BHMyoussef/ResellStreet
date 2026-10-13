@@ -19,7 +19,7 @@
   background: var(--brand-primary);
   color: var(--color-on-image);
 }
-.home-hero::after { /* navy wash, stronger at the bottom where the text sits */
+.home-hero::after { /* primary-colour wash, stronger at the bottom where the text sits */
   content: "";
   position: absolute;
   inset: 0;
@@ -30,7 +30,7 @@
 }
 .home-hero__content { position: relative; z-index: 1; padding-block: 40px; }
 .home-hero__title {
-  max-width: 8em; /* "Step into / the drip." like the design */
+  max-width: 8em; /* hero title wraps onto two short lines, like the design */
   margin: 0;
   color: inherit;
   font-size: var(--fs-display);

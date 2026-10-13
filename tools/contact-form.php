@@ -55,8 +55,8 @@ $data = array(
 				'notification_name' => 'Store owner',
 				// Goes to the site admin email (Settings → General) until it is changed in WPForms → Notifications.
 				'email'             => '{admin_email}',
-				'subject'           => 'New message from {field_id="1"} (ResellStreet contact form)',
-				'sender_name'       => 'ResellStreet',
+				'subject'           => 'New message from {field_id="1"} ({site_name} contact form)',
+				'sender_name'       => '{site_name}',
 				'sender_address'    => '{admin_email}',
 				'replyto'           => '{field_id="2"}',
 				'message'           => '{all_fields}',

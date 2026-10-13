@@ -1,6 +1,6 @@
 <?php
 /**
- * Hero: full-bleed image (the LCP: preloaded, eager, fetchpriority=high), navy overlay, text bottom-left.
+ * Hero: full-bleed image (the LCP: preloaded, eager, fetchpriority=high), primary-colour overlay, text bottom-left.
  *
  * @package CustomImpulse
  */

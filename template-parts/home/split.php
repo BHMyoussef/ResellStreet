@@ -1,6 +1,6 @@
 <?php
 /**
- * Image with text ("It's a mindset."): image on one side, text on light sand; stacked on phones.
+ * Image with text: image on one side, text on the light accent band; stacked on phones.
  *
  * @package CustomImpulse
  */

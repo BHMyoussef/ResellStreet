@@ -97,7 +97,7 @@
   --status-critical-bg: #fde7e5;
 
   /* Fonts */
-  --font-heading: "Montserrat", "Helvetica Neue", Arial, sans-serif; /* 800 only, like the ResellStreet logo */
+  --font-heading: "Montserrat", "Helvetica Neue", Arial, sans-serif; /* 800 only */
   --font-body: "Outfit", "Helvetica Neue", Arial, sans-serif;
   --fw-heading: 800;
   --fw-body: 300;

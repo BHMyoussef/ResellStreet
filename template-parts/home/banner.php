@@ -1,6 +1,6 @@
 <?php
 /**
- * Full-width banner ("Wear what moves the street."): image + navy overlay, centred text and button.
+ * Full-width banner: image + primary-colour overlay, centred text and button.
  *
  * @package CustomImpulse
  */
