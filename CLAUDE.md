@@ -42,6 +42,10 @@ Local site: http://resellstreet.local
 - AJAX cart uses the WooCommerce Store API with its nonce (`Nonce` header, refreshed from responses).
   After every successful add/update, also trigger jQuery `added_to_cart` / `updated_cart_totals` on
   `document.body` *if jQuery is present*, so Meta Pixel plugins (PixelYourSite, Facebook for WooCommerce) still fire.
+- Meta Pixel + CAPI = `inc/meta-tracking.php` (user's drop-in, keep unchanged; off until `NV_META_PIXEL_ID` /
+  `NV_META_CAPI_TOKEN` are defined in wp-config.php). Browser AddToCart is queued server-side in the `div.nv-meta-q`
+  cart fragment: cart.js fetches fragments after an add (also without jQuery) and calls `nvMeta.drain()`.
+  Consent required by default (`nvMeta.grant()`); the theme has no consent banner. Disable PixelYourSite when it goes live.
 - Cart and Checkout pages use the classic shortcodes (`[woocommerce_cart]`, `[woocommerce_checkout]`), not blocks.
 - Variation buttons: sold-out options crossed out and disabled; must work in AJAX variation mode
   (> 30 variations, `woocommerce_ajax_variation_threshold`). The native `<select>` stays in the DOM (visually hidden)

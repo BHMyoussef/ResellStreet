@@ -94,7 +94,8 @@
     document.body.dispatchEvent(new CustomEvent(`ci:cart:${event}`, { bubbles: true, detail: { cart } }));
 
     const jq = window.jQuery;
-    if (!jq) return;
+    // Meta tracking (inc/meta-tracking.php) queues the browser AddToCart in the `div.nv-meta-q` fragment.
+    if (!jq && !window.nvMeta) return;
     let fragments = {};
     let hash = '';
     try {
@@ -103,11 +104,16 @@
       fragments = data?.fragments || {};
       hash = data?.cart_hash || '';
       // jQuery's replaceWith runs scripts inside fragments, which some pixel plugins rely on.
-      Object.entries(fragments).forEach(([selector, html]) => jq(selector).replaceWith(html));
+      if (jq) Object.entries(fragments).forEach(([selector, html]) => jq(selector).replaceWith(html));
+      else if (fragments['div.nv-meta-q']) {
+        document.querySelectorAll('div.nv-meta-q').forEach((el) => (el.outerHTML = fragments['div.nv-meta-q']));
+      }
     } catch {
       /* Fragments are optional; still fire the event */
     }
+    if (event === 'added') window.nvMeta && nvMeta.drain();
 
+    if (!jq) return;
     const body = jq(document.body);
     if (event === 'added') body.trigger('added_to_cart', [fragments, hash, jq(button || [])]);
     else if (event === 'removed') body.trigger('removed_from_cart', [fragments, hash, jq(button || [])]);
