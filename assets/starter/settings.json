@@ -1,0 +1,146 @@
+{
+    "announcement_1_text": "🍂 Autumn Sales Are Live – Limited Time",
+    "announcement_2_text": "🔥 Free UK Shipping + 30% OFF",
+    "announcement_enable": "1",
+    "banner_heading": "Don’t Miss Out! 🔥",
+    "banner_text": "Limited pairs remaining!",
+    "collection_sort_enable": false,
+    "collection_title_enable": false,
+    "contact_text": "<p><strong>{brand}</strong></p><p>71-75 Shelton Street, Covent Garden, London, WC2H 9JQ, United Kingdom.</p><p><strong>Email:</strong> {email}</p><p><strong>Customer service hours:</strong><br>Monday to Saturday: 09:00 am to 5:00 pm </p><p><strong>Shop hours:</strong><br>Monday to Friday: 10:00 am to 3:00 pm </p>",
+    "contact_title": "contact informations",
+    "home_banner_btn_label": "Explore collection",
+    "home_banner_btn_url": "{shop}",
+    "home_banner_eyebrow": "Authenticated. Every pair.",
+    "home_banner_focal": "center center",
+    "home_banner_image": {
+        "image": "banner-desktop.jpg"
+    },
+    "home_banner_image_mobile": 0,
+    "home_banner_overlay": "45",
+    "home_banner_text": "The most-wanted silhouettes, sourced and checked so you don't have to.",
+    "home_banner_title": "Wear what moves the street.",
+    "home_brand_1": {
+        "term": "product_brand",
+        "slug": "nike"
+    },
+    "home_brand_10": {
+        "term": "product_brand",
+        "slug": "ugg"
+    },
+    "home_brand_11": {
+        "term": "product_brand",
+        "slug": "reebok"
+    },
+    "home_brand_12": {
+        "term": "product_brand",
+        "slug": "the-north-face"
+    },
+    "home_brand_2": {
+        "term": "product_brand",
+        "slug": "adidas"
+    },
+    "home_brand_3": {
+        "term": "product_brand",
+        "slug": "new-balance"
+    },
+    "home_brand_4": {
+        "term": "product_brand",
+        "slug": "asics"
+    },
+    "home_brand_5": {
+        "term": "product_brand",
+        "slug": "hoka"
+    },
+    "home_brand_6": {
+        "term": "product_brand",
+        "slug": "on"
+    },
+    "home_brand_7": {
+        "term": "product_brand",
+        "slug": "jordan"
+    },
+    "home_brand_8": {
+        "term": "product_brand",
+        "slug": "puma"
+    },
+    "home_brand_9": {
+        "term": "product_brand",
+        "slug": "brooks"
+    },
+    "home_brands_eyebrow": "The labels",
+    "home_brands_link_label": "All brands",
+    "home_brands_link_url": "{home}/brands/",
+    "home_brands_title": "Shop by brand",
+    "home_hero_btn1_label": "Shop new arrivals",
+    "home_hero_btn1_url": "{shop}?orderby=date",
+    "home_hero_btn2_label": "Shop by brand",
+    "home_hero_btn2_url": "{home}/#shop-by-brand",
+    "home_hero_eyebrow": "New season drop",
+    "home_hero_focal": "center center",
+    "home_hero_image": {
+        "image": "hero-desktop.jpg"
+    },
+    "home_hero_image_mobile": {
+        "image": "hero-mobile.jpg"
+    },
+    "home_hero_overlay": "35",
+    "home_hero_overlay_mobile": "70",
+    "home_hero_text": "Authentic sneakers, apparel and accessories from the brands that run the street. Shipped free across the UK.",
+    "home_hero_title": "Step into the drip.",
+    "home_new_eyebrow": "Just landed",
+    "home_new_link_label": "View all",
+    "home_new_link_url": "{shop}?orderby=date",
+    "home_new_title": "New arrivals",
+    "home_split_btn_label": "Shop the drop",
+    "home_split_btn_url": "{shop}",
+    "home_split_eyebrow": "{brand} is not just a shoe",
+    "home_split_focal": "top center",
+    "home_split_image": {
+        "image": "split-desktop.jpg"
+    },
+    "home_split_image_mobile": {
+        "image": "split-mobile.jpg"
+    },
+    "home_split_text": "Designed for the streets, engineered for the bold. Every piece we stock blends clean design with undeniable presence — checked, authenticated and ready to wear. <strong>Street-luxury lives here.</strong>",
+    "home_split_title": "It's a mindset.",
+    "home_trending_1_cat": {
+        "term": "product_cat",
+        "slug": "sneakers"
+    },
+    "home_trending_1_label": "Sneakers",
+    "home_trending_btn_label": "Shop trending",
+    "home_trending_eyebrow": "Most wanted right now",
+    "home_trending_title": "Trending styles",
+    "home_trust_1_icon": "truck",
+    "home_trust_1_text": "On every order, tracked to your door.",
+    "home_trust_1_title": "Free UK shipping",
+    "home_trust_2_icon": "lock",
+    "home_trust_2_text": "Encrypted payments with all major cards.",
+    "home_trust_2_title": "Secure checkout",
+    "home_trust_3_icon": "return",
+    "home_trust_3_text": "Changed your mind? Send it back hassle-free.",
+    "home_trust_3_title": "Easy returns",
+    "home_trust_4_icon": "shield",
+    "home_trust_4_text": "Every item checked before it ships.",
+    "home_trust_4_title": "Authentic guaranteed",
+    "home_videos_eyebrow": "Real customers, real fits",
+    "home_videos_title": "Hear from our customers",
+    "newsletter_text": "<p>Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.</p>",
+    "newsletter_title": "Sign up and save",
+    "product_auth_badge": "100%",
+    "product_auth_link_label": "How we check",
+    "product_auth_text": "Verified by our team before shipping.",
+    "product_auth_title": "100% authentic",
+    "product_authenticity_text": "<p>Every item is checked by our team before it ships.</p>",
+    "product_authenticity_title": "Authenticity guarantee",
+    "product_qty_enable": "1",
+    "product_shipping_text": "<p>We offer FREE shipping across the UK. The team carefully packs each order on the same day and ships it straight to your door. You’ll receive a tracking number as soon as your order has been dispatched. Delivery typically takes 4 to 10 business days.</p><p>We stand by our quality and your satisfaction is our priority. If you're not completely happy with your purchase, let us know, and we’ll make it right!</p>",
+    "product_shipping_title": "Shipping & returns",
+    "related_enable": "1",
+    "sales_point_1_icon": "truck",
+    "sales_point_1_text": "Free UK shipping",
+    "sales_point_2_icon": "lock",
+    "sales_point_2_text": "Secure checkout",
+    "sales_point_3_text": "Easy 30-day returns",
+    "trust_badges_enable": "0"
+}

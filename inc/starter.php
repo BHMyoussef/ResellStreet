@@ -1,12 +1,14 @@
 <?php
 /**
- * Starter settings for a theme folder that has none yet (e.g. installed by WP Pusher under the repo name).
+ * Starter settings: a new install (or a renamed theme folder, e.g. installed by WP Pusher) gets the homepage and
+ * Customizer content of the reference site instead of an empty homepage.
  *
  * Customizer settings are stored per theme folder (option theme_mods_<folder>). Runs once per site (option
- * ci_starter_version), on theme activation or the next admin page load, and only fills settings that are missing,
- * from this theme's settings under another folder name in the same database (IDs still valid). No store content
- * is bundled: a new store fills in Customizer settings itself (CLAUDE.md → New store setup).
- * Brands without a logo get the bundled one (assets/starter/brands/<slug>.png: product brands, not the store's).
+ * ci_starter_version), on theme activation or the next admin page load, and only fills settings that are missing:
+ *   1. from another folder of this theme in the same database (IDs still valid), e.g. theme_mods_CustomImpulse-theme;
+ *   2. from assets/starter/settings.json (written by tools/starter-export.php): images are added to the media
+ *      library from assets/starter, brands/categories are matched by slug, {shop} / {home} become this site's URLs.
+ * Brands without a logo get the bundled one (assets/starter/brands/<slug>.png).
  *
  * @package CustomImpulse
  */
@@ -32,9 +34,22 @@ function ci_starter_import() {
 	$mods       = is_array( $mods ) ? $mods : array();
 	$before     = $mods;
 
-	// Same theme under another folder name.
+	// 1. Same theme under another folder name.
 	foreach ( ci_starter_other_mods( $stylesheet ) as $other ) {
 		$mods += $other;
+	}
+
+	// 2. Bundled starter settings.
+	$file    = get_theme_file_path( 'assets/starter/settings.json' );
+	$starter = is_readable( $file ) ? json_decode( (string) file_get_contents( $file ), true ) : null; // phpcs:ignore WordPress.WP.AlternativeFunctions
+	foreach ( is_array( $starter ) ? $starter : array() as $key => $value ) {
+		if ( array_key_exists( $key, $mods ) ) {
+			continue;
+		}
+		$value = ci_starter_value( $value );
+		if ( null !== $value ) {
+			$mods[ $key ] = $value;
+		}
 	}
 
 	if ( $mods !== $before ) {
@@ -69,9 +84,33 @@ function ci_starter_other_mods( $stylesheet ) {
 }
 
 /**
+ * Starter value → this site's value; null = can't be resolved here (setting left unset).
+ *
+ * @param mixed $value Value from settings.json.
+ * @return mixed
+ */
+function ci_starter_value( $value ) {
+	if ( is_array( $value ) && isset( $value['image'] ) ) {
+		return ci_starter_attachment( (string) $value['image'] ) ?: null;
+	}
+	if ( is_array( $value ) && isset( $value['term'], $value['slug'] ) ) {
+		$term = taxonomy_exists( $value['term'] ) ? get_term_by( 'slug', $value['slug'], $value['term'] ) : false;
+		return $term ? (string) $term->term_id : null;
+	}
+	if ( is_string( $value ) && false !== strpos( $value, '{' ) ) {
+		if ( false !== strpos( $value, '{home}/brands/' ) ) {
+			ci_starter_brands_page();
+		}
+		$shop = function_exists( 'wc_get_page_id' ) && wc_get_page_id( 'shop' ) > 0 ? get_permalink( wc_get_page_id( 'shop' ) ) : home_url( '/shop/' );
+		return str_replace( array( '{shop}', '{home}' ), array( $shop, untrailingslashit( home_url() ) ), $value );
+	}
+	return $value;
+}
+
+/**
  * Attachment ID of a bundled image, added to the media library once.
  *
- * @param string $name File in assets/starter (e.g. brands/nike.png).
+ * @param string $name File in assets/starter (or assets/starter/brands).
  * @param string $title Attachment title.
  * @return int 0 on failure.
  */
@@ -83,7 +122,11 @@ function ci_starter_attachment( $name, $title = '' ) {
 			'post_status' => 'inherit',
 			'numberposts' => 1,
 			'fields'      => 'ids',
-			'meta_query'  => array( array( 'key' => '_ci_starter', 'value' => $name ) ), // phpcs:ignore WordPress.DB.SlowDBQuery
+			'meta_query'  => array( // phpcs:ignore WordPress.DB.SlowDBQuery
+				'relation' => 'OR',
+				array( 'key' => '_ci_starter', 'value' => $name ),
+				array( 'key' => '_ci_seed', 'value' => 'home-v2/' . $name ), // Local site (tools/seed.sh).
+			),
 		)
 	);
 	if ( $existing ) {
@@ -105,6 +148,22 @@ function ci_starter_attachment( $name, $title = '' ) {
 	}
 	update_post_meta( $id, '_ci_starter', $name );
 	return (int) $id;
+}
+
+/** "Brands" page ([ci_brands]) for the homepage "All brands" link, if the site has none. */
+function ci_starter_brands_page() {
+	if ( get_page_by_path( 'brands' ) ) {
+		return;
+	}
+	wp_insert_post(
+		array(
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+			'post_title'   => 'Brands',
+			'post_name'    => 'brands',
+			'post_content' => '<!-- wp:shortcode -->[ci_brands]<!-- /wp:shortcode -->',
+		)
+	);
 }
 
 /** Bundled logos for existing brands that have none. */
