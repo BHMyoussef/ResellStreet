@@ -2,10 +2,13 @@
 //   node tools/measure.mjs [profile]     profiles: global (default), collection
 // Each profile maps a label to [live selector, local selector]. Add a profile per section.
 import { launch } from './lib/browser.mjs';
+import { referenceTarget, referenceLaunchArgs } from './lib/reference.mjs';
+
+const REF = referenceTarget();
 
 const PROFILES = {
   global: {
-    live: 'https://novarende.com/',
+    live: REF.base + REF.pages.home,
     local: 'http://resellstreet.local/',
     els: {
       header: ['.site-header', '.site-header'],
@@ -19,7 +22,7 @@ const PROFILES = {
     },
   },
   collection: {
-    live: 'https://novarende.com/collections/chaussures',
+    live: REF.base + REF.pages.collection,
     local: 'http://resellstreet.local/product-category/clothing/',
     els: {
       banner: ['.type-banner__text', '.collection-banner'],
@@ -37,7 +40,7 @@ const PROFILES = {
     extra: [['.grid-product', 'ul.products > li', 3]],
   },
   product: {
-    live: 'https://novarende.com/products/mens-casual-leather-sneakers-1',
+    live: REF.base + REF.pages.product,
     local: 'http://resellstreet.local/product/mens-casual-leather-sneakers-1/',
     els: {
       thumbs: ['.product__thumbs', '.flex-control-thumbs'],
@@ -56,7 +59,7 @@ const PROFILES = {
     },
   },
   home: {
-    live: 'https://novarende.com/',
+    live: REF.base + REF.pages.home,
     local: 'http://resellstreet.local/',
     els: {
       eyebrow: ['.hero__top-subtitle', '.hero__eyebrow'],
@@ -79,8 +82,7 @@ const name = process.argv[2] || 'global';
 const P = PROFILES[name];
 if (!P) throw new Error(`Unknown profile "${name}". Known: ${Object.keys(PROFILES).join(', ')}`);
 
-// LIVE_IP=23.227.38.65 pins novarende.com (the Shopify design reference) if local DNS fails for Chromium.
-const b = await launch(process.env.LIVE_IP ? { args: [`--host-resolver-rules=MAP novarende.com ${process.env.LIVE_IP}`] } : {});
+const b = await launch(referenceLaunchArgs(REF));
 for (const w of [1440, 390]) {
   for (const [site, idx] of [['live', 0], ['local', 1]]) {
     const p = await b.newPage({ viewport: { width: w, height: 900 } });

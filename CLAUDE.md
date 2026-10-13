@@ -1,8 +1,8 @@
 # CustomImpulse theme — project rules
 
 Custom classic WordPress theme for ResellStreet, a WooCommerce shoe & apparel store (UK market, GBP).
-Design reference: the Shopify store https://novarende.com/ (Impulse theme). Its look and feel is the model; its brand
-(Novarende) is not used anywhere in the theme or content: the store is ResellStreet.
+Design reference: a Shopify Impulse-style layout (captures and theme export in `reference/`, local only, never in the
+repo). Its look and feel is the model; the store and every piece of content is ResellStreet.
 Local site: http://resellstreet.local
 
 ## Architecture
@@ -28,7 +28,14 @@ Local site: http://resellstreet.local
   `ci_defaults()`): announcement messages, hero slides (image/heading/text/buttons), collection tiles,
   image-with-text block, footer contact info, newsletter text, payment icons, copyright.
 - Navigation via WP Menus (`primary`, `footer`). Real store content is seeded into the DB with
-  `tools/seed.sh` (WP-CLI), never written into theme files.
+  `tools/seed.sh` (WP-CLI), never written into templates.
+- Starter settings (user choice 2026-10-13, so a WP Pusher install isn't an empty homepage): `inc/starter.php` runs
+  once per site (option `ci_starter_version`; theme activation or next admin page) and only fills MISSING Customizer
+  settings: first from this theme's settings under another folder name in the same DB (theme mods are stored per
+  folder; WP Pusher names the folder after the repo), then from `assets/starter/settings.json` (images → media
+  library from `assets/starter/*.jpg`, brands/categories by slug, `{shop}`/`{home}` URLs) + brand logos
+  (`assets/starter/brands`) for brands without one + "Brands" page if missing. Regenerate the JSON after changing
+  the local Customizer: `tools/wp eval-file tools/starter-export.php` (bump `CI_STARTER_VERSION` to re-run on sites).
 - `tools/wp` = WP-CLI wrapper for the Local site (uses Local's PHP and MySQL socket).
 
 ## Commerce rules
@@ -104,7 +111,7 @@ Local site: http://resellstreet.local
 - Read `config/settings_data.json` for design tokens and `templates/*.json` for section order and content.
 - You may read `sections/`, `snippets/`, `assets/` to understand layout and behavior.
   NEVER copy Impulse Liquid, CSS or JS. All code is written from scratch.
-- `reference/screens/` holds Playwright captures of novarende.com (1440px and 390px) for visual comparison.
+- `reference/screens/` holds Playwright captures of the design reference (1440px and 390px) for visual comparison.
 
 ## Workflow
 - Build order: foundation → collection page → product page → AJAX cart drawer → homepage sections
@@ -211,7 +218,8 @@ Local site: http://resellstreet.local
   - Carousels: CSS scroll-snap; home.js only adds arrows (video reviews) and the trending tabs. No slider library.
   - brands.css loads on the front page and pages with [ci_brands]; collection.css (cards) also on the front page.
 - Homepage media for seeding lives in `reference/media/` (downloaded from the live store).
-- If Chromium can't resolve novarende.com, run Playwright tools with `LIVE_IP=23.227.38.65`.
+- The reference store's URL, pages and test variant live in `reference/target.json` (local only; read by
+  `tools/lib/reference.mjs` for `measure.mjs` and `screens.mjs ref`). `LIVE_IP=<ip>` pins its host if Chromium can't resolve it.
 - Cart/checkout/account (`inc/wc-pages.php`, `wc-pages.css/js`), hooks only:
   cart = Impulse layout, subtotal only (no shipping calc / coupon on cart), "Check out" button, auto-update steppers
   (clicks WC's hidden Update button → WC fires updated_cart_totals).
@@ -241,8 +249,8 @@ Local site: http://resellstreet.local
   on navy), background #FAFAFA (cards/fields: `--color-surface` white). Red only for sale prices / "Save X%".
   Never sand text on a light background (2.3:1). Muted text = `--color-text-muted` (#606676), not see-through navy.
   Headings Montserrat 800 uppercase 0.04em (self-hosted). Logo + favicon are bundled (assets/brand, regenerate with
-  tools/brand-logo.py / brand-favicon.py); an uploaded logo/site icon overrides them. novarende.com stays only as the
-  Shopify design reference (tools, reference captures).
+  tools/brand-logo.py / brand-favicon.py); an uploaded logo/site icon overrides them. The Shopify design reference is
+  only used by the comparison tools and the local reference captures.
 - Contact Us = WPForms form (Name, Email, Message, "Send", like the live store) created by `tools/contact-form.php`
   (seed.sh runs it; idempotent, form id in option `ci_contact_form_id`). WPForms styling = "Base styles only";
   the look is `assets/css/forms.css` (only on pages with a form) + theme `.btn` on the submit button.

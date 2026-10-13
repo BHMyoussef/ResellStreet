@@ -54,16 +54,12 @@ function ci_fx_images() {
 	if ( $ids && count( array_filter( $ids, $ok ) ) === count( $ids ) ) {
 		return $ids;
 	}
-	$urls = array(
-		'https://cdn.shopify.com/s/files/1/0895/0887/2517/files/SCR-20250106-swtw_enhanced.png?v=1736196639',
-		'https://cdn.shopify.com/s/files/1/0895/0887/2517/files/product_10105.jpg?v=1736196614',
-		'https://cdn.shopify.com/s/files/1/0895/0887/2517/files/product_10104.jpg?v=1736196614',
-		'https://cdn.shopify.com/s/files/1/0895/0887/2517/files/SCR-20250106-sxrz_enhanced.png?v=1736196934',
-		'https://cdn.shopify.com/s/files/1/0895/0887/2517/files/SCR-20250106-sxwf_enhanced.png?v=1736196967',
-	);
+	// Plain numbered placeholders bundled with the tests (tools/fixtures/test-sneaker-N.jpg), no downloads.
 	$ids = array();
-	foreach ( $urls as $url ) {
-		$id = media_sideload_image( $url, 0, 'Test sneaker', 'id' );
+	foreach ( glob( __DIR__ . '/fixtures/test-sneaker-*.jpg' ) as $file ) {
+		$tmp = wp_tempnam( basename( $file ) );
+		copy( $file, $tmp );
+		$id = media_handle_sideload( array( 'name' => basename( $file ), 'tmp_name' => $tmp ), 0, 'Test sneaker' );
 		if ( ! is_wp_error( $id ) ) {
 			$ids[] = $id;
 		} else {
@@ -110,6 +106,9 @@ function ci_fx_product( $sku, $name, $category_id, array $color, array $size, ar
 	}
 	$product->set_attributes( $attributes );
 	$product_id = $product->save();
+	if ( taxonomy_exists( 'product_brand' ) ) {
+		wp_set_object_terms( $product_id, 'nike', 'product_brand' ); // cards show a brand line (New arrivals check)
+	}
 
 	foreach ( $color[1] as $color_name => $color_term ) {
 		foreach ( $size[1] as $size_name => $size_term ) {
@@ -368,9 +367,10 @@ if ( ! wc_get_coupon_id_by_code( 'TEST10' ) ) {
 	$coupon->save();
 }
 
-// Customer account for the logged-in cart test (tools/pages-check.mjs).
+// Customer account for the logged-in cart test (tools/pages-check.mjs). Password = env CI_TEST_PASSWORD, else random:
+// the test sets its own password on this account before logging in, so none is stored anywhere.
 if ( ! get_user_by( 'login', 'ci-test-customer' ) ) {
-	wc_create_new_customer( 'ci-test-customer@example.com', 'ci-test-customer', 'ci-test-Passw0rd!' );
+	wc_create_new_customer( 'ci-test-customer@example.com', 'ci-test-customer', getenv( 'CI_TEST_PASSWORD' ) ?: wp_generate_password( 24 ) );
 }
 WP_CLI::success( 'Checkout fixtures: Cash on delivery enabled, coupon TEST10, customer ci-test-customer.' );
 

@@ -1,5 +1,7 @@
 // Cart page, checkout and account checks on resellstreet.local (needs tools/fixtures.php: products, COD, TEST10, customer).
 import { launch } from './lib/browser.mjs';
+import { execFileSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 
 const SITE = 'http://resellstreet.local';
 const PRODUCT = `${SITE}/product/test-sneaker-mens-casual-leather-sneakers/`;
@@ -121,8 +123,11 @@ const b = await launch();
   const p = await ctx.newPage();
   const errors = watch(p);
   await p.goto(`${SITE}/my-account/`, { waitUntil: 'networkidle' });
+  // Test customer password: env CI_TEST_PASSWORD, else a random one, set on the account first (nothing stored).
+  const pass = process.env.CI_TEST_PASSWORD || randomBytes(18).toString('base64url');
+  execFileSync(import.meta.dirname + '/wp', ['user', 'update', 'ci-test-customer', `--user_pass=${pass}`, '--skip-email'], { stdio: 'ignore' });
   await p.fill('#username', 'ci-test-customer');
-  await p.fill('#password', 'ci-test-Passw0rd!');
+  await p.fill('#password', pass);
   await p.click('.woocommerce-form-login__submit');
   // Same URL after login: wait for the account page itself (a load-state wait can resolve on the login page).
   await p.waitForSelector('.woocommerce-MyAccount-navigation', { timeout: 30000 }).catch(() => {});

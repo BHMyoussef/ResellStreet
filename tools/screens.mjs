@@ -1,8 +1,9 @@
 // Visual reference captures.
-//   node tools/screens.mjs ref    -> reference/screens   (design reference: the Shopify store novarende.com)
+//   node tools/screens.mjs ref    -> reference/screens   (Shopify design reference, see tools/lib/reference.mjs)
 //   node tools/screens.mjs local  -> screens-local       (resellstreet.local)
 //   optional 2nd arg: comma list of shot names to limit the run, e.g. "home,cart"
 import { launch } from './lib/browser.mjs';
+import { referenceTarget, referenceLaunchArgs } from './lib/reference.mjs';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,21 +13,17 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TARGETS = {
   ref: {
     out: 'reference/screens',
-    base: 'https://novarende.com',
+    get base() { return referenceTarget().base; },
     // Impulse's parallax backgrounds don't paint in stitched fullPage mode: grow the viewport instead.
     growViewport: true,
-    pages: {
-      home: '/',
-      collection: '/collections/chaussures',
-      product: '/products/mens-casual-leather-sneakers-1',
-    },
+    get pages() { return referenceTarget().pages; },
     addToCart: async (page) => {
-      await page.evaluate(() =>
+      await page.evaluate((id) =>
         fetch('/cart/add.js', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: 53918707679557, quantity: 1 }),
-        })
+          body: JSON.stringify({ id, quantity: 1 }),
+        }), referenceTarget().variantId
       );
     },
     openCart: '.js-drawer-open-cart',
@@ -83,8 +80,7 @@ async function trigger(page, action) {
   await page.locator(action).filter({ visible: true }).first().click();
 }
 
-// LIVE_IP=23.227.38.65 pins novarende.com if local DNS fails for Chromium.
-const browser = await launch(process.env.LIVE_IP ? { args: [`--host-resolver-rules=MAP novarende.com ${process.env.LIVE_IP}`] } : {});
+const browser = await launch(targetName === 'ref' ? referenceLaunchArgs(referenceTarget()) : {});
 
 for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
   const context = await browser.newContext({
