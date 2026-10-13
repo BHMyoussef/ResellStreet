@@ -1,9 +1,11 @@
 # CustomImpulse theme — project rules
 
 Custom classic WordPress theme for WooCommerce shoe & apparel stores (UK market, GBP): ResellStreet (first store,
-the local site) and ResellYard (second store, 2026-10-13). The theme is brand-neutral (user rule): store name, logo,
-favicon, colours, contact details, social links and all copy come from WordPress / the Customizer, never from theme
-files. Folder name, text domain `customimpulse` and `ci_` prefixes stay as they are (renaming would orphan the
+the local site) and ResellYard (second store, 2026-10-13). User rule: the stores share the same images and texts;
+ONLY the logo (+ footer logo, favicon), the store name and optionally the colours (default = current navy/sand) differ.
+So the theme ships ResellStreet's content as starter settings, and texts never contain the store name or email:
+they use `{brand}` (Site Title) / `{email}` (Site Identity → Support email), replaced by `ci_mod()`
+(`ci_placeholders()`). Folder name, text domain `customimpulse` and `ci_` prefixes stay as they are (renaming would orphan the
 stores' Customizer settings, which are stored per theme folder).
 Design reference: a Shopify Impulse-style layout (captures and theme export in `reference/`, local only, never in the
 repo). Its look and feel is the model.
@@ -34,10 +36,14 @@ Local site: http://resellstreet.local
 - Navigation via WP Menus (`primary`, `footer`). Real store content is seeded into the DB with
   `tools/seed.sh` (WP-CLI), never written into templates.
 - Starter settings (`inc/starter.php`): runs once per site (option `ci_starter_version`; theme activation or next
-  admin page) and only fills MISSING Customizer settings from this theme's settings under another folder name in the
-  same DB (theme mods are stored per folder; WP Pusher names the folder after the repo). Product brands without a
-  logo get the bundled one (`assets/starter/brands`, Nike/Adidas/…). No store content is bundled (brand-neutral,
-  2026-10-13: the ResellStreet homepage settings/images that used to ship here were removed).
+  admin page) and only fills MISSING Customizer settings: first from this theme's settings under another folder name
+  in the same DB (theme mods are stored per folder; WP Pusher names the folder after the repo), then from
+  `assets/starter/settings.json` (ResellStreet's texts with {brand}/{email}; images → media library from
+  `assets/starter/*.jpg`, brands/categories by slug, `{shop}`/`{home}` URLs) + product brand logos
+  (`assets/starter/brands`) for brands without one + "Brands" page if missing. Store-specific settings are never
+  exported: custom_logo, footer_logo, support_email, social_*, brand_* colours, menus.
+  After changing the local Customizer: `tools/wp eval-file tools/starter-export.php` (warns if a text still contains
+  the store name or an email; bump `CI_STARTER_VERSION` to re-run the import on existing sites).
 - `tools/wp` = WP-CLI wrapper for the Local site (uses Local's PHP and MySQL socket).
 
 ## Commerce rules
@@ -120,34 +126,23 @@ Local site: http://resellstreet.local
 - `reference/screens/` holds Playwright captures of the design reference (1440px and 390px) for visual comparison.
 
 ## New store setup (e.g. ResellYard)
-Everything brand-specific is a WordPress / Customizer setting. On a new store, after installing the theme (WP Pusher)
-and WooCommerce, fill in:
-1. **Settings → General**: Site Title (shown as text when there is no logo, in the copyright, emails and the contact
-   form's sender name), Tagline, Administration Email Address (contact form notifications).
-2. **Appearance → Customize → Site Identity**: Logo (header + checkout header; wide wordmark, ~10:1 looks like the
-   design), Logo width on desktop / mobile, Site Icon (favicon, square ≥ 512px).
-3. **Customize → CustomImpulse theme → Brand colours**: Primary, Accent, Page background (defaults = ResellStreet
-   navy / sand / #FAFAFA). Primary must be dark (white button text on it, ≥ 4.5:1); primary text on the accent ≥ 4.5:1.
-4. **… → Announcement bar**: messages (and links), seconds per message, on/off.
-5. **… → Footer**: Footer logo (light version for the dark footer) + height, newsletter title/text (or a provider
-   shortcode / action URL), contact column title + text (address, support email, hours; hidden while empty),
-   social links (Instagram, TikTok, Facebook, YouTube, X, Pinterest; each hidden while empty), payment icons,
-   copyright text (empty = "© year Site Title").
-6. **… → Collection page**: promo banner heading/text/link, tint (empty = primary colour), quick shop text.
-7. **… → Product page**: trust lines + icons, authenticity box (badge, title, text, link), Shipping & returns and
-   Authenticity accordions, size system label (e.g. UK), toggles.
-8. **… → Cart drawer**: note under the subtotal.
-9. **Customize → Homepage**: every section (hero images desktop/mobile + texts + buttons, new arrivals, image with
-   text, brands (12 slots, WooCommerce Brands with logos), banner, trending tabs (category per tab), video reviews
-   heading, trust row). A section without content is hidden.
-10. **Appearance → Menus**: a menu in "Primary" and one in "Footer".
-11. **Content**: Products → Brands (logos = brand thumbnails), product categories (+ size guide per category, "Group
-    colourways" box), Products → Video reviews, a "Brands" page with `[ci_brands]` (homepage "All brands" link),
-    Contact page with a WPForms form, policy pages.
-12. **WooCommerce**: Cart / Checkout pages with the classic shortcodes, Free shipping method minimum (cart drawer
-    "UK shipping: Free" line), Site visibility "Live", payments, emails (store name/colours are WooCommerce settings).
-13. **wp-config.php** (optional): Meta Pixel `NV_META_PIXEL_ID` / `NV_META_CAPI_TOKEN` (+ consent banner calling
-    `nvMeta.grant()`, or `NV_META_REQUIRE_CONSENT` false).
+Install the theme (WP Pusher) + WooCommerce, then open any admin page once: the starter import fills the homepage and
+every Customizer text/image with ResellStreet's content ({brand} and {email} show this store's name and email).
+Then set what differs per store:
+1. **Settings → General → Site Title** (the store name: shown in texts via {brand}, copyright, logo alt, emails,
+   contact form sender). Also the Administration Email Address.
+2. **Customize → Site Identity**: Logo (header + checkout; wide wordmark ~10:1), Site Icon (favicon, square ≥ 512px),
+   **Support email** ({email} in the contact column).
+3. **Customize → CustomImpulse theme → Footer → Footer logo** (light version for the dark footer) + social links.
+4. Optional: **CustomImpulse theme → Brand colours** (Primary / Accent / Page background; defaults = ResellStreet's
+   navy / sand / #FAFAFA). Primary must be dark (white button text ≥ 4.5:1); primary text on the accent ≥ 4.5:1.
+5. Content the import can't create: products and categories (incl. **Sneakers** for the Trending tab, size guide
+   on Shoes), Products → Brands (the 12 homepage slots match by slug), Products → Video reviews, Menus ("Primary",
+   "Footer"), Contact page (WPForms), policy pages.
+6. **WooCommerce**: classic Cart/Checkout shortcode pages, Free shipping minimum, Site visibility "Live", payments,
+   email sender name/address.
+7. Optional **wp-config.php**: Meta Pixel `NV_META_PIXEL_ID` / `NV_META_CAPI_TOKEN` (+ consent: a banner calling
+   `nvMeta.grant()`, or `NV_META_REQUIRE_CONSENT` false).
 Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is ResellStreet's local content).
 
 ## Workflow
