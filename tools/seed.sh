@@ -61,8 +61,9 @@ done
 "$WP" theme mod set newsletter_text "<p>Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.</p>"
 
 "$WP" theme mod set contact_title "contact informations"
-# Footer contact details: theme defaults are placeholders; enter ResellStreet's real details in Customizer →
-# Footer (not seeded, so re-running this script never overwrites them).
+# Footer contact details: entered in Customizer → Footer (not seeded, so re-running this script never overwrites
+# them). Write {brand} / {email} instead of the store name / email: the same text then works for every store.
+"$WP" theme mod set support_email "support@resellstreet.com"
 
 # Collection page promo banner (templates/collection.json → promo-grid "banner" block)
 "$WP" theme mod set banner_heading "Don’t Miss Out! 🔥"
@@ -178,7 +179,7 @@ mod home_new_link_url "$NEW_URL"
 mod home_split_image "$(media_id home-v2/split-desktop.jpg "It's a mindset")"
 mod home_split_image_mobile "$(media_id home-v2/split-mobile.jpg "It's a mindset (mobile)")"
 mod home_split_focal "top center"
-mod home_split_eyebrow "Resell Street is not just a shoe"
+mod home_split_eyebrow "{brand} is not just a shoe" # {brand} = Site Title (ci_placeholders())
 mod home_split_title "It's a mindset."
 mod home_split_text "Designed for the streets, engineered for the bold. Every piece we stock blends clean design with undeniable presence — checked, authenticated and ready to wear. <strong>Street-luxury lives here.</strong>"
 mod home_split_btn_label "Shop the drop"

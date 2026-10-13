@@ -140,14 +140,40 @@ function ci_defaults() {
 }
 
 /**
- * Theme mod with the theme default applied.
+ * Theme mod with the theme default applied. Texts can use the store placeholders (ci_placeholders()).
  *
  * @param string $key Setting key.
  * @return mixed
  */
 function ci_mod( $key ) {
 	$defaults = ci_defaults();
-	return get_theme_mod( $key, $defaults[ $key ] ?? '' );
+	$value    = get_theme_mod( $key, $defaults[ $key ] ?? '' );
+	if ( is_string( $value ) && false !== strpos( $value, '{' ) ) {
+		$value = strtr( $value, ci_placeholders() );
+	}
+	return $value;
+}
+
+/**
+ * Store placeholders for Customizer texts, so the same texts work for every store:
+ * {brand} = Settings → General → Site Title, {email} = Site Identity → Support email
+ * (else WooCommerce's "From" address, else the admin email).
+ *
+ * @return array<string,string>
+ */
+function ci_placeholders() {
+	static $map = null;
+	if ( null === $map ) {
+		$email = (string) get_theme_mod( 'support_email', '' );
+		if ( '' === $email ) {
+			$email = (string) get_option( 'woocommerce_email_from_address', '' ) ?: (string) get_option( 'admin_email' );
+		}
+		$map = array(
+			'{brand}' => get_bloginfo( 'name' ),
+			'{email}' => $email,
+		);
+	}
+	return $map;
 }
 
 function ci_sanitize_checkbox( $value ) {
@@ -192,8 +218,9 @@ add_action(
 		$wp_customize->add_panel(
 			'ci_theme',
 			array(
-				'title'    => __( 'CustomImpulse theme', 'customimpulse' ),
-				'priority' => 30,
+				'title'       => __( 'CustomImpulse theme', 'customimpulse' ),
+				'priority'    => 30,
+				'description' => __( 'In any text you can write {brand} (the Site Title) and {email} (Site Identity → Support email): they are replaced on the site.', 'customimpulse' ),
 			)
 		);
 
@@ -201,6 +228,14 @@ add_action(
 		if ( $wp_customize->get_control( 'custom_logo' ) ) {
 			$wp_customize->get_control( 'custom_logo' )->description = __( 'Leave empty to show the site title as text. The Site Icon below is the favicon.', 'customimpulse' );
 		}
+		$add(
+			'support_email',
+			'title_tagline',
+			__( 'Support email', 'customimpulse' ),
+			'email',
+			'sanitize_email',
+			array( 'description' => __( 'Shown wherever a Customizer text contains {email}. Empty = WooCommerce "From" address.', 'customimpulse' ) )
+		);
 		$px = array( 'input_attrs' => array( 'min' => 40, 'max' => 400, 'step' => 1 ) );
 		$add( 'logo_width_desktop', 'title_tagline', __( 'Logo width on desktop (px)', 'customimpulse' ), 'number', 'absint', $px );
 		$add( 'logo_width_mobile', 'title_tagline', __( 'Logo width on mobile (px)', 'customimpulse' ), 'number', 'absint', $px );

@@ -199,7 +199,7 @@ add_action(
 			array(
 				'title'       => __( 'Homepage', 'customimpulse' ),
 				'priority'    => 31,
-				'description' => __( 'Sections appear in this order on the front page. A section without content is hidden.', 'customimpulse' ),
+				'description' => __( 'Sections appear in this order on the front page. A section without content is hidden. Texts can use {brand} (Site Title) and {email} (Support email).', 'customimpulse' ),
 			)
 		);
 
