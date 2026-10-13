@@ -1,8 +1,12 @@
 # CustomImpulse theme — project rules
 
-Custom classic WordPress theme for ResellStreet, a WooCommerce shoe & apparel store (UK market, GBP).
+Custom classic WordPress theme for WooCommerce shoe & apparel stores (UK market, GBP): ResellStreet (first store,
+the local site) and ResellYard (second store, 2026-10-13). The theme is brand-neutral (user rule): store name, logo,
+favicon, colours, contact details, social links and all copy come from WordPress / the Customizer, never from theme
+files. Folder name, text domain `customimpulse` and `ci_` prefixes stay as they are (renaming would orphan the
+stores' Customizer settings, which are stored per theme folder).
 Design reference: a Shopify Impulse-style layout (captures and theme export in `reference/`, local only, never in the
-repo). Its look and feel is the model; the store and every piece of content is ResellStreet.
+repo). Its look and feel is the model.
 Local site: http://resellstreet.local
 
 ## Architecture
@@ -17,7 +21,7 @@ Local site: http://resellstreet.local
   (WooCommerce core may still load jQuery on its own pages. Our code must not depend on it.)
 - Fonts: same as the Shopify store when it is a Google Font, otherwise the closest Google equivalent.
   Always self-hosted as woff2 in `/assets/fonts`, never loaded from Google's CDN.
-  - Headings: Montserrat 800, uppercase, 0.04em tracking (ResellStreet brand; matches the logo)
+  - Headings: Montserrat 800, uppercase, 0.04em tracking (matches ResellStreet's logo)
   - Body: Outfit 300, bold 600 (same as live store; one variable woff2 file covers 300–600).
     NOTE: the export's settings_data.json says "Twentieth Century", but the live theme renders Outfit.
     The live store wins: match what customers see.
@@ -29,13 +33,11 @@ Local site: http://resellstreet.local
   image-with-text block, footer contact info, newsletter text, payment icons, copyright.
 - Navigation via WP Menus (`primary`, `footer`). Real store content is seeded into the DB with
   `tools/seed.sh` (WP-CLI), never written into templates.
-- Starter settings (user choice 2026-10-13, so a WP Pusher install isn't an empty homepage): `inc/starter.php` runs
-  once per site (option `ci_starter_version`; theme activation or next admin page) and only fills MISSING Customizer
-  settings: first from this theme's settings under another folder name in the same DB (theme mods are stored per
-  folder; WP Pusher names the folder after the repo), then from `assets/starter/settings.json` (images → media
-  library from `assets/starter/*.jpg`, brands/categories by slug, `{shop}`/`{home}` URLs) + brand logos
-  (`assets/starter/brands`) for brands without one + "Brands" page if missing. Regenerate the JSON after changing
-  the local Customizer: `tools/wp eval-file tools/starter-export.php` (bump `CI_STARTER_VERSION` to re-run on sites).
+- Starter settings (`inc/starter.php`): runs once per site (option `ci_starter_version`; theme activation or next
+  admin page) and only fills MISSING Customizer settings from this theme's settings under another folder name in the
+  same DB (theme mods are stored per folder; WP Pusher names the folder after the repo). Product brands without a
+  logo get the bundled one (`assets/starter/brands`, Nike/Adidas/…). No store content is bundled (brand-neutral,
+  2026-10-13: the ResellStreet homepage settings/images that used to ship here were removed).
 - `tools/wp` = WP-CLI wrapper for the Local site (uses Local's PHP and MySQL socket).
 
 ## Commerce rules
@@ -116,6 +118,37 @@ Local site: http://resellstreet.local
 - You may read `sections/`, `snippets/`, `assets/` to understand layout and behavior.
   NEVER copy Impulse Liquid, CSS or JS. All code is written from scratch.
 - `reference/screens/` holds Playwright captures of the design reference (1440px and 390px) for visual comparison.
+
+## New store setup (e.g. ResellYard)
+Everything brand-specific is a WordPress / Customizer setting. On a new store, after installing the theme (WP Pusher)
+and WooCommerce, fill in:
+1. **Settings → General**: Site Title (shown as text when there is no logo, in the copyright, emails and the contact
+   form's sender name), Tagline, Administration Email Address (contact form notifications).
+2. **Appearance → Customize → Site Identity**: Logo (header + checkout header; wide wordmark, ~10:1 looks like the
+   design), Logo width on desktop / mobile, Site Icon (favicon, square ≥ 512px).
+3. **Customize → CustomImpulse theme → Brand colours**: Primary, Accent, Page background (defaults = ResellStreet
+   navy / sand / #FAFAFA). Primary must be dark (white button text on it, ≥ 4.5:1); primary text on the accent ≥ 4.5:1.
+4. **… → Announcement bar**: messages (and links), seconds per message, on/off.
+5. **… → Footer**: Footer logo (light version for the dark footer) + height, newsletter title/text (or a provider
+   shortcode / action URL), contact column title + text (address, support email, hours; hidden while empty),
+   social links (Instagram, TikTok, Facebook, YouTube, X, Pinterest; each hidden while empty), payment icons,
+   copyright text (empty = "© year Site Title").
+6. **… → Collection page**: promo banner heading/text/link, tint (empty = primary colour), quick shop text.
+7. **… → Product page**: trust lines + icons, authenticity box (badge, title, text, link), Shipping & returns and
+   Authenticity accordions, size system label (e.g. UK), toggles.
+8. **… → Cart drawer**: note under the subtotal.
+9. **Customize → Homepage**: every section (hero images desktop/mobile + texts + buttons, new arrivals, image with
+   text, brands (12 slots, WooCommerce Brands with logos), banner, trending tabs (category per tab), video reviews
+   heading, trust row). A section without content is hidden.
+10. **Appearance → Menus**: a menu in "Primary" and one in "Footer".
+11. **Content**: Products → Brands (logos = brand thumbnails), product categories (+ size guide per category, "Group
+    colourways" box), Products → Video reviews, a "Brands" page with `[ci_brands]` (homepage "All brands" link),
+    Contact page with a WPForms form, policy pages.
+12. **WooCommerce**: Cart / Checkout pages with the classic shortcodes, Free shipping method minimum (cart drawer
+    "UK shipping: Free" line), Site visibility "Live", payments, emails (store name/colours are WooCommerce settings).
+13. **wp-config.php** (optional): Meta Pixel `NV_META_PIXEL_ID` / `NV_META_CAPI_TOKEN` (+ consent banner calling
+    `nvMeta.grant()`, or `NV_META_REQUIRE_CONSENT` false).
+Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is ResellStreet's local content).
 
 ## Workflow
 - Build order: foundation → collection page → product page → AJAX cart drawer → homepage sections
@@ -248,13 +281,17 @@ Local site: http://resellstreet.local
   Log out (Payment methods only if the customer has a saved card; Downloads dropped). Overview replaces the dashboard
   template; Orders = cards (own renderer, still fires `woocommerce_before/after_account_orders` and uses
   `wc_get_account_orders_actions`). Wording via `gettext_woocommerce` on account pages only.
-- Brand (rebrand 2026-10-11, user rules): ResellStreet. Navy #1C253B (text, buttons, header icons, footer bg),
-  sand #C1A584 (announcement bar with navy text, sale badges, cart dot, selected variation, button hover, footer links
-  on navy), background #FAFAFA (cards/fields: `--color-surface` white). Red only for sale prices / "Save X%".
-  Never sand text on a light background (2.3:1). Muted text = `--color-text-muted` (#606676), not see-through navy.
-  Headings Montserrat 800 uppercase 0.04em (self-hosted). Logo + favicon are bundled (assets/brand, regenerate with
-  tools/brand-logo.py / brand-favicon.py); an uploaded logo/site icon overrides them. The Shopify design reference is
-  only used by the comparison tools and the local reference captures.
+- Brand colours (user rules, ResellStreet defaults): primary navy #1C253B (text, buttons, header icons, footer bg),
+  accent sand #C1A584 (announcement bar with primary text, sale badges, cart dot, selected variation, button hover,
+  footer links on the footer), background #FAFAFA (cards/fields: `--color-surface` white). Red only for sale prices /
+  "Save X%". Never accent text on a light background (sand: 2.3:1). Muted text = `--color-text-muted` (primary mixed
+  70% with white), not see-through primary. Tokens `--brand-primary` / `--brand-accent` / `--brand-bg` in tokens.css;
+  Customizer → CustomImpulse theme → Brand colours overrides them (`ci_customizer_css()`, only values ≠ default).
+  Headings Montserrat 800 uppercase 0.04em (self-hosted).
+  Logo / footer logo / favicon: NOT bundled. Site Identity logo (header + checkout), Footer → Footer logo (light
+  version), Site Identity → Site Icon; empty = site title as text. ResellStreet's files: `reference/media/brand`
+  (local; regenerate with tools/brand-logo.py / brand-favicon.py), imported by seed.sh. The Shopify design reference
+  is only used by the comparison tools and the local reference captures.
 - Contact Us = WPForms form (Name, Email, Message, "Send", like the live store) created by `tools/contact-form.php`
   (seed.sh runs it; idempotent, form id in option `ci_contact_form_id`). WPForms styling = "Base styles only";
   the look is `assets/css/forms.css` (only on pages with a form) + theme `.btn` on the submit button.
