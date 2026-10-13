@@ -57,7 +57,7 @@ if ( function_exists( 'ci_is_minimal_checkout' ) && ci_is_minimal_checkout() ) {
 				?>
 			<?php endif; ?>
 
-			<?php if ( $ci_contact_title || $ci_contact_text ) : ?>
+			<?php if ( $ci_contact_text ) : ?>
 				<?php
 				get_template_part(
 					'template-parts/footer/collapsible',
@@ -77,6 +77,20 @@ if ( function_exists( 'ci_is_minimal_checkout' ) && ci_is_minimal_checkout() ) {
 				<?php echo ci_logo( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in ci_logo(). ?>
 			</a>
 		</div>
+
+		<?php $ci_social = ci_social_links(); ?>
+		<?php if ( $ci_social ) : ?>
+			<ul class="footer__social">
+				<?php foreach ( $ci_social as $ci_key => $ci_link ) : ?>
+					<li>
+						<a href="<?php echo esc_url( $ci_link['url'] ); ?>" target="_blank" rel="noopener">
+							<?php echo ci_social_icon( $ci_key ); // phpcs:ignore WordPress.Security.EscapeOutput -- static markup. ?>
+							<span class="visually-hidden"><?php echo esc_html( $ci_link['label'] ); ?></span>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		<?php endif; ?>
 
 		<div class="footer__bottom">
 			<?php get_template_part( 'template-parts/footer/payment-icons' ); ?>

@@ -77,13 +77,9 @@ function ci_defaults() {
 		'newsletter_shortcode'  => '',
 		'newsletter_action'     => '',
 		'newsletter_field'      => 'email',
-		// Placeholders until the owner enters ResellStreet's real details (Customizer → Footer).
+		// The contact column only shows once its text is filled in (Customizer → Footer).
 		'contact_title'         => __( 'Contact information', 'customimpulse' ),
-		'contact_text'          => '<p><strong>ResellStreet</strong></p>'
-			. '<p>[Business address — set in Customizer → Footer]</p>'
-			. '<p><strong>Email:</strong> [support email]</p>'
-			. '<p><strong>Customer service hours:</strong><br>[days and hours]</p>'
-			. '<p><strong>Shop hours:</strong><br>[days and hours]</p>',
+		'contact_text'          => '',
 		'footer_logo'           => 0, // empty = site title as text
 		'footer_logo_height'    => 24,
 		'payment_icons_enable'  => true,
@@ -324,6 +320,10 @@ add_action(
 			'absint',
 			array( 'input_attrs' => array( 'min' => 20, 'max' => 200 ) )
 		);
+		foreach ( ci_social_networks() as $key => $label ) {
+			/* translators: %s: social network name */
+			$add( "social_{$key}", 'ci_footer', sprintf( __( '%s link (optional)', 'customimpulse' ), $label ), 'url', 'esc_url_raw' );
+		}
 		$add( 'payment_icons_enable', 'ci_footer', __( 'Show payment icons', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 		foreach ( ci_payment_icon_choices() as $key => $label ) {
 			$add( "payment_{$key}", 'ci_footer', $label, 'checkbox', 'ci_sanitize_checkbox' );
