@@ -226,10 +226,12 @@ mod home_trust_2_icon lock;   mod home_trust_2_title "Secure checkout";      mod
 mod home_trust_3_icon return; mod home_trust_3_title "Easy returns";         mod home_trust_3_text "Changed your mind? Send it back hassle-free."
 mod home_trust_4_icon shield; mod home_trust_4_title "Authentic guaranteed"; mod home_trust_4_text "Every item checked before it ships."
 
-# ---------- Logo ----------
-# The ResellStreet logo ships with the theme (assets/brand, header + light footer version): no upload needed.
-# An old uploaded logo would override it, so clear it.
-"$WP" theme mod remove custom_logo >/dev/null 2>&1 || true
+# ---------- Logo, footer logo, site icon ----------
+# ResellStreet's brand files live in reference/media/brand (made by tools/brand-logo.py / brand-favicon.py);
+# the theme ships no logo. On a live site: upload them in Customizer → Site Identity / Footer.
+mod custom_logo "$(media_id brand/logo-720.webp 'ResellStreet logo')"
+mod footer_logo "$(media_id brand/logo-light-720.webp 'ResellStreet logo (light)')"
+"$WP" option update site_icon "$(media_id brand/site-icon-512.png 'ResellStreet icon')" >/dev/null
 
 # ---------- Colour swatches (product page): colour per product from its title, hex from its photo ----------
 # UK wording for the colour attribute label (slug pa_color unchanged).

@@ -47,9 +47,8 @@ function ci_icon( $name, $class = '' ) {
 }
 
 /**
- * Logo: the uploaded logo (Customizer → Site Identity; footer: Footer → Footer logo), else the bundled
- * ResellStreet logo from assets/brand (navy/sand; light version on the navy footer). Bundled files are 10:1
- * WebP at 240/480/720px (sharp at 3x up to 240 CSS px), made by tools/brand-logo.py from assets/brand/Logo.png.
+ * Logo: the uploaded logo (Customizer → Site Identity; footer: Footer → Footer logo, a light version for the
+ * dark footer), else the site title as text.
  *
  * @param string $context 'header' | 'footer'.
  */
@@ -73,21 +72,7 @@ function ci_logo( $context = 'header' ) {
 			return $img;
 		}
 	}
-
-	$file   = $footer ? 'logo-light' : 'logo';
-	$srcset = array();
-	foreach ( array( 240, 480, 720 ) as $w ) {
-		$srcset[] = esc_url( get_theme_file_uri( "assets/brand/{$file}-{$w}.webp" ) ) . " {$w}w";
-	}
-	return sprintf(
-		'<img src="%1$s" srcset="%2$s" sizes="%3$s" width="480" height="48" alt="%4$s" class="%5$s" loading="%6$s" decoding="async">',
-		esc_url( get_theme_file_uri( "assets/brand/{$file}-480.webp" ) ),
-		esc_attr( implode( ', ', $srcset ) ),
-		esc_attr( $sizes ),
-		esc_attr( $name ),
-		esc_attr( $attrs['class'] ),
-		esc_attr( $attrs['loading'] )
-	);
+	return sprintf( '<span class="%s">%s</span>', $footer ? 'footer__logo-text' : 'site-header__logo-text', esc_html( $name ) );
 }
 
 /**

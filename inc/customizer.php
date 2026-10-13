@@ -61,7 +61,7 @@ function ci_defaults() {
 
 	$defaults = array(
 		// Header.
-		// The ResellStreet wordmark is 10:1: 170px wide = 17px tall (mobile header height unchanged).
+		// A 10:1 wordmark at 170px wide = 17px tall (mobile header height unchanged).
 		'logo_width_desktop'    => 220,
 		'logo_width_mobile'     => 170,
 		// Announcement bar.
@@ -80,7 +80,7 @@ function ci_defaults() {
 			. '<p><strong>Email:</strong> [support email]</p>'
 			. '<p><strong>Customer service hours:</strong><br>[days and hours]</p>'
 			. '<p><strong>Shop hours:</strong><br>[days and hours]</p>',
-		'footer_logo'           => 0, // empty = bundled light logo (assets/brand/logo-light-*)
+		'footer_logo'           => 0, // empty = site title as text
 		'footer_logo_height'    => 24,
 		'payment_icons_enable'  => true,
 		'copyright_text'        => '',
@@ -197,9 +197,9 @@ add_action(
 			)
 		);
 
-		// Logo sizes sit with the core logo control. No logo uploaded = the bundled ResellStreet logo.
+		// Logo sizes sit with the core logo control. No logo uploaded = the site title as text.
 		if ( $wp_customize->get_control( 'custom_logo' ) ) {
-			$wp_customize->get_control( 'custom_logo' )->description = __( 'Leave empty to use the built-in ResellStreet logo (assets/brand).', 'customimpulse' );
+			$wp_customize->get_control( 'custom_logo' )->description = __( 'Leave empty to show the site title as text. The Site Icon below is the favicon.', 'customimpulse' );
 		}
 		$px = array( 'input_attrs' => array( 'min' => 40, 'max' => 400, 'step' => 1 ) );
 		$add( 'logo_width_desktop', 'title_tagline', __( 'Logo width on desktop (px)', 'customimpulse' ), 'number', 'absint', $px );
@@ -271,8 +271,8 @@ add_action(
 				$wp_customize,
 				'footer_logo',
 				array(
-					'label'       => __( 'Footer logo (light, for the navy footer)', 'customimpulse' ),
-					'description' => __( 'Leave empty to use the built-in light ResellStreet logo.', 'customimpulse' ),
+					'label'       => __( 'Footer logo (light version, for the dark footer)', 'customimpulse' ),
+					'description' => __( 'Leave empty to show the site title as text.', 'customimpulse' ),
 					'section'     => 'ci_footer',
 					'mime_type'   => 'image',
 				)

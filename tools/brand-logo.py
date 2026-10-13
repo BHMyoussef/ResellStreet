@@ -1,5 +1,5 @@
-# Clean ResellStreet logo variants from assets/brand/Logo.png (opaque white background, white halos).
-# Usage (needs pillow + numpy): python3 tools/brand-logo.py assets/brand/Logo.png assets/brand
+# Clean ResellStreet logo variants from reference/media/brand/Logo.png (opaque white background, white halos).
+# Usage (needs pillow + numpy): python3 tools/brand-logo.py reference/media/brand/Logo.png reference/media/brand
 # Writes logo-{240,480,720}.webp and logo-light-*.webp (+ 1200px PNGs: delete them, they aren't used).
 # Each pixel = alpha * brand colour + (1 - alpha) * white; solve alpha for navy and sand, keep the better fit,
 # re-emit pure brand colour + alpha. Footer variant: navy → white.

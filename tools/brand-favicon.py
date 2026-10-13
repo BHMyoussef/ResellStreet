@@ -1,6 +1,6 @@
 # "RS" monogram: sand Montserrat 800 letters on a navy square. Glyph outlines come from the theme's font file,
 # so the icon matches the headings/logo. Usage (needs fonttools + brotli):
-#   python3 tools/brand-favicon.py assets/fonts/montserrat-800-latin.woff2 assets/brand
+#   python3 tools/brand-favicon.py assets/fonts/montserrat-800-latin.woff2 reference/media/brand
 # Writes favicon.svg; the PNGs (favicon-32, apple-touch-icon 180, site-icon-512) are that SVG without the
 # rounded corners, rendered in Chromium.
 import sys
