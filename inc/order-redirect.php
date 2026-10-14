@@ -220,7 +220,8 @@ function rs_redirect_thankyou( $order_id ) {
 	?>
 	<p class="rs-order-redirect" role="status">
 		<?php esc_html_e( 'Redirecting you…', 'customimpulse' ); ?>
-		<a href="<?php echo esc_url( $url ); ?>"><?php esc_html_e( 'Click here if nothing happens.', 'customimpulse' ); ?></a>
+		<?php // target="_self": Rank Math's "open external links in a new tab" skips links that already have a target. ?>
+		<a href="<?php echo esc_url( $url ); ?>" target="_self"><?php esc_html_e( 'Click here if nothing happens.', 'customimpulse' ); ?></a>
 	</p>
 	<script>
 		setTimeout( function () { window.location.href = <?php echo wp_json_encode( $url ); ?>; }, <?php echo (int) $delay * 1000; ?> );
