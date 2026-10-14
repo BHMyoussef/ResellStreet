@@ -417,8 +417,9 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .ci-checkout-page--single .page-content { max-width: 720px; margin: 0 auto; padding: 30px 17px 60px; }
 .woocommerce-thankyou-order-received { margin-bottom: 20px; font-size: 21px; font-weight: 600; }
 .woocommerce-order-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 0 0 30px; list-style: none; }
-.woocommerce-order-overview li { padding: 12px 14px; border: 1px solid var(--checkout-border); border-radius: var(--checkout-radius); color: var(--checkout-muted); font-size: 13px; }
-.woocommerce-order-overview li strong { display: block; color: var(--color-text); font-size: 15px; }
+.woocommerce-order-overview li { min-width: 0; padding: 12px 14px; border: 1px solid var(--checkout-border); border-radius: var(--checkout-radius); color: var(--checkout-muted); font-size: 13px; }
+/* Long values (email) wrap inside their card instead of running into the next one. */
+.woocommerce-order-overview li strong { display: block; color: var(--color-text); font-size: 15px; overflow-wrap: anywhere; }
 .ci-checkout-page--single h2 { font-family: var(--checkout-font); font-size: 19px; font-weight: 600; text-transform: none; }
 .ci-checkout-page--single .shop_table { width: 100%; margin-bottom: 30px; border-collapse: collapse; }
 .ci-checkout-page--single .shop_table th, .ci-checkout-page--single .shop_table td { padding: 10px 0; border-bottom: 1px solid var(--checkout-border); text-align: left; }
