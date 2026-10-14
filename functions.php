@@ -28,7 +28,7 @@ if ( class_exists( 'WooCommerce' ) ) {
 	require_once get_theme_file_path( 'inc/account.php' );
 	require_once get_theme_file_path( 'inc/subscribers.php' );
 	require_once get_theme_file_path( 'inc/search.php' );
-	require_once get_theme_file_path( 'inc/order-redirect.php' );
+	require_once get_template_directory() . '/inc/order-redirect.php';
 }
 
 require_once get_stylesheet_directory() . '/inc/meta-tracking.php';

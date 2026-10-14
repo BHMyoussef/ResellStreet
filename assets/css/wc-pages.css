@@ -426,8 +426,8 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 .ci-checkout-page--single .shop_table td:last-child, .ci-checkout-page--single .shop_table tfoot td { text-align: right; }
 .woocommerce-order > p { margin-bottom: 24px; }
 /* "Redirect after order" notice (inc/order-redirect.php) */
-.woocommerce-order > .ci-order-redirect { margin: 30px auto 0; padding: 14px 16px; border: 1px solid var(--checkout-border); border-radius: var(--checkout-radius); background: var(--color-surface); color: var(--color-text); font-size: 14px; text-align: center; }
-.ci-order-redirect a { display: block; margin-top: 4px; color: var(--checkout-accent); text-decoration: underline; }
+.woocommerce-order > .rs-order-redirect { margin: 30px auto 0; padding: 14px 16px; border: 1px solid var(--checkout-border); border-radius: var(--checkout-radius); background: var(--color-surface); color: var(--color-text); font-size: 14px; text-align: center; }
+.rs-order-redirect a { display: block; margin-top: 4px; color: var(--checkout-accent); text-decoration: underline; }
 .wc-item-meta { margin: 4px 0 0; padding: 0; color: var(--checkout-muted); font-size: 13px; list-style: none; }
 .wc-item-meta li > *, .wc-item-meta p { display: inline; margin: 0; }
 .wc-item-meta strong { font-weight: 400; }

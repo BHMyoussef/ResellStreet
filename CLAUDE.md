@@ -298,6 +298,8 @@ Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is Rese
   (options `rs_redirect_enabled` / `rs_redirect_url` / `rs_redirect_delay` 0–30 s, user-named `rs_` prefix).
   `woocommerce_thankyou` priority 99 prints a notice + JS `setTimeout` redirect (never `wp_redirect`: the Meta Pixel
   Purchase event must fire first). Skipped for failed orders. Notice styled in wc-pages.css.
+  The URL is a template with {tags} (`rs_redirect_placeholder_list()`, filter `rs_redirect_placeholders`; values
+  rawurlencoded by `rs_redirect_build_url()`), so it is a text field sanitized without esc_url_raw (keeps the braces).
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
