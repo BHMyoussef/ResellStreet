@@ -294,6 +294,10 @@ Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is Rese
   (`inc/subscribers.php`; honeypot + min fill time, no nonce because pages are cached), global.js submits in place.
   Emails go to `{prefix}ci_subscribers`, no email per sign-up (Users → Subscribers: search, delete, CSV; privacy
   export/erase). A shortcode / external URL in Customizer → Footer replaces it.
+- Redirect after order (`inc/order-redirect.php`): WooCommerce → Settings → Advanced → "Redirect after order"
+  (options `rs_redirect_enabled` / `rs_redirect_url` / `rs_redirect_delay` 0–30 s, user-named `rs_` prefix).
+  `woocommerce_thankyou` priority 99 prints a notice + JS `setTimeout` redirect (never `wp_redirect`: the Meta Pixel
+  Purchase event must fire first). Skipped for failed orders. Notice styled in wc-pages.css.
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.
