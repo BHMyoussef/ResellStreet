@@ -298,8 +298,13 @@ Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is Rese
   (options `rs_redirect_enabled` / `rs_redirect_url` / `rs_redirect_delay` 0–30 s, user-named `rs_` prefix).
   `woocommerce_thankyou` priority 99 prints a notice + JS `setTimeout` redirect (never `wp_redirect`: the Meta Pixel
   Purchase event must fire first). Skipped for failed orders. Notice styled in wc-pages.css.
-  The URL is a template with {tags} (`rs_redirect_placeholder_list()`, filter `rs_redirect_placeholders`; values
-  rawurlencoded by `rs_redirect_build_url()`), so it is a text field sanitized without esc_url_raw (keeps the braces).
+  User choice (replaced the {tags} URL template): "Data to send" checkboxes (`rs_redirect_send_{field}`, personal
+  fields off by default) → one parameter `?o=<base64url JSON>.<signature>` (HMAC-SHA256 with `wp_salt('auth')`, 16 bytes;
+  no encryption, user choice). Page template `template-order-confirmation.php` ("Order confirmation (from link)") +
+  `template-parts/order/confirmation.php` = the order-received page rebuilt from that data only (same WC markup/classes,
+  minimal checkout header via `ci_is_minimal_checkout()`, wc-pages.css; pixel-identical to the real page at 390/1440).
+  Edited/missing/broken link → plain "Thank you" without details. Page: no-cache (+ LiteSpeed), noindex (WP + Rank Math).
+  Not shown on the copy: payment gateway instructions ("Pay with cash upon delivery."). Pixel on the copy: user's job.
 
 ### Local site state (not in git: recreate with `tools/seed.sh`)
 - Theme activated; WooCommerce "coming soon" mode turned OFF so Playwright sees the site.

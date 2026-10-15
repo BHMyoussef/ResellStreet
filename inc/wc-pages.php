@@ -13,10 +13,11 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Checkout pages use the minimal header/footer (like Shopify's hosted checkout).
+ * Checkout pages use the minimal header/footer (like Shopify's hosted checkout). So does the
+ * "Order confirmation (from link)" page (inc/order-redirect.php), a copy of the order-received page.
  */
 function ci_is_minimal_checkout() {
-	return function_exists( 'is_checkout' ) && is_checkout();
+	return ( function_exists( 'is_checkout' ) && is_checkout() ) || ( function_exists( 'rs_is_order_copy_page' ) && rs_is_order_copy_page() );
 }
 
 add_filter(
@@ -27,7 +28,7 @@ add_filter(
 		}
 		if ( ci_is_minimal_checkout() ) {
 			$classes[] = 'ci-checkout-page';
-			if ( is_wc_endpoint_url( 'order-received' ) || is_wc_endpoint_url( 'order-pay' ) ) {
+			if ( is_wc_endpoint_url( 'order-received' ) || is_wc_endpoint_url( 'order-pay' ) || ! is_checkout() ) {
 				$classes[] = 'ci-checkout-page--single';
 			}
 		}
@@ -50,6 +51,11 @@ add_action(
 		wp_dequeue_style( 'select2' );
 		// Only drives AJAX buttons on product cards, which this theme doesn't render.
 		wp_dequeue_script( 'wc-add-to-cart' );
+
+		// Order confirmation (from link): order-received styles only.
+		if ( ! is_checkout() && ci_is_minimal_checkout() ) {
+			ci_enqueue_style( 'wc-pages' );
+		}
 
 		// Account pages have their own account.css/js (inc/account.php).
 		if ( is_cart() || is_checkout() ) {
