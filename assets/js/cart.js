@@ -315,6 +315,11 @@
     });
 
     drawer.addEventListener('click', (e) => {
+      // Checkout: slide the drawer out while the checkout page loads (same-tab clicks only)
+      if (e.target.closest('.cart-drawer__checkout')) {
+        if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) window.CustomImpulse?.closeDrawer?.(drawer);
+        return;
+      }
       const remove = e.target.closest('[data-qty-remove]');
       if (remove) {
         setQuantity(remove.closest('[data-key]').dataset.key, 0, remove); // same path as "−" down to 0

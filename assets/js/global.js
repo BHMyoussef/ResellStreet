@@ -111,6 +111,11 @@
     });
   });
 
+  // Back button restores the page from the bfcache as it was left: never with a drawer open
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) document.querySelectorAll('dialog[data-drawer][open]').forEach((d) => closeDrawer(d, true));
+  });
+
   desktop.addEventListener('change', (e) => {
     if (e.matches) closeDrawer('menu', true);
   });
