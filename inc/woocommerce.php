@@ -113,6 +113,21 @@ add_action( 'woocommerce_after_shop_loop_item_title', 'ci_loop_price', 10 );
 add_action( 'woocommerce_after_shop_loop_item_title', 'ci_loop_meta_close', 100 );
 
 /**
+ * Card image class. Square photos fill the square frame (object-fit: cover, user choice); photos more than 10% off
+ * square get `--fit` (contain on white), otherwise cover cuts the toe/heel off wide side-view shoe shots.
+ */
+function ci_card_img_class( $attachment_id, $class = 'product-card__img' ) {
+	$meta = wp_get_attachment_metadata( $attachment_id );
+	if ( ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+		$ratio = $meta['width'] / $meta['height'];
+		if ( $ratio > 1.1 || $ratio < 1 / 1.1 ) {
+			$class .= ' product-card__img--fit';
+		}
+	}
+	return $class;
+}
+
+/**
  * Card image(s) + status tag. The first cards of the main catalog loop are above the fold on mobile:
  * load them eagerly and give the first one high fetch priority (LCP).
  */
@@ -138,8 +153,11 @@ function ci_loop_media() {
 	}
 
 	$image_id = $product->get_image_id();
-	if ( $image_id && ! get_post_meta( $image_id, '_wp_attachment_image_alt', true ) ) {
-		$img_args['alt'] = $product->get_name();
+	if ( $image_id ) {
+		$img_args['class'] = ci_card_img_class( $image_id );
+		if ( ! get_post_meta( $image_id, '_wp_attachment_image_alt', true ) ) {
+			$img_args['alt'] = $product->get_name();
+		}
 	}
 
 	echo '<div class="product-card__media">';
@@ -155,7 +173,7 @@ function ci_loop_media() {
 				'woocommerce_thumbnail',
 				false,
 				array(
-					'class'       => 'product-card__img product-card__img--hover',
+					'class'       => ci_card_img_class( $gallery[0], 'product-card__img product-card__img--hover' ),
 					'sizes'       => $img_args['sizes'],
 					'loading'     => 'lazy',
 					'alt'         => '',

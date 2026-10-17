@@ -174,7 +174,7 @@ Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is Rese
 - Product card is built on WC loop hooks in `inc/woocommerce.php`; `ci_price_html()` is shared with the product page.
 - Card images: square frame (homepage v2 design, user choice): WC thumbnail forced uncropped 600w in code
   (`woocommerce_get_image_size_thumbnail`, inc/setup.php) + `ci-card-sm` 360w uncropped for srcset; the card keeps
-  `object-fit: cover` (user choice 2026-10-17). Regenerate thumbnails after changing sizes.
+  `object-fit: cover` for square photos (user choice 2026-10-17); photos > 10% off square get `product-card__img--fit` (contain on white, `ci_card_img_class()`), so wide shots keep toe and heel. Regenerate thumbnails after changing sizes.
   Card shows the brand (`ci_product_brand()`, product_brand) above the title. Loop prop `ci_badge`: 'new' / 'none'.
 - Newsletter form only renders with a provider shortcode or action URL (Customizer → Footer). Provider not chosen yet.
 - Product page lives in `inc/product.php` (hooks only). Variation buttons: radios drive WC's hidden selects
