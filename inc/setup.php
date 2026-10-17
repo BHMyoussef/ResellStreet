@@ -45,8 +45,9 @@ add_action(
 		add_theme_support( 'wc-product-gallery-lightbox' );
 		add_theme_support( 'wc-product-gallery-slider' );
 
-		// Small square crop so product cards get a mobile-sized srcset candidate next to woocommerce_thumbnail (600×600).
-		add_image_size( 'ci-card-sm', 360, 360, true );
+		// Mobile-sized srcset candidate for product cards next to woocommerce_thumbnail (600w). Uncropped like it, so
+		// WordPress keeps both in the same srcset (same aspect ratio).
+		add_image_size( 'ci-card-sm', 360, 0, false );
 		// Video review posters (~220px cards, 56vw on phones): a step between medium (300) and medium_large (768).
 		add_image_size( 'ci-450w', 450, 0, false );
 
@@ -88,6 +89,19 @@ add_filter(
 
 /* Originals are capped at 2048px (plenty for product zoom; WordPress default is 2560). */
 add_filter( 'big_image_size_threshold', fn() => 2048 );
+
+/*
+ * Card thumbnails keep the photo's proportions (user rule: wide shoe shots must not lose toe/heel). Set in code so
+ * every store gets it, whatever WooCommerce → Product Images → Thumbnail cropping says. Cards fit it with contain.
+ */
+add_filter(
+	'woocommerce_get_image_size_thumbnail',
+	function ( $size ) {
+		$size['height'] = 0;
+		$size['crop']   = 0;
+		return $size;
+	}
+);
 
 /* Generated sizes (and the capped original) of JPEG/PNG uploads are saved as WebP. */
 add_filter(

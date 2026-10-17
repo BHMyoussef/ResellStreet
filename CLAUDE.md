@@ -172,7 +172,9 @@ Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is Rese
 - Body font is Outfit (live store), not Twentieth Century (export). Desktop/mobile sizes measured from live computed styles.
 - Drawers are native `<dialog data-drawer="name">`, opened by `[data-drawer-open="name"]`; API `window.CustomImpulse.openDrawer/closeDrawer`.
 - Product card is built on WC loop hooks in `inc/woocommerce.php`; `ci_price_html()` is shared with the product page.
-- Card images: square (homepage v2 design, user choice): WC thumbnail 1:1 (600×600) + `ci-card-sm` 360×360 for srcset.
+- Card images: square frame (homepage v2 design, user choice), photo never cropped (user rule 2026-10-17: wide shoe
+  shots lost toe/heel): WC thumbnail forced uncropped 600w in code (`woocommerce_get_image_size_thumbnail`, inc/setup.php)
+  + `ci-card-sm` 360w uncropped for srcset, `object-fit: contain` on white. Regenerate thumbnails after changing sizes.
   Card shows the brand (`ci_product_brand()`, product_brand) above the title. Loop prop `ci_badge`: 'new' / 'none'.
 - Newsletter form only renders with a provider shortcode or action URL (Customizer → Footer). Provider not chosen yet.
 - Product page lives in `inc/product.php` (hooks only). Variation buttons: radios drive WC's hidden selects
