@@ -234,7 +234,8 @@ add_filter(
  * Whether WooCommerce is printing the order details table (view order, order received). Not emails.
  */
 function ci_is_order_details_table() {
-	return doing_action( 'woocommerce_view_order' ) || doing_action( 'woocommerce_thankyou' );
+	// Track my order also runs woocommerce_view_order; it lists items without thumbnails (inc/wc-pages.php).
+	return ( doing_action( 'woocommerce_view_order' ) && ! ci_is_order_tracking_page() ) || doing_action( 'woocommerce_thankyou' );
 }
 
 /* Order details (view order + order received): product thumbnail with a quantity badge, like the checkout summary. */

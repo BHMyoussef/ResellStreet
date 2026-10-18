@@ -218,3 +218,69 @@ add_filter(
 	'woocommerce_checkout_cart_item_quantity',
 	fn( $html ) => '<span class="visually-hidden">' . wp_strip_all_tags( $html ) . '</span>'
 );
+
+/* ---------------------------------------------------------------------------
+ * Track my order ([woocommerce_order_tracking] page)
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Whether the current page holds WooCommerce's order tracking shortcode.
+ */
+function ci_is_order_tracking_page() {
+	return is_page() && has_shortcode( (string) get_post_field( 'post_content', get_queried_object_id() ), 'woocommerce_order_tracking' );
+}
+
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		if ( ci_is_order_tracking_page() ) {
+			ci_enqueue_style( 'track-order' );
+		}
+	},
+	110
+);
+
+/* Order number, status pill and date instead of "Order #1 was placed on … and is currently …" (yellow <mark>s). */
+add_filter(
+	'woocommerce_order_tracking_status',
+	function ( $text, $order ) {
+		if ( ! $order instanceof WC_Order || ! $order->get_date_created() ) {
+			return $text;
+		}
+		return sprintf(
+			'<span class="track-status"><span class="track-status__number">%1$s</span> %2$s <span class="track-status__date">%3$s</span></span>',
+			/* translators: %s: order number */
+			esc_html( sprintf( __( 'Order #%s', 'customimpulse' ), $order->get_order_number() ) ),
+			ci_order_status_pill( $order ),
+			/* translators: %s: order date */
+			esc_html( sprintf( __( 'Placed on %s', 'customimpulse' ), wc_format_datetime( $order->get_date_created() ) ) )
+		);
+	},
+	10,
+	2
+);
+
+add_filter(
+	'body_class',
+	function ( $classes ) {
+		if ( ci_is_order_tracking_page() ) {
+			$classes[] = 'track-order';
+		}
+		return $classes;
+	}
+);
+
+/* "Track another order" under the results (the shortcode prints them in place of the form). */
+add_action(
+	'woocommerce_view_order',
+	function () {
+		if ( ci_is_order_tracking_page() ) {
+			printf(
+				'<p class="track-order__again"><a class="text-link" href="%s">%s</a></p>',
+				esc_url( get_permalink() ),
+				esc_html__( 'Track another order', 'customimpulse' )
+			);
+		}
+	},
+	20
+);

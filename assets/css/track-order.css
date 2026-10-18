@@ -1,0 +1,90 @@
+/* Track my order ([woocommerce_order_tracking]): results as cards, like the account's view-order page.
+   Loaded only on that page (inc/wc-pages.php). Overrides the page's .rte table/heading styles. */
+
+.track-order .page-content > .woocommerce { max-width: 640px; margin-inline: auto; }
+.track-order .order-info { margin: 0 0 20px; }
+
+/* Form: notices are <ul>s, and .rte ul (more specific) drops their padding */
+.track-order .rte :is(.woocommerce-error, .woocommerce-message, .woocommerce-info) { margin: 0 0 20px; padding: 14px 18px; }
+.track-order .track_order { margin-bottom: 40px; }
+.track-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: var(--color-text-muted); }
+.track-status__number { color: var(--color-text); font-size: 18px; font-weight: var(--fw-bold); }
+
+/* Status pill (same as account.css) */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--status-neutral-bg);
+  color: var(--status-neutral);
+  font-size: 13px;
+  font-weight: var(--fw-bold);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.status-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.status-pill--success { background: var(--status-success-bg); color: var(--status-success); }
+.status-pill--progress { background: var(--status-progress-bg); color: var(--status-progress); }
+.status-pill--critical { background: var(--status-critical-bg); color: var(--status-critical); }
+
+/* Cards */
+.track-order .woocommerce-order-details,
+.track-order .woocommerce-customer-details .woocommerce-column,
+.track-order .woocommerce-customer-details:not(:has(.woocommerce-columns)) {
+  margin: 0 0 16px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--account-card-radius);
+  background: var(--color-surface);
+}
+.track-order .woocommerce-customer-details .woocommerce-columns { display: grid; gap: 16px; }
+.track-order :is(.woocommerce-order-details__title, .woocommerce-column__title, .woocommerce > h2) {
+  margin: 0 0 12px;
+  font-size: var(--fs-label);
+  letter-spacing: 0.12em;
+}
+
+/* Order updates (customer notes): a timeline above the cards */
+.track-order .notes { margin: 0 0 20px; padding: 0; list-style: none; }
+.track-order .note { padding: 2px 0 2px 14px; border-left: 3px solid var(--color-accent); }
+.track-order .note + .note { margin-top: 12px; }
+.track-order .note .meta { margin: 0 0 4px; color: var(--color-text-muted); font-size: var(--fs-small); }
+.track-order .note .description p { margin: 0; }
+
+/* Items table */
+.track-order .woocommerce-table--order-details { margin: 0; font-size: var(--fs-base); }
+.track-order .woocommerce-table--order-details thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.track-order .woocommerce-table--order-details :is(th, td) { padding: 10px 0; border: 0; font-weight: var(--fw-body); text-align: left; vertical-align: top; }
+.track-order .woocommerce-table--order-details :is(td, th):last-child:not(:first-child) { padding-left: 12px; text-align: right; white-space: nowrap; }
+.track-order .woocommerce-table--order-details tbody tr + tr td { border-top: 1px solid var(--color-border); }
+.track-order .woocommerce-table--order-details tbody tr:first-child td { padding-top: 0; }
+.track-order .product-name a { font-weight: var(--fw-medium); text-decoration: none; }
+.track-order .product-name a:hover { text-decoration: underline; }
+.track-order .product-quantity { margin-left: 4px; color: var(--color-text-muted); font-weight: var(--fw-body); white-space: nowrap; }
+.track-order .wc-item-meta { margin: 4px 0 0; padding: 0; list-style: none; color: var(--color-text-muted); font-size: var(--fs-small); }
+.track-order .wc-item-meta :is(li, p) { display: inline; margin: 0; }
+.track-order .wc-item-meta .wc-item-meta-label { font-weight: var(--fw-body); }
+.track-order .woocommerce-table--order-details tfoot :is(th, td) { padding-block: 4px; color: var(--color-text-muted); }
+.track-order .woocommerce-table--order-details tfoot tr:first-child :is(th, td) { padding-top: 14px; border-top: 1px solid var(--color-border); }
+.track-order .woocommerce-table--order-details tfoot tr:last-child:has(.woocommerce-Price-amount) :is(th, td) {
+  padding-top: 10px;
+  color: var(--color-text);
+  font-size: 17px;
+  font-weight: var(--fw-bold);
+}
+
+/* Addresses */
+.track-order .woocommerce-customer-details address { margin: 0; padding: 0; border: 0; font-style: normal; line-height: 1.6; }
+.track-order .woocommerce-customer-details address p { margin: 4px 0 0; color: var(--color-text-muted); }
+
+.track-order__again { margin: 8px 0 0; text-align: center; }
+
+@media (min-width: 769px) {
+  .track-order .woocommerce-order-details,
+  .track-order .woocommerce-customer-details .woocommerce-column,
+  .track-order .woocommerce-customer-details:not(:has(.woocommerce-columns)) { padding: 24px; }
+  .track-order .woocommerce-customer-details .woocommerce-columns { grid-template-columns: 1fr 1fr; }
+  .track-order .woocommerce-customer-details .woocommerce-column { margin: 0; }
+}
