@@ -131,7 +131,7 @@ every Customizer text/image with ResellStreet's content ({brand} and {email} sho
 Then set what differs per store:
 1. **Settings → General → Site Title** (the store name: shown in texts via {brand}, copyright, logo alt, emails,
    contact form sender). Also the Administration Email Address.
-2. **Customize → Site Identity**: Logo (header + checkout; wide wordmark ~10:1), Site Icon (favicon, square ≥ 512px),
+2. **Customize → Site Identity**: Logo (header; wide wordmark ~10:1), Site Icon (favicon, square ≥ 512px),
    **Support email** ({email} in the contact column).
 3. **Customize → CustomImpulse theme → Footer → Footer logo** (light version for the dark footer) + social links.
 4. Optional: **CustomImpulse theme → Brand colours** (Primary / Accent / Page background; defaults = ResellStreet's
@@ -285,7 +285,7 @@ Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is Rese
   70% with white), not see-through primary. Tokens `--brand-primary` / `--brand-accent` / `--brand-bg` in tokens.css;
   Customizer → CustomImpulse theme → Brand colours overrides them (`ci_customizer_css()`, only values ≠ default).
   Headings Montserrat 800 uppercase 0.04em (self-hosted).
-  Logo / footer logo / favicon: NOT bundled. Site Identity logo (header + checkout), Footer → Footer logo (light
+  Logo / footer logo / favicon: NOT bundled. Site Identity logo (header; the checkout header has no logo, user choice 2026-10-20), Footer → Footer logo (light
   version), Site Identity → Site Icon; empty = site title as text. ResellStreet's files: `reference/media/brand`
   (local; regenerate with tools/brand-logo.py / brand-favicon.py), imported by seed.sh. The Shopify design reference
   is only used by the comparison tools and the local reference captures.

@@ -126,12 +126,11 @@ body.ci-checkout-page { background: var(--color-surface); } /* white form column
 .checkout-header__inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   max-width: 1020px;
   margin: 0 auto;
   padding: 18px 17px;
 }
-.checkout-header__logo img { width: var(--logo-w-mobile); }
 .checkout-header__cart { display: inline-flex; padding: 6px; color: var(--checkout-accent); }
 
 .checkout-footer { padding: 20px 17px 30px; border-top: 1px solid var(--checkout-border); }
@@ -361,7 +360,6 @@ form.checkout #order_review { padding: 20px 17px; border-bottom: 1px solid var(-
 
 @media (min-width: 769px) {
   .checkout-header__inner { padding: 20px 0px; }
-  .checkout-header__logo img { width: var(--logo-w-desktop); }
   .checkout-errors { margin-top: 30px; padding-inline: 20px; }
   /* Two columns; the sidebar colour runs to the right edge of the screen */
   body.ci-checkout-page:not(.ci-checkout-page--single) {
