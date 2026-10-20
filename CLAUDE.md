@@ -175,13 +175,15 @@ Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is Rese
 - Drawers are native `<dialog data-drawer="name">`, opened by `[data-drawer-open="name"]`; API `window.CustomImpulse.openDrawer/closeDrawer`.
 - Main menu v2 (`inc/menu.php`, `CI_Nav_Walker`, header.css, global.js): the WP menu drives everything. A top-level item
   with CSS class `mega` = full-width panel (children = columns; brand logo when the item is a product_brand or a
-  product_cat with a brand's slug, `ci_menu_item_logo()`; grandchildren = links; promo tile from Customizer →
-  Main menu `menu_promo_*`, desktop only). Other parents = small dropdown. JS: hover opens, closes after 200ms,
+  product_cat with a brand's slug, `ci_menu_item_logo()`; grandchildren = links; "View all brands" button = the
+  mega item's URL; promo tile from Customizer → Main menu `menu_promo_*`, desktop only). Logos are trimmed to their
+  ink, so `ci_menu_logo_img()` sizes each one for equal visual area (height = base / √ratio, capped), inline style
+  (user: logos must look the same size). Grid 3 columns, 6 from 1280px. Other parents = small dropdown. JS: hover opens, closes after 200ms,
   focus opens, Esc closes, first tap opens on touch screens. Full nav from 1024px (5 items don't fit on one line
   below); 769–1023px keep the menu button + drawer. Drawer = root panel (search button → search overlay, menu,
   "Shop by brand" logo grid from the mega children, account, `ci_menu_shipping_note()`), every sub-menu moved by
   global.js into a flat panel sliding over it (back button + "View all" = parent URL unless "#"; Esc goes back one
-  level). Local menu built by `tools/main-menu.php` (seed.sh): brands with products by count, top 6 models each
+  level). Local menu built by `tools/main-menu.php` (seed.sh): top 6 brands by product count (user: not too many brands), top 6 models each
   (brand name dropped), New in = shop `?orderby=date`, Best sellers = `?orderby=popularity` (WC total_sales).
 - Product card is built on WC loop hooks in `inc/woocommerce.php`; `ci_price_html()` is shared with the product page.
 - Card images: square frame (homepage v2 design, user choice): WC thumbnail forced uncropped 600w in code

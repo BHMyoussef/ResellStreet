@@ -126,21 +126,21 @@ html:not(.js) .site-nav li:focus-within > .sub-menu,
   transition-delay: 0s;
 }
 
-/* Mega panel: full header width, one column per child (brand logo + its links), promo tile on the right */
+/* Mega panel: full header width, one column per child (brand logo + its links), "View all" button under them,
+   promo tile on the right. 3 columns, 6 from 1280px (the seeded menu has 6 brands). */
 .site-nav__list > .mega { position: static; }
 .site-nav .mega > .sub-menu {
   left: 0;
   right: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  grid-auto-flow: dense;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(240px, 300px);
   gap: 28px 30px;
   max-height: calc(100dvh - 160px);
   overflow-y: auto;
   padding: 32px max(var(--page-gutter), calc((100% - var(--page-width)) / 2 + var(--page-gutter))) 36px;
   border-top: 1px solid var(--color-border);
 }
-.site-nav .mega > .sub-menu > li:not(.mega-promo) > a {
+.site-nav .mega > .sub-menu > li:not(.mega-promo, .mega-all) > a {
   display: flex;
   align-items: center;
   min-height: 42px;
@@ -154,7 +154,9 @@ html:not(.js) .site-nav li:focus-within > .sub-menu,
 }
 .site-nav .mega > .sub-menu > li > a:hover { text-decoration: none; }
 .site-nav .mega > .sub-menu > li > a:hover .nav-brand__logo { opacity: 0.7; }
-.nav-brand__logo { width: auto; max-width: 110px; height: auto; max-height: 28px; object-fit: contain; transition: opacity 0.2s ease; }
+/* The logo's size is inline (ci_menu_logo_img(): same visual weight for every logo) */
+.nav-brand__mark { display: flex; align-items: center; height: 34px; }
+.nav-brand__logo { display: block; max-width: none; transition: opacity 0.2s ease; }
 .site-nav .has-logo .nav-brand__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .site-nav .mega .sub-menu .sub-menu {
   position: static;
@@ -169,7 +171,14 @@ html:not(.js) .site-nav li:focus-within > .sub-menu,
 }
 .site-nav .mega .sub-menu .sub-menu a { padding: 5px 0; white-space: normal; }
 
-.mega-promo { grid-column: span 2 / -1; grid-row: 1 / span 3; }
+.mega-all { grid-column: 1 / -2; }
+.site-nav .mega .mega-all__btn { display: inline-flex; padding: 14px 28px; font-size: var(--fs-label); letter-spacing: var(--ls-wider); text-transform: uppercase; }
+.site-nav .mega .mega-all__btn:hover { text-decoration: none; }
+.mega-promo { grid-column: -2 / -1; grid-row: 1 / span 3; }
+@media (min-width: 1280px) {
+  .site-nav .mega > .sub-menu { grid-template-columns: repeat(6, minmax(0, 1fr)) minmax(260px, 320px); }
+  .mega-promo { grid-row: 1 / span 2; }
+}
 .site-nav .mega .mega-promo__link {
   position: relative;
   display: flex;
@@ -290,7 +299,7 @@ html:not(.js) .mobile-nav .sub-menu { padding: 0 0 10px 15px; }
 .mobile-nav__next > .icon { flex: none; width: 16px; height: 16px; margin-left: auto; }
 /* Inside a panel: normal case, a bit smaller */
 .mobile-nav .sub-menu a, .mobile-nav .sub-menu .mobile-nav__next { font-size: var(--fs-base); letter-spacing: var(--ls-base); text-transform: none; }
-.mobile-nav .nav-brand__logo { flex: none; width: 64px; height: 22px; max-width: none; max-height: none; object-fit: contain; object-position: left center; }
+.mobile-nav .nav-brand__mark { flex: none; width: 64px; height: 24px; }
 .mobile-nav [aria-current="page"] { text-decoration: underline; text-underline-offset: 4px; }
 
 .mobile-nav__head {
@@ -328,7 +337,7 @@ html:not(.js) .mobile-nav .sub-menu { padding: 0 0 10px 15px; }
 .mobile-nav__brands { margin-top: 26px; }
 .mobile-nav__title { margin: 0 0 12px; font-size: var(--fs-label); font-weight: var(--fw-bold); letter-spacing: var(--ls-wider); text-transform: uppercase; }
 .mobile-nav__brand-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
-.mobile-nav__brand-grid a {
+.mobile-nav .mobile-nav__brand-grid a {
   display: grid;
   place-items: center;
   height: 60px;
@@ -337,8 +346,9 @@ html:not(.js) .mobile-nav .sub-menu { padding: 0 0 10px 15px; }
   background: var(--color-surface);
   transition: border-color 0.2s ease;
 }
-.mobile-nav__brand-grid a:hover { border-color: var(--color-drawer-text); }
-.mobile-nav__brand-grid img { width: auto; max-width: 100%; height: auto; max-height: 24px; object-fit: contain; }
+.mobile-nav .mobile-nav__brand-grid a:hover { border-color: var(--color-drawer-text); }
+.mobile-nav__brand-grid img { max-width: 100%; object-fit: contain; } /* size inline: ci_menu_logo_img() */
+.mobile-nav .mobile-nav__brands-all { display: inline-block; width: auto; margin-top: 12px; padding: 4px 0; font-size: var(--fs-small); letter-spacing: var(--ls-base); text-decoration: underline; text-transform: none; text-underline-offset: 3px; }
 
 .mobile-nav__footer { display: grid; gap: 12px; margin-top: 26px; }
 .mobile-nav__account, .mobile-nav__shipping { display: flex; align-items: center; gap: 10px; margin: 0; font-size: var(--fs-small); }

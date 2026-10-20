@@ -44,22 +44,12 @@ $ci_shipping = ci_menu_shipping_note();
 							<?php foreach ( $ci_brands as $ci_item ) : ?>
 								<li>
 									<a href="<?php echo esc_url( $ci_item->url ); ?>">
-										<?php
-										echo wp_get_attachment_image( // phpcs:ignore WordPress.Security.EscapeOutput
-											ci_menu_item_logo( $ci_item ),
-											'medium',
-											false,
-											array(
-												'alt'     => $ci_item->title,
-												'loading' => 'lazy',
-												'sizes'   => '90px',
-											)
-										);
-										?>
+										<?php echo ci_menu_logo_img( ci_menu_item_logo( $ci_item ), 30, 26, 72, $ci_item->title, '' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 									</a>
 								</li>
 							<?php endforeach; ?>
 						</ul>
+						<?php echo ci_menu_view_all( ci_menu_mega_item(), 'mobile-nav__brands-all' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 					</div>
 				<?php endif; ?>
 				<div class="mobile-nav__footer">

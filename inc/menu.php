@@ -32,26 +32,75 @@ function ci_menu_item_logo( $item ) {
 }
 
 /**
- * Children of the primary menu's mega item(s) (the brands), for the drawer's logo grid.
+ * Logo image with an optically even size: logos are trimmed to their ink, so a fixed box makes wide logos look big
+ * and compact ones small. Height = $base / sqrt(width/height) (same area for every logo), capped by $max_h / $max_w.
+ *
+ * @param int    $id    Attachment ID.
+ * @param int    $base  Height of a square logo (px).
+ * @param int    $max_h Max height (px).
+ * @param int    $max_w Max width (px).
+ * @param string $alt   Alt text.
+ * @param string $class Class.
+ */
+function ci_menu_logo_img( $id, $base, $max_h, $max_w, $alt = '', $class = 'nav-brand__logo' ) {
+	$meta  = wp_get_attachment_metadata( $id );
+	$ratio = ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ? $meta['width'] / $meta['height'] : 1;
+	$h     = min( $base / sqrt( $ratio ), $max_h, $max_w / $ratio );
+	return wp_get_attachment_image(
+		$id,
+		'medium',
+		false,
+		array(
+			'class'   => $class,
+			'alt'     => $alt,
+			'loading' => 'lazy',
+			'sizes'   => (int) ceil( $h * $ratio ) . 'px',
+			'style'   => sprintf( 'width:%.1fpx;height:%.1fpx', $h * $ratio, $h ),
+		)
+	);
+}
+
+/**
+ * The primary menu's first mega item (the Brands item), or null.
+ */
+function ci_menu_mega_item() {
+	$locations = get_nav_menu_locations();
+	$items     = empty( $locations['primary'] ) ? array() : wp_get_nav_menu_items( $locations['primary'] );
+	foreach ( (array) $items as $item ) {
+		if ( ! $item->menu_item_parent && in_array( 'mega', (array) $item->classes, true ) ) {
+			return $item;
+		}
+	}
+	return null;
+}
+
+/**
+ * Children of the primary menu's mega item (the brands), for the drawer's logo grid.
  *
  * @return WP_Post[]
  */
 function ci_menu_mega_children() {
-	$locations = get_nav_menu_locations();
-	if ( empty( $locations['primary'] ) ) {
+	$mega = ci_menu_mega_item();
+	if ( ! $mega ) {
 		return array();
 	}
-	$items = wp_get_nav_menu_items( $locations['primary'] );
-	if ( ! $items ) {
-		return array();
+	$items = wp_get_nav_menu_items( get_nav_menu_locations()['primary'] );
+	return array_values( array_filter( (array) $items, fn( $item ) => (int) $item->menu_item_parent === (int) $mega->ID ) );
+}
+
+/**
+ * "View all brands" link for a mega item ('' when it links nowhere).
+ *
+ * @param WP_Post $item  Mega menu item.
+ * @param string  $class Link class.
+ */
+function ci_menu_view_all( $item, $class ) {
+	if ( ! $item || '' === $item->url || '#' === $item->url ) {
+		return '';
 	}
-	$mega = array();
-	foreach ( $items as $item ) {
-		if ( ! $item->menu_item_parent && in_array( 'mega', (array) $item->classes, true ) ) {
-			$mega[] = (int) $item->ID;
-		}
-	}
-	return array_values( array_filter( $items, fn( $item ) => in_array( (int) $item->menu_item_parent, $mega, true ) ) );
+	/* translators: %s: menu item title, lowercased (e.g. "brands") */
+	$label = sprintf( __( 'View all %s', 'customimpulse' ), mb_strtolower( wp_strip_all_tags( $item->title ) ) );
+	return '<a class="' . esc_attr( $class ) . '" href="' . esc_url( $item->url ) . '">' . esc_html( $label ) . '</a>';
 }
 
 /**
@@ -64,7 +113,14 @@ class CI_Nav_Walker extends Walker_Nav_Menu {
 	 *
 	 * @var string
 	 */
-	private $context;
+	public $context;
+
+	/**
+	 * The current top-level item when it has the `mega` class, else null.
+	 *
+	 * @var WP_Post|null
+	 */
+	private $mega_item = null;
 
 	/**
 	 * The current top-level item has the `mega` class.
@@ -82,20 +138,23 @@ class CI_Nav_Walker extends Walker_Nav_Menu {
 
 	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
 		if ( 0 === $depth ) {
-			$this->in_mega = in_array( 'mega', (array) $data_object->classes, true );
+			$this->in_mega   = in_array( 'mega', (array) $data_object->classes, true );
+			$this->mega_item = $this->in_mega ? $data_object : null;
 		}
 		parent::start_el( $output, $data_object, $depth, $args, $current_object_id );
 	}
 
 	public function end_lvl( &$output, $depth = 0, $args = null ) {
 		if ( 0 === $depth && $this->in_mega && 'desktop' === $this->context ) {
+			$all     = ci_menu_view_all( $this->mega_item, 'btn mega-all__btn' );
+			$output .= $all ? '<li class="mega-all">' . $all . '</li>' : '';
 			$output .= ci_menu_promo();
 		}
 		parent::end_lvl( $output, $depth, $args );
 	}
 }
 
-/* Mega columns: logo + name (the name is visually hidden on desktop when there is a logo). */
+/* Mega columns: logo (in a fixed-width slot, sized by ci_menu_logo_img()) + name (visually hidden on desktop). */
 add_filter(
 	'nav_menu_item_title',
 	function ( $title, $item, $args, $depth ) {
@@ -106,18 +165,10 @@ add_filter(
 		if ( ! $logo ) {
 			return $title;
 		}
-		$img = wp_get_attachment_image(
-			$logo,
-			'medium',
-			false,
-			array(
-				'class'   => 'nav-brand__logo',
-				'alt'     => '',
-				'loading' => 'lazy',
-				'sizes'   => '110px',
-			)
-		);
-		return $img . '<span class="nav-brand__name">' . $title . '</span>';
+		$img = 'desktop' === $args->walker->context
+			? ci_menu_logo_img( $logo, 42, 32, 112 )
+			: ci_menu_logo_img( $logo, 26, 22, 60 );
+		return '<span class="nav-brand__mark">' . $img . '</span><span class="nav-brand__name">' . $title . '</span>';
 	},
 	10,
 	4

@@ -3,8 +3,8 @@
  * (Re)builds the "Main menu" from the catalogue (run by seed.sh; idempotent):
  *   tools/wp eval-file tools/main-menu.php
  *
- * Shop all · New in · Brands (mega: brands with products, most products first, each with its top 6 models =
- * child categories of the category with the brand's slug, brand name dropped) · Best sellers · Help (Track my
+ * Shop all · New in · Brands (mega: the 6 brands with the most products, each with its top 6 models = child
+ * categories of the category with the brand's slug, brand name dropped; "View all brands" = the Brands page) · Best sellers · Help (Track my
  * order, Contact Us, About Us). Edit freely in Appearance → Menus afterwards; re-running replaces the menu.
  *
  * @package CustomImpulse
@@ -83,6 +83,7 @@ $ci_brands = get_terms(
 		'hide_empty' => true,
 		'orderby'    => 'count',
 		'order'      => 'DESC',
+		'number'     => 6,
 	)
 );
 foreach ( is_array( $ci_brands ) ? $ci_brands : array() as $ci_brand ) {
