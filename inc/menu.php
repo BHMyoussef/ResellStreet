@@ -154,6 +154,33 @@ class CI_Nav_Walker extends Walker_Nav_Menu {
 	}
 }
 
+/*
+ * One current item: on shop/?orderby=date WordPress marks both "New in" (exact URL) and "Shop all" (same page).
+ * A current custom link with a query string wins; the other items lose the current state.
+ */
+add_filter(
+	'wp_nav_menu_objects',
+	function ( $items ) {
+		$exact = null;
+		foreach ( $items as $item ) {
+			if ( 'custom' === $item->type && $item->current && false !== strpos( $item->url, '?' ) ) {
+				$exact = $item;
+				break;
+			}
+		}
+		if ( ! $exact ) {
+			return $items;
+		}
+		foreach ( $items as $item ) {
+			if ( $item !== $exact && $item->current ) {
+				$item->current = false;
+				$item->classes = array_diff( (array) $item->classes, array( 'current-menu-item', 'current_page_item' ) );
+			}
+		}
+		return $items;
+	}
+);
+
 /* Mega columns: logo (in a fixed-width slot, sized by ci_menu_logo_img()) + name (visually hidden on desktop). */
 add_filter(
 	'nav_menu_item_title',
