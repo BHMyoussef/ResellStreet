@@ -168,7 +168,7 @@ Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is Rese
 | 9 | Product import from the Shopify CSV in `/reference` (converter done: brand, collection, decimal prices; 215 products imported) | ✅ done |
 | 10 | Homepage v2 (`reference/homepage-v2`), branch `homepage-v2`: hero, new arrivals, image with text, brands, banner, trending, video reviews, trust row | ✅ built, awaiting approval to merge |
 | 11 | Product page v2 (`reference/product-v2`), branch `product-v2` (from homepage-v2): gallery, info column, accordions, reviews, video reviews, you may also like, recently viewed, sticky ATC, cart drawer | ✅ built, awaiting approval |
-| 12 | Main menu v2, branch `menu-v2`: shopping menu, desktop mega panel (brand logos + models + promo), mobile drill-down drawer (search, brand logo grid, account, free shipping note) | ✅ built, awaiting approval |
+| 12 | Main menu v2, branch `menu-v2`: shopping menu, desktop mega panel (brand logos + models + promo), mobile drill-down drawer (search, brand logo grid, account, free shipping note) | ✅ done (merged to main 2026-10-20) |
 
 ### Decisions made so far
 - Body font is Outfit (live store), not Twentieth Century (export). Desktop/mobile sizes measured from live computed styles.
