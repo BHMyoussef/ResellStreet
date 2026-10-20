@@ -116,29 +116,141 @@
     if (e.persisted) document.querySelectorAll('dialog[data-drawer][open]').forEach((d) => closeDrawer(d, true));
   });
 
-  desktop.addEventListener('change', (e) => {
-    if (e.matches) closeDrawer('menu', true);
+  window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
+    if (e.matches) closeDrawer('menu', true); // full menu shown from 1024px (header.css)
   });
 
-  /* ---------- Mobile menu: submenu accordions ---------- */
+  /* ---------- Mobile menu: drill-down panels ---------- */
+  // Every sub-menu is moved out to a flat panel next to the root panel and slides in over it; its parent link
+  // becomes a button, and its URL a "View all" link at the top of the panel (none for "#" items).
 
-  document.querySelectorAll('.mobile-nav .menu-item-has-children').forEach((item, i) => {
+  const chevron = (d) =>
+    `<svg class="icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="${d}"/></svg>`;
+  const mobileNav = document.querySelector('.mobile-nav');
+  if (mobileNav) {
+    const rootPanel = mobileNav.querySelector('.mobile-nav__root');
+    const stack = [rootPanel];
+    const panels = [rootPanel];
+    const sync = () => {
+      const current = stack[stack.length - 1];
+      panels.forEach((panel) => {
+        panel.classList.toggle('is-active', stack.includes(panel));
+        panel.inert = panel !== current;
+      });
+    };
+    const show = (panel) => {
+      panel.scrollTop = 0;
+      stack.push(panel);
+      sync();
+      panel.querySelector('.mobile-nav__back').focus({ preventScroll: true });
+    };
+    const back = () => {
+      const panel = stack.pop();
+      sync();
+      mobileNav.querySelector(`[aria-controls="${panel.id}"]`)?.focus({ preventScroll: true });
+    };
+
+    mobileNav.querySelectorAll('.menu-item-has-children').forEach((item, i) => {
+      const link = item.querySelector(':scope > a');
+      const sub = item.querySelector(':scope > .sub-menu');
+      if (!link || !sub) return;
+      sub.id = sub.id || `mobile-sub-${i}`;
+      const title = link.textContent.trim();
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'mobile-nav__next';
+      btn.setAttribute('aria-controls', sub.id);
+      btn.innerHTML = `${link.innerHTML}${chevron('M24 12l20 20-20 20')}`;
+      btn.addEventListener('click', () => show(sub));
+
+      const head = document.createElement('li');
+      head.className = 'mobile-nav__head';
+      head.innerHTML = `<button type="button" class="mobile-nav__back">${chevron('M40 12L20 32l20 20')}<span></span></button>`;
+      head.querySelector('span').textContent = title;
+      head.querySelector('button').setAttribute('aria-label', `${mobileNav.dataset.labelBack}: ${title}`);
+      head.querySelector('button').addEventListener('click', back);
+      const href = link.getAttribute('href');
+      if (href && href !== '#') {
+        const all = document.createElement('a');
+        all.className = 'mobile-nav__all';
+        all.href = href;
+        all.textContent = mobileNav.dataset.labelAll;
+        head.append(all);
+      }
+      sub.prepend(head);
+      sub.classList.add('mobile-nav__panel');
+      sub.setAttribute('aria-label', title);
+      link.replaceWith(btn);
+      panels.push(sub);
+    });
+    // Moved after the loop: nested sub-menus are found through their (still nested) parents first.
+    panels.slice(1).forEach((panel) => mobileNav.append(panel));
+    sync();
+
+    mobileNav.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && stack.length > 1) {
+        e.stopPropagation();
+        e.preventDefault(); // keeps the drawer open: Esc goes back one level first
+        back();
+      }
+    });
+    // Search opens over the page: close the drawer first.
+    mobileNav.querySelector('[data-search-open]')?.addEventListener('click', () => closeDrawer('menu', true));
+    // Next time the drawer opens on the main level.
+    document.addEventListener('drawer:close', (e) => {
+      if (e.target.dataset.drawer !== 'menu') return;
+      stack.length = 1;
+      sync();
+    });
+  }
+
+  /* ---------- Desktop menu: dropdowns + mega panel ---------- */
+  // Opens on hover (closes after a short delay, so brushing past doesn't flicker), keyboard focus and tap
+  // (first tap on a touch screen opens, second follows the link). Esc closes and returns focus.
+
+  const navItems = [...document.querySelectorAll('.site-nav__list > .menu-item-has-children')];
+  let lastPointer = 'mouse';
+  const setNavOpen = (item, open) => {
+    item.classList.toggle('is-open', open);
+    if (!open) delete item.dataset.tapped;
+    item.querySelector(':scope > a').setAttribute('aria-expanded', String(open));
+  };
+  navItems.forEach((item) => {
     const link = item.querySelector(':scope > a');
-    const sub = item.querySelector(':scope > .sub-menu');
-    if (!link || !sub) return;
-    sub.id = sub.id || `mobile-sub-${i}`;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'mobile-nav__toggle';
-    btn.setAttribute('aria-expanded', 'false');
-    btn.setAttribute('aria-controls', sub.id);
-    btn.setAttribute('aria-label', link.textContent.trim());
-    btn.innerHTML =
-      '<svg class="icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M12 24l20 20 20-20"/></svg>';
-    link.after(btn);
-    btn.addEventListener('click', () => {
-      const open = item.classList.toggle('is-open');
-      btn.setAttribute('aria-expanded', String(open));
+    let timer = null;
+    link.setAttribute('aria-expanded', 'false');
+    const open = () => {
+      clearTimeout(timer);
+      navItems.forEach((other) => other !== item && setNavOpen(other, false));
+      setNavOpen(item, true);
+    };
+    item.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && open());
+    item.addEventListener('pointerleave', (e) => {
+      if (e.pointerType === 'mouse') timer = setTimeout(() => setNavOpen(item, false), 200);
+    });
+    item.addEventListener('focusin', open);
+    item.addEventListener('focusout', (e) => {
+      if (!item.contains(e.relatedTarget)) setNavOpen(item, false);
+    });
+    item.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !item.classList.contains('is-open')) return;
+      setNavOpen(item, false);
+      link.focus();
+    });
+    link.addEventListener('pointerdown', (e) => (lastPointer = e.pointerType));
+    link.addEventListener('keydown', () => (lastPointer = 'mouse')); // Enter follows the link
+    link.addEventListener('click', (e) => {
+      if (lastPointer === 'mouse' || item.dataset.tapped) return;
+      e.preventDefault();
+      item.dataset.tapped = '1';
+      open();
+    });
+  });
+  document.addEventListener('pointerdown', (e) => {
+    navItems.forEach((item) => {
+      if (item.contains(e.target)) return;
+      setNavOpen(item, false);
     });
   });
 

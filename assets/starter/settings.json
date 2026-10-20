@@ -125,6 +125,13 @@
     "home_trust_4_title": "Authentic guaranteed",
     "home_videos_eyebrow": "Real customers, real fits",
     "home_videos_title": "Hear from our customers",
+    "menu_promo_eyebrow": "Just landed",
+    "menu_promo_image": {
+        "image": "split-mobile.jpg"
+    },
+    "menu_promo_label": "Shop new in",
+    "menu_promo_link": "{shop}?orderby=date",
+    "menu_promo_title": "Fresh drops every week",
     "newsletter_text": "<p>Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.</p>",
     "newsletter_title": "Sign up and save",
     "product_auth_badge": "100%",

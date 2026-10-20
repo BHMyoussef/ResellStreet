@@ -44,8 +44,9 @@ if ( function_exists( 'ci_is_minimal_checkout' ) && ci_is_minimal_checkout() ) {
 					'container'      => false,
 					'menu_class'     => 'site-nav__list',
 					'menu_id'        => 'site-nav-list',
-					'depth'          => 2,
+					'depth'          => 3,
 					'fallback_cb'    => false,
+					'walker'         => new CI_Nav_Walker( 'desktop' ),
 				)
 			);
 			?>

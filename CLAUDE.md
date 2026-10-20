@@ -137,8 +137,9 @@ Then set what differs per store:
 4. Optional: **CustomImpulse theme → Brand colours** (Primary / Accent / Page background; defaults = ResellStreet's
    navy / sand / #FAFAFA). Primary must be dark (white button text ≥ 4.5:1); primary text on the accent ≥ 4.5:1.
 5. Content the import can't create: products and categories (incl. **Sneakers** for the Trending tab, size guide
-   on Shoes), Products → Brands (the 12 homepage slots match by slug), Products → Video reviews, Menus ("Primary",
-   "Footer"), Contact page (WPForms), policy pages.
+   on Shoes), Products → Brands (the 12 homepage slots match by slug), Products → Video reviews, Menus ("Main menu":
+   Shop all · New in · Brands with CSS class `mega`, children = brands, grandchildren = models · Best sellers ·
+   Help › Track my order / Contact / About; "Footer"), Contact page (WPForms), policy pages.
 6. **WooCommerce**: classic Cart/Checkout shortcode pages, Free shipping minimum, Site visibility "Live", payments,
    email sender name/address.
 7. Optional **wp-config.php**: Meta Pixel `NV_META_PIXEL_ID` / `NV_META_CAPI_TOKEN` (+ consent: a banner calling
@@ -167,10 +168,21 @@ Never run `npm run fixtures` or `tools/seed.sh` on a live store (seed.sh is Rese
 | 9 | Product import from the Shopify CSV in `/reference` (converter done: brand, collection, decimal prices; 215 products imported) | ✅ done |
 | 10 | Homepage v2 (`reference/homepage-v2`), branch `homepage-v2`: hero, new arrivals, image with text, brands, banner, trending, video reviews, trust row | ✅ built, awaiting approval to merge |
 | 11 | Product page v2 (`reference/product-v2`), branch `product-v2` (from homepage-v2): gallery, info column, accordions, reviews, video reviews, you may also like, recently viewed, sticky ATC, cart drawer | ✅ built, awaiting approval |
+| 12 | Main menu v2, branch `menu-v2`: shopping menu, desktop mega panel (brand logos + models + promo), mobile drill-down drawer (search, brand logo grid, account, free shipping note) | ✅ built, awaiting approval |
 
 ### Decisions made so far
 - Body font is Outfit (live store), not Twentieth Century (export). Desktop/mobile sizes measured from live computed styles.
 - Drawers are native `<dialog data-drawer="name">`, opened by `[data-drawer-open="name"]`; API `window.CustomImpulse.openDrawer/closeDrawer`.
+- Main menu v2 (`inc/menu.php`, `CI_Nav_Walker`, header.css, global.js): the WP menu drives everything. A top-level item
+  with CSS class `mega` = full-width panel (children = columns; brand logo when the item is a product_brand or a
+  product_cat with a brand's slug, `ci_menu_item_logo()`; grandchildren = links; promo tile from Customizer →
+  Main menu `menu_promo_*`, desktop only). Other parents = small dropdown. JS: hover opens, closes after 200ms,
+  focus opens, Esc closes, first tap opens on touch screens. Full nav from 1024px (5 items don't fit on one line
+  below); 769–1023px keep the menu button + drawer. Drawer = root panel (search button → search overlay, menu,
+  "Shop by brand" logo grid from the mega children, account, `ci_menu_shipping_note()`), every sub-menu moved by
+  global.js into a flat panel sliding over it (back button + "View all" = parent URL unless "#"; Esc goes back one
+  level). Local menu built by `tools/main-menu.php` (seed.sh): brands with products by count, top 6 models each
+  (brand name dropped), New in = shop `?orderby=date`, Best sellers = `?orderby=popularity` (WC total_sales).
 - Product card is built on WC loop hooks in `inc/woocommerce.php`; `ci_price_html()` is shared with the product page.
 - Card images: square frame (homepage v2 design, user choice): WC thumbnail forced uncropped 600w in code
   (`woocommerce_get_image_size_thumbnail`, inc/setup.php) + `ci-card-sm` 360w uncropped for srcset; the card keeps

@@ -68,6 +68,14 @@ function ci_defaults() {
 		'brand_primary'         => '#1c253b',
 		'brand_accent'          => '#c1a584',
 		'brand_bg'              => '#fafafa',
+		// Main menu (inc/menu.php): promo tile in the desktop mega panel, drawer extras.
+		'menu_promo_image'      => 0,
+		'menu_promo_eyebrow'    => '',
+		'menu_promo_title'      => '',
+		'menu_promo_label'      => '',
+		'menu_promo_link'       => '',
+		'menu_brand_grid'       => true,
+		'menu_shipping_note'    => true,
 		// Announcement bar.
 		'announcement_enable'   => true,
 		'announcement_interval' => 5,
@@ -273,6 +281,41 @@ add_action(
 				)
 			);
 		}
+
+		// Main menu.
+		$wp_customize->add_section(
+			'ci_menu',
+			array(
+				'title'       => __( 'Main menu', 'customimpulse' ),
+				'panel'       => 'ci_theme',
+				'description' => __( 'The links are in Menus ("Main menu" location). Give a top-level item the CSS class "mega" (Screen Options → CSS Classes) to open a full-width panel: its sub-items are columns, with the brand logo when the item is a brand or a category named like one.', 'customimpulse' ),
+			)
+		);
+		$wp_customize->add_setting(
+			'menu_promo_image',
+			array(
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+			)
+		);
+		$wp_customize->add_control(
+			new WP_Customize_Media_Control(
+				$wp_customize,
+				'menu_promo_image',
+				array(
+					'label'       => __( 'Mega menu promo image', 'customimpulse' ),
+					'description' => __( 'Shown at the end of the desktop mega panel (portrait works best). Needs a link.', 'customimpulse' ),
+					'section'     => 'ci_menu',
+					'mime_type'   => 'image',
+				)
+			)
+		);
+		$add( 'menu_promo_eyebrow', 'ci_menu', __( 'Promo small text', 'customimpulse' ) );
+		$add( 'menu_promo_title', 'ci_menu', __( 'Promo title', 'customimpulse' ) );
+		$add( 'menu_promo_label', 'ci_menu', __( 'Promo link text', 'customimpulse' ) );
+		$add( 'menu_promo_link', 'ci_menu', __( 'Promo link', 'customimpulse' ), 'url', 'esc_url_raw' );
+		$add( 'menu_brand_grid', 'ci_menu', __( 'Mobile menu: brand logo grid', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
+		$add( 'menu_shipping_note', 'ci_menu', __( 'Mobile menu: free shipping note (from the Free shipping minimum)', 'customimpulse' ), 'checkbox', 'ci_sanitize_checkbox' );
 
 		// Announcement bar.
 		$wp_customize->add_section(

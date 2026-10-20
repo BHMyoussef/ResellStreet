@@ -15,6 +15,7 @@ require_once get_theme_file_path( 'inc/customizer-home.php' );
 require_once get_theme_file_path( 'inc/starter.php' );
 require_once get_theme_file_path( 'inc/video-reviews.php' );
 require_once get_theme_file_path( 'inc/template-tags.php' );
+require_once get_theme_file_path( 'inc/menu.php' );
 require_once get_theme_file_path( 'inc/enqueue.php' );
 
 if ( class_exists( 'WooCommerce' ) ) {

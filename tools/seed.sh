@@ -38,16 +38,10 @@ recreate_menu() { # name -> id
   "$WP" menu create "$1" --porcelain
 }
 
-MAIN=$(recreate_menu "Main menu")
-"$WP" menu item add-custom "$MAIN" "Home" "$("$WP" option get home)/" >/dev/null
-"$WP" menu item add-post "$MAIN" "$SHOP" --title="Catalogue" >/dev/null
-"$WP" menu item add-post "$MAIN" "$ABOUT" >/dev/null
-"$WP" menu item add-post "$MAIN" "$CONTACT" >/dev/null
-"$WP" menu item add-post "$MAIN" "$TRACK" --title="Track my order" >/dev/null
-"$WP" menu location assign "$MAIN" primary
+# Main menu: built from the catalogue at the end (tools/main-menu.php), once brands and categories exist.
 
 FOOTER=$(recreate_menu "Footer")
-for id in "$SHIPPING" "$REFUND" "$PAYMENT" "$PRIVACY" "$TERMS" "$CONTACT"; do
+for id in "$SHIPPING" "$REFUND" "$PAYMENT" "$PRIVACY" "$TERMS" "$ABOUT" "$CONTACT" "$TRACK"; do
   "$WP" menu item add-post "$FOOTER" "$id" >/dev/null
 done
 "$WP" menu location assign "$FOOTER" footer
@@ -226,6 +220,14 @@ mod home_trust_1_icon truck;  mod home_trust_1_title "Free UK shipping";     mod
 mod home_trust_2_icon lock;   mod home_trust_2_title "Secure checkout";      mod home_trust_2_text "Encrypted payments with all major cards."
 mod home_trust_3_icon return; mod home_trust_3_title "Easy returns";         mod home_trust_3_text "Changed your mind? Send it back hassle-free."
 mod home_trust_4_icon shield; mod home_trust_4_title "Authentic guaranteed"; mod home_trust_4_text "Every item checked before it ships."
+
+# ---------- Main menu (mega Brands panel, promo tile: Customizer → CustomImpulse theme → Main menu) ----------
+"$WP" eval-file "$(dirname "$0")/main-menu.php"
+mod menu_promo_image "$(media_id home-v2/split-mobile.jpg "It's a mindset (mobile)")"
+mod menu_promo_eyebrow "Just landed"
+mod menu_promo_title "Fresh drops every week"
+mod menu_promo_label "Shop new in"
+mod menu_promo_link "$SHOP_URL?orderby=date"
 
 # ---------- Logo, footer logo, site icon ----------
 # ResellStreet's brand files live in reference/media/brand (made by tools/brand-logo.py / brand-favicon.py);

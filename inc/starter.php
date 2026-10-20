@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const CI_STARTER_VERSION = 1;
+const CI_STARTER_VERSION = 2;
 
 add_action( 'after_switch_theme', 'ci_starter_import' );
 add_action(
